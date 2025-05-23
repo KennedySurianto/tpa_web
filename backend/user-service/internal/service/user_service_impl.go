@@ -17,7 +17,7 @@ func NewUserService(userRepo repository.UserRepository) *UserServiceImpl {
 
 func (u *UserServiceImpl) CreateUser(name, email, password string) (string, error) {
 	user := &model.User{
-		Name:     name,
+		Username: name,
 		Email:    email,
 		Password: password,
 	}
@@ -40,7 +40,7 @@ func (u *UserServiceImpl) GetUserByEmail(email string) (*model.User, error) {
 
 func (u *UserServiceImpl) UpdateUser(email, name, password string) error {
 	updatedUser := &model.User{
-		Name:     name,
+		Username: name,
 		Password: password,
 	}
 	return u.userRepo.UpdateUser(email, updatedUser)
@@ -52,4 +52,26 @@ func (u *UserServiceImpl) DeleteUser(email string) error {
 
 func (u *UserServiceImpl) GetUserById(id uint) (*model.User, error) {
 	return u.userRepo.GetUserById(id)
+}
+
+// New methods implementation
+
+func (u *UserServiceImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error {
+	return u.userRepo.UpdateUserProfile(userID, displayName, bio, avatarURL, country)
+}
+
+func (u *UserServiceImpl) UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error {
+	return u.userRepo.UpdateUserPreferences(userID, allowDuet, allowStitch, allowDownload, allowComments)
+}
+
+func (u *UserServiceImpl) SetUserPrivacyStatus(userID uint64, isPrivate bool) error {
+	return u.userRepo.SetUserPrivacyStatus(userID, isPrivate)
+}
+
+func (u *UserServiceImpl) SetUserActiveStatus(userID uint64, isActive bool) error {
+	return u.userRepo.SetUserActiveStatus(userID, isActive)
+}
+
+func (u *UserServiceImpl) UpdateLastLogin(userID uint64) error {
+	return u.userRepo.UpdateLastLogin(userID)
 }

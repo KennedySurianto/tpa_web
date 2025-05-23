@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/KennedySurianto/tpa_web/shared/gen/user;user";
+
+import "google/api/annotations.proto";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post: "/users"
+      body: "*"
+    };
+  }
+
+  rpc GetAllUsers(Empty) returns (UserListResponse) {
+    option (google.api.http) = {
+      get: "/users"
+    };
+  }
+
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/users/{email}"
+    };
+  }
+
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/users/{email}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteUser(DeleteUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      delete: "/users/{email}"
+    };
+  }
+
+  rpc GetUserById(GetUserByIdRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/users/id/{id}"
+    };
+  }
+
+  // Additional profile and preference management endpoints
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/users/{user_id}/profile"
+      body: "*"
+    };
+  }
+
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/users/{user_id}/preferences"
+      body: "*"
+    };
+  }
+
+  rpc SetUserPrivacyStatus(SetUserPrivacyStatusRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/users/{user_id}/privacy"
+      body: "*"
+    };
+  }
+
+  rpc SetUserActiveStatus(SetUserActiveStatusRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/users/{user_id}/status"
+      body: "*"
+    };
+  }
+
+  rpc UpdateLastLogin(UpdateLastLoginRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post: "/users/{user_id}/login"
+      body: "*"
+    };
+  }
+
+  rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse) {
+    option (google.api.http) = {
+      get: "/users/country/{country}"
+    };
+  }
+
+  rpc GetVerifiedUsers(Empty) returns (UserListResponse) {
+    option (google.api.http) = {
+      get: "/users/verified"
+    };
+  }
+}
+
+// Request Messages
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+  string display_name = 4;
+  string bio = 5;
+  string avatar_url = 6;
+  string country = 7;
+}
+
+message GetUserRequest {
+  string email = 1;
+}
+
+message UpdateUserRequest {
+  string email = 1;
+  string username = 2;
+  string password = 3;
+  string display_name = 4;
+  string bio = 5;
+  string avatar_url = 6;
+  string country = 7;
+}
+
+message DeleteUserRequest {
+  string email = 1;
+}
+
+message GetUserByIdRequest {
+  uint64 id = 1;
+}
+
+message UpdateUserProfileRequest {
+  uint64 user_id = 1;
+  string display_name = 2;
+  string bio = 3;
+  string avatar_url = 4;
+  string country = 5;
+}
+
+message UpdateUserPreferencesRequest {
+  uint64 user_id = 1;
+  bool allow_duet = 2;
+  bool allow_stitch = 3;
+  bool allow_download = 4;
+  bool allow_comments = 5;
+}
+
+message SetUserPrivacyStatusRequest {
+  uint64 user_id = 1;
+  bool is_private = 2;
+}
+
+message SetUserActiveStatusRequest {
+  uint64 user_id = 1;
+  bool is_active = 2;
+}
+
+message UpdateLastLoginRequest {
+  uint64 user_id = 1;
+}
+
+message GetUsersByCountryRequest {
+  string country = 1;
+}
+
+// Response Messages
+message User {
+  uint64 id = 1;
+  string username = 2;
+  string email = 3;
+  string display_name = 4;
+  string bio = 5;
+  string avatar_url = 6;
+  bool is_verified = 7;
+  bool is_private = 8;
+  bool is_active = 9;
+  int64 last_login_at = 10;  // Unix timestamp
+  string country = 11;
+  bool allow_duet = 12;
+  bool allow_stitch = 13;
+  bool allow_download = 14;
+  bool allow_comments = 15;
+  int64 created_at = 16;     // Unix timestamp
+  int64 updated_at = 17;     // Unix timestamp
+}
+
+message UserResponse {
+  string message = 1;
+  User user = 2;  // Optional: return user data after operations
+}
+
+message UserListResponse {
+  repeated User users = 1;
+  int32 total_count = 2;     // Total number of users
+  int32 page = 3;            // Current page (for pagination)
+  int32 page_size = 4;       // Page size (for pagination)
+}
+
+// Utility Messages
+message Empty {}
+
+// Additional specialized messages for different user views
+message UserProfile {
+  uint64 id = 1;
+  string username = 2;
+  string display_name = 3;
+  string bio = 4;
+  string avatar_url = 5;
+  bool is_verified = 6;
+  bool is_private = 7;
+  string country = 8;
+  int64 created_at = 9;
+}
+
+message UserPreferences {
+  uint64 user_id = 1;
+  bool allow_duet = 2;
+  bool allow_stitch = 3;
+  bool allow_download = 4;
+  bool allow_comments = 5;
+}
+
+message UserStats {
+  uint64 user_id = 1;
+  int64 last_login_at = 2;
+  bool is_active = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+// Pagination request (for future use)
+message PaginationRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string sort_by = 3;
+  string sort_order = 4;  // "asc" or "desc"
+}
+
+// Search request (for future use)
+message SearchUsersRequest {
+  string query = 1;
+  PaginationRequest pagination = 2;
+  bool verified_only = 3;
+  bool active_only = 4;
+  string country = 5;
+}

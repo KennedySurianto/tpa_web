@@ -9,4 +9,10 @@ type UserRepository interface {
 	UpdateUser(email string, updatedUser *model.User) error
 	DeleteUser(email string) error
 	GetUserById(id uint) (*model.User, error)
+
+	UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error
+	UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error
+	SetUserPrivacyStatus(userID uint64, isPrivate bool) error
+	SetUserActiveStatus(userID uint64, isActive bool) error
+	UpdateLastLogin(userID uint64) error
 }
