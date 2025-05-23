@@ -1,15 +1,18 @@
-import './App.css'
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
-import LandingPage from './pages/auth/LandingPage'
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+import OnBoardingPage from './pages/auth/OnBoardingPage'
 
 function App() {
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<OnBoardingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ResetPasswordPage />}/>
       </Routes>
     </BrowserRouter>
   )
