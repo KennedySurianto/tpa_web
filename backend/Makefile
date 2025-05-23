@@ -27,6 +27,7 @@ run-user:
 	@echo "Running user service..."
 	cd user-service && go run ./cmd/main.go
 
+
 # Run gateway service
 run-gateway:
 	@echo "Running gateway service..."
