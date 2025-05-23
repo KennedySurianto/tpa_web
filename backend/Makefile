@@ -15,25 +15,17 @@ proto:
 build: proto
 	@echo "Building user service..."
 	cd user-service && go build -o ../bin/user-service ./cmd
-	@echo "Building order service..."
-	cd order-service && go build -o ../bin/order-service ./cmd
 
 # Run all services
 run:
 	@echo Running all services in new CMD windows...
 	@start "" cmd /k "cd user-service && go run cmd/main.go"
-	@start "" cmd /k "cd order-service && go run cmd/main.go"
 	@start "" cmd /k "cd gateway && go run main.go"
 
 # Run user service
 run-user:
 	@echo "Running user service..."
 	cd user-service && go run ./cmd/main.go
-
-# Run order service
-run-order:
-	@echo "Running order service..."
-	cd order-service && go run ./cmd/main.go
 
 # Run gateway service
 run-gateway:
