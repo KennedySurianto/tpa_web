@@ -1,0 +1,32 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.29-latest
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - 8080:8080
+      - 9901:9901
+    depends_on:
+      - auth_service
+      - user_service
+    # optional explicit command:
+    # command: ["-c", "/etc/envoy/envoy.yaml"]
+
+  auth_service:
+    build: 
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    ports:
+      - 50052:50052
+
+  user_service:
+    build: 
+      context: ./backend
+      dockerfile: user-service/Dockerfile
+    ports:
+      - 50051:50051
+
+  frontend:
+    build: ./frontend
+    ports:
+      - 3000:80

@@ -1,9 +1,8 @@
-module github.com/KennedySurianto/tpa_web/user-service
+module github.com/KennedySurianto/tpa_web/backend/user-service
 
 go 1.24.3
 
 require (
-	github.com/KennedySurianto/tpa_web/shared v0.0.0-00010101000000-000000000000
 	gorm.io/driver/postgres v1.5.11
 )
 
@@ -28,6 +27,7 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/grpc v1.72.1
 	gorm.io/gorm v1.26.1
+	github.com/KennedySurianto/tpa_web/backend/shared v0.0.0
 )
 
-replace github.com/KennedySurianto/tpa_web/shared => ../shared
+replace github.com/KennedySurianto/tpa_web/backend/shared => ../shared

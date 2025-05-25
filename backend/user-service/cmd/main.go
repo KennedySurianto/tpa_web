@@ -8,11 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	pb "github.com/KennedySurianto/tpa_web/shared/gen/user"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/controller"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/database"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/repository"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/service"
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/controller"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/database"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/repository"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

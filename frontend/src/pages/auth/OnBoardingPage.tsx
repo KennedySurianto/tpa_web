@@ -4,11 +4,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const OnBoardingPage: React.FC = () => {
-  const handleGoogleLogin = () => {
-    // Implement Google OAuth login logic here
-    console.log("Google login clicked");
-  };
-
   const handleContinueAsGuest = () => {
     // Implement guest login logic here
     console.log("Continue as guest clicked");

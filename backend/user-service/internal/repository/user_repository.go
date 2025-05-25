@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/KennedySurianto/tpa_web/user-service/internal/model"
+import "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 
 type UserRepository interface {
 	CreateUser(user *model.User) error

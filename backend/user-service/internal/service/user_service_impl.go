@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/KennedySurianto/tpa_web/user-service/internal/model"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/repository"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/repository"
 )
 
 type UserServiceImpl struct {

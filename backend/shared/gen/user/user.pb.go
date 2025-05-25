@@ -7,7 +7,6 @@
 package user
 
 import (
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -689,20 +688,21 @@ type User struct {
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Bio           string                 `protobuf:"bytes,5,opt,name=bio,proto3" json:"bio,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	IsVerified    bool                   `protobuf:"varint,7,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
-	IsPrivate     bool                   `protobuf:"varint,8,opt,name=is_private,json=isPrivate,proto3" json:"is_private,omitempty"`
-	IsActive      bool                   `protobuf:"varint,9,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	LastLoginAt   int64                  `protobuf:"varint,10,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"` // Unix timestamp
-	Country       string                 `protobuf:"bytes,11,opt,name=country,proto3" json:"country,omitempty"`
-	AllowDuet     bool                   `protobuf:"varint,12,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
-	AllowStitch   bool                   `protobuf:"varint,13,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
-	AllowDownload bool                   `protobuf:"varint,14,opt,name=allow_download,json=allowDownload,proto3" json:"allow_download,omitempty"`
-	AllowComments bool                   `protobuf:"varint,15,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"` // Unix timestamp
-	UpdatedAt     int64                  `protobuf:"varint,17,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // Unix timestamp
+	Password      string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"` // hashed
+	DisplayName   string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Bio           string                 `protobuf:"bytes,6,opt,name=bio,proto3" json:"bio,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	IsVerified    bool                   `protobuf:"varint,8,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
+	IsPrivate     bool                   `protobuf:"varint,9,opt,name=is_private,json=isPrivate,proto3" json:"is_private,omitempty"`
+	IsActive      bool                   `protobuf:"varint,10,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	LastLoginAt   int64                  `protobuf:"varint,11,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"` // Unix timestamp
+	Country       string                 `protobuf:"bytes,12,opt,name=country,proto3" json:"country,omitempty"`
+	AllowDuet     bool                   `protobuf:"varint,13,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch   bool                   `protobuf:"varint,14,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	AllowDownload bool                   `protobuf:"varint,15,opt,name=allow_download,json=allowDownload,proto3" json:"allow_download,omitempty"`
+	AllowComments bool                   `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"` // Unix timestamp
+	UpdatedAt     int64                  `protobuf:"varint,18,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // Unix timestamp
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -754,6 +754,13 @@ func (x *User) GetUsername() string {
 func (x *User) GetEmail() string {
 	if x != nil {
 		return x.Email
+	}
+	return ""
+}
+
+func (x *User) GetPassword() string {
+	if x != nil {
+		return x.Password
 	}
 	return ""
 }
@@ -1425,7 +1432,7 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\x04user\x1a\x1cgoogle/api/annotations.proto\"\xcf\x01\n" +
+	"user.proto\x12\x04user\"\xcf\x01\n" +
 	"\x11CreateUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
@@ -1474,32 +1481,33 @@ const file_user_proto_rawDesc = "" +
 	"\x16UpdateLastLoginRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\"4\n" +
 	"\x18GetUsersByCountryRequest\x12\x18\n" +
-	"\acountry\x18\x01 \x01(\tR\acountry\"\x85\x04\n" +
+	"\acountry\x18\x01 \x01(\tR\acountry\"\xa1\x04\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12!\n" +
-	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x10\n" +
-	"\x03bio\x18\x05 \x01(\tR\x03bio\x12\x1d\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x04 \x01(\tR\bpassword\x12!\n" +
+	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12\x10\n" +
+	"\x03bio\x18\x06 \x01(\tR\x03bio\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x06 \x01(\tR\tavatarUrl\x12\x1f\n" +
-	"\vis_verified\x18\a \x01(\bR\n" +
+	"avatar_url\x18\a \x01(\tR\tavatarUrl\x12\x1f\n" +
+	"\vis_verified\x18\b \x01(\bR\n" +
 	"isVerified\x12\x1d\n" +
 	"\n" +
-	"is_private\x18\b \x01(\bR\tisPrivate\x12\x1b\n" +
-	"\tis_active\x18\t \x01(\bR\bisActive\x12\"\n" +
-	"\rlast_login_at\x18\n" +
-	" \x01(\x03R\vlastLoginAt\x12\x18\n" +
-	"\acountry\x18\v \x01(\tR\acountry\x12\x1d\n" +
+	"is_private\x18\t \x01(\bR\tisPrivate\x12\x1b\n" +
+	"\tis_active\x18\n" +
+	" \x01(\bR\bisActive\x12\"\n" +
+	"\rlast_login_at\x18\v \x01(\x03R\vlastLoginAt\x12\x18\n" +
+	"\acountry\x18\f \x01(\tR\acountry\x12\x1d\n" +
 	"\n" +
-	"allow_duet\x18\f \x01(\bR\tallowDuet\x12!\n" +
-	"\fallow_stitch\x18\r \x01(\bR\vallowStitch\x12%\n" +
-	"\x0eallow_download\x18\x0e \x01(\bR\rallowDownload\x12%\n" +
-	"\x0eallow_comments\x18\x0f \x01(\bR\rallowComments\x12\x1d\n" +
+	"allow_duet\x18\r \x01(\bR\tallowDuet\x12!\n" +
+	"\fallow_stitch\x18\x0e \x01(\bR\vallowStitch\x12%\n" +
+	"\x0eallow_download\x18\x0f \x01(\bR\rallowDownload\x12%\n" +
+	"\x0eallow_comments\x18\x10 \x01(\bR\rallowComments\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x10 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\x11 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x11 \x01(\x03R\tupdatedAt\"H\n" +
+	"updated_at\x18\x12 \x01(\x03R\tupdatedAt\"H\n" +
 	"\fUserResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1e\n" +
 	"\x04user\x18\x02 \x01(\v2\n" +
@@ -1555,26 +1563,26 @@ const file_user_proto_rawDesc = "" +
 	"\rverified_only\x18\x03 \x01(\bR\fverifiedOnly\x12\x1f\n" +
 	"\vactive_only\x18\x04 \x01(\bR\n" +
 	"activeOnly\x12\x18\n" +
-	"\acountry\x18\x05 \x01(\tR\acountry2\xd0\t\n" +
-	"\vUserService\x12L\n" +
+	"\acountry\x18\x05 \x01(\tR\acountry2\xdc\x06\n" +
+	"\vUserService\x129\n" +
 	"\n" +
-	"CreateUser\x12\x17.user.CreateUserRequest\x1a\x12.user.UserResponse\"\x11\x82\xd3\xe4\x93\x02\v:\x01*\"\x06/users\x12B\n" +
-	"\vGetAllUsers\x12\v.user.Empty\x1a\x16.user.UserListResponse\"\x0e\x82\xd3\xe4\x93\x02\b\x12\x06/users\x12C\n" +
-	"\aGetUser\x12\x14.user.GetUserRequest\x1a\n" +
-	".user.User\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/users/{email}\x12T\n" +
+	"CreateUser\x12\x17.user.CreateUserRequest\x1a\x12.user.UserResponse\x122\n" +
+	"\vGetAllUsers\x12\v.user.Empty\x1a\x16.user.UserListResponse\x122\n" +
+	"\x0eGetUserByEmail\x12\x14.user.GetUserRequest\x1a\n" +
+	".user.User\x129\n" +
 	"\n" +
-	"UpdateUser\x12\x17.user.UpdateUserRequest\x1a\x12.user.UserResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\x1a\x0e/users/{email}\x12Q\n" +
+	"UpdateUser\x12\x17.user.UpdateUserRequest\x1a\x12.user.UserResponse\x129\n" +
 	"\n" +
-	"DeleteUser\x12\x17.user.DeleteUserRequest\x1a\x12.user.UserResponse\"\x16\x82\xd3\xe4\x93\x02\x10*\x0e/users/{email}\x12K\n" +
+	"DeleteUser\x12\x17.user.DeleteUserRequest\x1a\x12.user.UserResponse\x123\n" +
 	"\vGetUserById\x12\x18.user.GetUserByIdRequest\x1a\n" +
-	".user.User\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/users/id/{id}\x12l\n" +
-	"\x11UpdateUserProfile\x12\x1e.user.UpdateUserProfileRequest\x1a\x12.user.UserResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/users/{user_id}/profile\x12x\n" +
-	"\x15UpdateUserPreferences\x12\".user.UpdateUserPreferencesRequest\x1a\x12.user.UserResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/users/{user_id}/preferences\x12r\n" +
-	"\x14SetUserPrivacyStatus\x12!.user.SetUserPrivacyStatusRequest\x1a\x12.user.UserResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/users/{user_id}/privacy\x12o\n" +
-	"\x13SetUserActiveStatus\x12 .user.SetUserActiveStatusRequest\x1a\x12.user.UserResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\x1a\x17/users/{user_id}/status\x12f\n" +
-	"\x0fUpdateLastLogin\x12\x1c.user.UpdateLastLoginRequest\x1a\x12.user.UserResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/users/{user_id}/login\x12m\n" +
-	"\x11GetUsersByCountry\x12\x1e.user.GetUsersByCountryRequest\x1a\x16.user.UserListResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/users/country/{country}\x12P\n" +
-	"\x10GetVerifiedUsers\x12\v.user.Empty\x1a\x16.user.UserListResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/users/verifiedB9Z7github.com/KennedySurianto/tpa_web/shared/gen/user;userb\x06proto3"
+	".user.User\x12G\n" +
+	"\x11UpdateUserProfile\x12\x1e.user.UpdateUserProfileRequest\x1a\x12.user.UserResponse\x12O\n" +
+	"\x15UpdateUserPreferences\x12\".user.UpdateUserPreferencesRequest\x1a\x12.user.UserResponse\x12M\n" +
+	"\x14SetUserPrivacyStatus\x12!.user.SetUserPrivacyStatusRequest\x1a\x12.user.UserResponse\x12K\n" +
+	"\x13SetUserActiveStatus\x12 .user.SetUserActiveStatusRequest\x1a\x12.user.UserResponse\x12C\n" +
+	"\x0fUpdateLastLogin\x12\x1c.user.UpdateLastLoginRequest\x1a\x12.user.UserResponse\x12K\n" +
+	"\x11GetUsersByCountry\x12\x1e.user.GetUsersByCountryRequest\x1a\x16.user.UserListResponse\x127\n" +
+	"\x10GetVerifiedUsers\x12\v.user.Empty\x1a\x16.user.UserListResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/user;userb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
@@ -1617,7 +1625,7 @@ var file_user_proto_depIdxs = []int32{
 	18, // 2: user.SearchUsersRequest.pagination:type_name -> user.PaginationRequest
 	0,  // 3: user.UserService.CreateUser:input_type -> user.CreateUserRequest
 	14, // 4: user.UserService.GetAllUsers:input_type -> user.Empty
-	1,  // 5: user.UserService.GetUser:input_type -> user.GetUserRequest
+	1,  // 5: user.UserService.GetUserByEmail:input_type -> user.GetUserRequest
 	2,  // 6: user.UserService.UpdateUser:input_type -> user.UpdateUserRequest
 	3,  // 7: user.UserService.DeleteUser:input_type -> user.DeleteUserRequest
 	4,  // 8: user.UserService.GetUserById:input_type -> user.GetUserByIdRequest
@@ -1630,7 +1638,7 @@ var file_user_proto_depIdxs = []int32{
 	14, // 15: user.UserService.GetVerifiedUsers:input_type -> user.Empty
 	12, // 16: user.UserService.CreateUser:output_type -> user.UserResponse
 	13, // 17: user.UserService.GetAllUsers:output_type -> user.UserListResponse
-	11, // 18: user.UserService.GetUser:output_type -> user.User
+	11, // 18: user.UserService.GetUserByEmail:output_type -> user.User
 	12, // 19: user.UserService.UpdateUser:output_type -> user.UserResponse
 	12, // 20: user.UserService.DeleteUser:output_type -> user.UserResponse
 	11, // 21: user.UserService.GetUserById:output_type -> user.User

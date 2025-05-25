@@ -2,96 +2,25 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/KennedySurianto/tpa_web/shared/gen/user;user";
-
-import "google/api/annotations.proto";
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/user;user";
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      post: "/users"
-      body: "*"
-    };
-  }
-
-  rpc GetAllUsers(Empty) returns (UserListResponse) {
-    option (google.api.http) = {
-      get: "/users"
-    };
-  }
-
-  rpc GetUser(GetUserRequest) returns (User) {
-    option (google.api.http) = {
-      get: "/users/{email}"
-    };
-  }
-
-  rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      put: "/users/{email}"
-      body: "*"
-    };
-  }
-
-  rpc DeleteUser(DeleteUserRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      delete: "/users/{email}"
-    };
-  }
-
-  rpc GetUserById(GetUserByIdRequest) returns (User) {
-    option (google.api.http) = {
-      get: "/users/id/{id}"
-    };
-  }
+  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+  rpc GetAllUsers(Empty) returns (UserListResponse);
+  rpc GetUserByEmail(GetUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (UserResponse);
+  rpc GetUserById(GetUserByIdRequest) returns (User);
 
   // Additional profile and preference management endpoints
-  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      put: "/users/{user_id}/profile"
-      body: "*"
-    };
-  }
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserResponse);
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UserResponse);
+  rpc SetUserPrivacyStatus(SetUserPrivacyStatusRequest) returns (UserResponse);
+  rpc SetUserActiveStatus(SetUserActiveStatusRequest) returns (UserResponse);
+  rpc UpdateLastLogin(UpdateLastLoginRequest) returns (UserResponse);
 
-  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      put: "/users/{user_id}/preferences"
-      body: "*"
-    };
-  }
-
-  rpc SetUserPrivacyStatus(SetUserPrivacyStatusRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      put: "/users/{user_id}/privacy"
-      body: "*"
-    };
-  }
-
-  rpc SetUserActiveStatus(SetUserActiveStatusRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      put: "/users/{user_id}/status"
-      body: "*"
-    };
-  }
-
-  rpc UpdateLastLogin(UpdateLastLoginRequest) returns (UserResponse) {
-    option (google.api.http) = {
-      post: "/users/{user_id}/login"
-      body: "*"
-    };
-  }
-
-  rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse) {
-    option (google.api.http) = {
-      get: "/users/country/{country}"
-    };
-  }
-
-  rpc GetVerifiedUsers(Empty) returns (UserListResponse) {
-    option (google.api.http) = {
-      get: "/users/verified"
-    };
-  }
+  rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse);
+  rpc GetVerifiedUsers(Empty) returns (UserListResponse);
 }
 
 // Request Messages
@@ -166,20 +95,21 @@ message User {
   uint64 id = 1;
   string username = 2;
   string email = 3;
-  string display_name = 4;
-  string bio = 5;
-  string avatar_url = 6;
-  bool is_verified = 7;
-  bool is_private = 8;
-  bool is_active = 9;
-  int64 last_login_at = 10;  // Unix timestamp
-  string country = 11;
-  bool allow_duet = 12;
-  bool allow_stitch = 13;
-  bool allow_download = 14;
-  bool allow_comments = 15;
-  int64 created_at = 16;     // Unix timestamp
-  int64 updated_at = 17;     // Unix timestamp
+  string password = 4; // hashed
+  string display_name = 5;
+  string bio = 6;
+  string avatar_url = 7;
+  bool is_verified = 8;
+  bool is_private = 9;
+  bool is_active = 10;
+  int64 last_login_at = 11;  // Unix timestamp
+  string country = 12;
+  bool allow_duet = 13;
+  bool allow_stitch = 14;
+  bool allow_download = 15;
+  bool allow_comments = 16;
+  int64 created_at = 17;     // Unix timestamp
+  int64 updated_at = 18;     // Unix timestamp
 }
 
 message UserResponse {

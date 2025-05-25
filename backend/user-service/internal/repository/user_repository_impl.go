@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/KennedySurianto/tpa_web/user-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 	"gorm.io/gorm"
 )
 

@@ -3,7 +3,7 @@ package database
 import (
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
-    "github.com/KennedySurianto/tpa_web/user-service/internal/model"
+    "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 )
 
 // Exported function

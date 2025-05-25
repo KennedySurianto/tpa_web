@@ -1,6 +1,6 @@
 package service
 
-import "github.com/KennedySurianto/tpa_web/user-service/internal/model"
+import "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 
 type UserService interface {
 	CreateUser(name, email, password string) (string, error)

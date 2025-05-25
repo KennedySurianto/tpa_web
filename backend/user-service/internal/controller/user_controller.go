@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/KennedySurianto/tpa_web/shared/gen/user"
-	"github.com/KennedySurianto/tpa_web/user-service/internal/service"
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/service"
 )
 
 type UserController struct {
@@ -43,7 +43,7 @@ func (u *UserController) GetAllUsers(ctx context.Context, _ *pb.Empty) (*pb.User
 	return &pb.UserListResponse{Users: pbUsers}, nil
 }
 
-func (u *UserController) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
+func (u *UserController) GetUserByEmail(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
 	user, err := u.userService.GetUserByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %v", err)
