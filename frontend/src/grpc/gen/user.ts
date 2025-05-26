@@ -12,6 +12,13 @@ import { BrowserHeaders } from "browser-headers";
 export const protobufPackage = "user";
 
 /** Request Messages */
+export interface UserPreferences {
+  allowDuet: boolean;
+  allowStitch: boolean;
+  allowDownload: boolean;
+  allowComments: boolean;
+}
+
 export interface CreateUserRequest {
   username: string;
   email: string;
@@ -20,6 +27,8 @@ export interface CreateUserRequest {
   bio: string;
   avatarUrl: string;
   country: string;
+  isPrivate: boolean;
+  preferences?: UserPreferences | undefined;
 }
 
 export interface GetUserRequest {
@@ -138,14 +147,6 @@ export interface UserProfile {
   createdAt: string;
 }
 
-export interface UserPreferences {
-  userId: string;
-  allowDuet: boolean;
-  allowStitch: boolean;
-  allowDownload: boolean;
-  allowComments: boolean;
-}
-
 export interface UserStats {
   userId: string;
   lastLoginAt: string;
@@ -172,8 +173,126 @@ export interface SearchUsersRequest {
   country: string;
 }
 
+function createBaseUserPreferences(): UserPreferences {
+  return { allowDuet: false, allowStitch: false, allowDownload: false, allowComments: false };
+}
+
+export const UserPreferences: MessageFns<UserPreferences> = {
+  encode(message: UserPreferences, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.allowDuet !== false) {
+      writer.uint32(8).bool(message.allowDuet);
+    }
+    if (message.allowStitch !== false) {
+      writer.uint32(16).bool(message.allowStitch);
+    }
+    if (message.allowDownload !== false) {
+      writer.uint32(24).bool(message.allowDownload);
+    }
+    if (message.allowComments !== false) {
+      writer.uint32(32).bool(message.allowComments);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserPreferences {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserPreferences();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.allowDuet = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.allowStitch = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.allowDownload = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.allowComments = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UserPreferences {
+    return {
+      allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
+      allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
+      allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
+      allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
+    };
+  },
+
+  toJSON(message: UserPreferences): unknown {
+    const obj: any = {};
+    if (message.allowDuet !== false) {
+      obj.allowDuet = message.allowDuet;
+    }
+    if (message.allowStitch !== false) {
+      obj.allowStitch = message.allowStitch;
+    }
+    if (message.allowDownload !== false) {
+      obj.allowDownload = message.allowDownload;
+    }
+    if (message.allowComments !== false) {
+      obj.allowComments = message.allowComments;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UserPreferences>, I>>(base?: I): UserPreferences {
+    return UserPreferences.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UserPreferences>, I>>(object: I): UserPreferences {
+    const message = createBaseUserPreferences();
+    message.allowDuet = object.allowDuet ?? false;
+    message.allowStitch = object.allowStitch ?? false;
+    message.allowDownload = object.allowDownload ?? false;
+    message.allowComments = object.allowComments ?? false;
+    return message;
+  },
+};
+
 function createBaseCreateUserRequest(): CreateUserRequest {
-  return { username: "", email: "", password: "", displayName: "", bio: "", avatarUrl: "", country: "" };
+  return {
+    username: "",
+    email: "",
+    password: "",
+    displayName: "",
+    bio: "",
+    avatarUrl: "",
+    country: "",
+    isPrivate: false,
+    preferences: undefined,
+  };
 }
 
 export const CreateUserRequest: MessageFns<CreateUserRequest> = {
@@ -198,6 +317,12 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     }
     if (message.country !== "") {
       writer.uint32(58).string(message.country);
+    }
+    if (message.isPrivate !== false) {
+      writer.uint32(64).bool(message.isPrivate);
+    }
+    if (message.preferences !== undefined) {
+      UserPreferences.encode(message.preferences, writer.uint32(74).fork()).join();
     }
     return writer;
   },
@@ -265,6 +390,22 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
           message.country = reader.string();
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.isPrivate = reader.bool();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.preferences = UserPreferences.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -283,6 +424,8 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
       avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
       country: isSet(object.country) ? globalThis.String(object.country) : "",
+      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
+      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
     };
   },
 
@@ -309,6 +452,12 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     if (message.country !== "") {
       obj.country = message.country;
     }
+    if (message.isPrivate !== false) {
+      obj.isPrivate = message.isPrivate;
+    }
+    if (message.preferences !== undefined) {
+      obj.preferences = UserPreferences.toJSON(message.preferences);
+    }
     return obj;
   },
 
@@ -324,6 +473,10 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     message.bio = object.bio ?? "";
     message.avatarUrl = object.avatarUrl ?? "";
     message.country = object.country ?? "";
+    message.isPrivate = object.isPrivate ?? false;
+    message.preferences = (object.preferences !== undefined && object.preferences !== null)
+      ? UserPreferences.fromPartial(object.preferences)
+      : undefined;
     return message;
   },
 };
@@ -1946,130 +2099,6 @@ export const UserProfile: MessageFns<UserProfile> = {
     message.isPrivate = object.isPrivate ?? false;
     message.country = object.country ?? "";
     message.createdAt = object.createdAt ?? "0";
-    return message;
-  },
-};
-
-function createBaseUserPreferences(): UserPreferences {
-  return { userId: "0", allowDuet: false, allowStitch: false, allowDownload: false, allowComments: false };
-}
-
-export const UserPreferences: MessageFns<UserPreferences> = {
-  encode(message: UserPreferences, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.allowDuet !== false) {
-      writer.uint32(16).bool(message.allowDuet);
-    }
-    if (message.allowStitch !== false) {
-      writer.uint32(24).bool(message.allowStitch);
-    }
-    if (message.allowDownload !== false) {
-      writer.uint32(32).bool(message.allowDownload);
-    }
-    if (message.allowComments !== false) {
-      writer.uint32(40).bool(message.allowComments);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UserPreferences {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUserPreferences();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.userId = reader.uint64().toString();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.allowDuet = reader.bool();
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.allowStitch = reader.bool();
-          continue;
-        }
-        case 4: {
-          if (tag !== 32) {
-            break;
-          }
-
-          message.allowDownload = reader.bool();
-          continue;
-        }
-        case 5: {
-          if (tag !== 40) {
-            break;
-          }
-
-          message.allowComments = reader.bool();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UserPreferences {
-    return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
-      allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
-      allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
-      allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
-    };
-  },
-
-  toJSON(message: UserPreferences): unknown {
-    const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
-    }
-    if (message.allowDuet !== false) {
-      obj.allowDuet = message.allowDuet;
-    }
-    if (message.allowStitch !== false) {
-      obj.allowStitch = message.allowStitch;
-    }
-    if (message.allowDownload !== false) {
-      obj.allowDownload = message.allowDownload;
-    }
-    if (message.allowComments !== false) {
-      obj.allowComments = message.allowComments;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UserPreferences>, I>>(base?: I): UserPreferences {
-    return UserPreferences.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<UserPreferences>, I>>(object: I): UserPreferences {
-    const message = createBaseUserPreferences();
-    message.userId = object.userId ?? "0";
-    message.allowDuet = object.allowDuet ?? false;
-    message.allowStitch = object.allowStitch ?? false;
-    message.allowDownload = object.allowDownload ?? false;
-    message.allowComments = object.allowComments ?? false;
     return message;
   },
 };

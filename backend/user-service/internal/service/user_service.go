@@ -1,9 +1,12 @@
 package service
 
-import "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+import (
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+)
 
 type UserService interface {
-	CreateUser(name, email, password string) (string, error)
+	CreateUser(req *pb.CreateUserRequest) (*model.User, error)
 	GetAllUsers() ([]model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
 	UpdateUser(email, name, password string) error

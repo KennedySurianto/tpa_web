@@ -24,6 +24,13 @@ service UserService {
 }
 
 // Request Messages
+message UserPreferences {
+  bool allow_duet = 1;
+  bool allow_stitch = 2;
+  bool allow_download = 3;
+  bool allow_comments = 4;
+}
+
 message CreateUserRequest {
   string username = 1;
   string email = 2;
@@ -32,6 +39,8 @@ message CreateUserRequest {
   string bio = 5;
   string avatar_url = 6;
   string country = 7;
+  bool is_private = 8;
+  UserPreferences preferences = 9;
 }
 
 message GetUserRequest {
@@ -138,14 +147,6 @@ message UserProfile {
   bool is_private = 7;
   string country = 8;
   int64 created_at = 9;
-}
-
-message UserPreferences {
-  uint64 user_id = 1;
-  bool allow_duet = 2;
-  bool allow_stitch = 3;
-  bool allow_download = 4;
-  bool allow_comments = 5;
 }
 
 message UserStats {

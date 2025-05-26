@@ -27,6 +27,6 @@ func ConnectDatabase() *gorm.DB {
     if err != nil {
         panic(err)
     }
-
+    fmt.Println("[USER_SERVICE_DB] Database connection established successfully")
     return db
 }

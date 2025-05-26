@@ -1,6 +1,7 @@
 package service
 
 import (
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/repository"
 )
@@ -15,19 +16,23 @@ func NewUserService(userRepo repository.UserRepository) *UserServiceImpl {
 	}
 }
 
-func (u *UserServiceImpl) CreateUser(name, email, password string) (string, error) {
+func (u *UserServiceImpl) CreateUser(req *pb.CreateUserRequest) (*model.User, error) {
 	user := &model.User{
-		Username: name,
-		Email:    email,
-		Password: password,
+		Username:    req.Username,
+		Email:       req.Email,
+		Password:    req.Password,
+		DisplayName: req.DisplayName,
+		Bio:         req.Bio,
+		AvatarURL:   req.AvatarUrl,
+		Country:     req.Country,
 	}
 
 	err := u.userRepo.CreateUser(user)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return "Success", nil
+	return user, nil
 }
 
 func (u *UserServiceImpl) GetAllUsers() ([]model.User, error) {

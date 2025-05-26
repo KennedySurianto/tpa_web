@@ -12,6 +12,8 @@ services:
       - "5433:5432"
     volumes:
       - user-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   envoy:
     image: envoyproxy/envoy:v1.29-latest
@@ -23,6 +25,8 @@ services:
     depends_on:
       - auth-service
       - user-service
+    networks:
+      - app-network
     # optional explicit command:
     # command: ["-c", "/etc/envoy/envoy.yaml"]
 
@@ -32,6 +36,10 @@ services:
       dockerfile: auth-service/Dockerfile
     ports:
       - 50052:50052
+    depends_on:
+      - user-service
+    networks:
+      - app-network
 
   user-service:
     build: 
@@ -43,11 +51,19 @@ services:
       DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_service_db
     ports:
       - 50051:50051
+    networks:
+      - app-network
 
   frontend:
     build: ./frontend
     ports:
       - 3000:80
+    networks:
+      - app-network
 
 volumes:
   user-db-data:
+
+networks:
+  app-network:
+    driver: bridge

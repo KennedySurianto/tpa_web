@@ -9,6 +9,7 @@ package auth
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,18 +22,104 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Error codes for better error handling
+type AuthErrorCode int32
+
+const (
+	AuthErrorCode_AUTH_ERROR_UNKNOWN              AuthErrorCode = 0
+	AuthErrorCode_AUTH_ERROR_INVALID_CREDENTIALS  AuthErrorCode = 1
+	AuthErrorCode_AUTH_ERROR_USER_NOT_FOUND       AuthErrorCode = 2
+	AuthErrorCode_AUTH_ERROR_USER_ALREADY_EXISTS  AuthErrorCode = 3
+	AuthErrorCode_AUTH_ERROR_INVALID_TOKEN        AuthErrorCode = 4
+	AuthErrorCode_AUTH_ERROR_TOKEN_EXPIRED        AuthErrorCode = 5
+	AuthErrorCode_AUTH_ERROR_ACCOUNT_DISABLED     AuthErrorCode = 6
+	AuthErrorCode_AUTH_ERROR_ACCOUNT_NOT_VERIFIED AuthErrorCode = 7
+	AuthErrorCode_AUTH_ERROR_PASSWORD_TOO_WEAK    AuthErrorCode = 8
+	AuthErrorCode_AUTH_ERROR_EMAIL_NOT_VERIFIED   AuthErrorCode = 9
+	AuthErrorCode_AUTH_ERROR_TOO_MANY_ATTEMPTS    AuthErrorCode = 10
+	AuthErrorCode_AUTH_ERROR_INVALID_EMAIL_FORMAT AuthErrorCode = 11
+	AuthErrorCode_AUTH_ERROR_USERNAME_TAKEN       AuthErrorCode = 12
+	AuthErrorCode_AUTH_ERROR_EMAIL_TAKEN          AuthErrorCode = 13
+)
+
+// Enum value maps for AuthErrorCode.
+var (
+	AuthErrorCode_name = map[int32]string{
+		0:  "AUTH_ERROR_UNKNOWN",
+		1:  "AUTH_ERROR_INVALID_CREDENTIALS",
+		2:  "AUTH_ERROR_USER_NOT_FOUND",
+		3:  "AUTH_ERROR_USER_ALREADY_EXISTS",
+		4:  "AUTH_ERROR_INVALID_TOKEN",
+		5:  "AUTH_ERROR_TOKEN_EXPIRED",
+		6:  "AUTH_ERROR_ACCOUNT_DISABLED",
+		7:  "AUTH_ERROR_ACCOUNT_NOT_VERIFIED",
+		8:  "AUTH_ERROR_PASSWORD_TOO_WEAK",
+		9:  "AUTH_ERROR_EMAIL_NOT_VERIFIED",
+		10: "AUTH_ERROR_TOO_MANY_ATTEMPTS",
+		11: "AUTH_ERROR_INVALID_EMAIL_FORMAT",
+		12: "AUTH_ERROR_USERNAME_TAKEN",
+		13: "AUTH_ERROR_EMAIL_TAKEN",
+	}
+	AuthErrorCode_value = map[string]int32{
+		"AUTH_ERROR_UNKNOWN":              0,
+		"AUTH_ERROR_INVALID_CREDENTIALS":  1,
+		"AUTH_ERROR_USER_NOT_FOUND":       2,
+		"AUTH_ERROR_USER_ALREADY_EXISTS":  3,
+		"AUTH_ERROR_INVALID_TOKEN":        4,
+		"AUTH_ERROR_TOKEN_EXPIRED":        5,
+		"AUTH_ERROR_ACCOUNT_DISABLED":     6,
+		"AUTH_ERROR_ACCOUNT_NOT_VERIFIED": 7,
+		"AUTH_ERROR_PASSWORD_TOO_WEAK":    8,
+		"AUTH_ERROR_EMAIL_NOT_VERIFIED":   9,
+		"AUTH_ERROR_TOO_MANY_ATTEMPTS":    10,
+		"AUTH_ERROR_INVALID_EMAIL_FORMAT": 11,
+		"AUTH_ERROR_USERNAME_TAKEN":       12,
+		"AUTH_ERROR_EMAIL_TAKEN":          13,
+	}
+)
+
+func (x AuthErrorCode) Enum() *AuthErrorCode {
+	p := new(AuthErrorCode)
+	*p = x
+	return p
+}
+
+func (x AuthErrorCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthErrorCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_auth_proto_enumTypes[0].Descriptor()
+}
+
+func (AuthErrorCode) Type() protoreflect.EnumType {
+	return &file_auth_proto_enumTypes[0]
+}
+
+func (x AuthErrorCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthErrorCode.Descriptor instead.
+func (AuthErrorCode) EnumDescriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{0}
+}
+
 // Request Messages
 type RegisterRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Bio           string                 `protobuf:"bytes,5,opt,name=bio,proto3" json:"bio,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Country       string                 `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Username        string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Email           string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password        string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	ConfirmPassword string                 `protobuf:"bytes,4,opt,name=confirm_password,json=confirmPassword,proto3" json:"confirm_password,omitempty"`
+	DisplayName     string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Bio             string                 `protobuf:"bytes,6,opt,name=bio,proto3" json:"bio,omitempty"`
+	AvatarUrl       string                 `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Country         string                 `protobuf:"bytes,8,opt,name=country,proto3" json:"country,omitempty"`
+	IsPrivate       bool                   `protobuf:"varint,9,opt,name=is_private,json=isPrivate,proto3" json:"is_private,omitempty"`
+	Preferences     *UserPreferences       `protobuf:"bytes,10,opt,name=preferences,proto3" json:"preferences,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RegisterRequest) Reset() {
@@ -86,6 +173,13 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
+func (x *RegisterRequest) GetConfirmPassword() string {
+	if x != nil {
+		return x.ConfirmPassword
+	}
+	return ""
+}
+
 func (x *RegisterRequest) GetDisplayName() string {
 	if x != nil {
 		return x.DisplayName
@@ -114,10 +208,26 @@ func (x *RegisterRequest) GetCountry() string {
 	return ""
 }
 
+func (x *RegisterRequest) GetIsPrivate() bool {
+	if x != nil {
+		return x.IsPrivate
+	}
+	return false
+}
+
+func (x *RegisterRequest) GetPreferences() *UserPreferences {
+	if x != nil {
+		return x.Preferences
+	}
+	return nil
+}
+
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	RememberMe    bool                   `protobuf:"varint,3,opt,name=remember_me,json=rememberMe,proto3" json:"remember_me,omitempty"`
+	DeviceInfo    string                 `protobuf:"bytes,4,opt,name=device_info,json=deviceInfo,proto3" json:"device_info,omitempty"` // Optional device/browser info for security
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -166,11 +276,26 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
+func (x *LoginRequest) GetRememberMe() bool {
+	if x != nil {
+		return x.RememberMe
+	}
+	return false
+}
+
+func (x *LoginRequest) GetDeviceInfo() string {
+	if x != nil {
+		return x.DeviceInfo
+	}
+	return ""
+}
+
 type LogoutRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken     string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	LogoutAllDevices bool                   `protobuf:"varint,2,opt,name=logout_all_devices,json=logoutAllDevices,proto3" json:"logout_all_devices,omitempty"` // Logout from all devices
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *LogoutRequest) Reset() {
@@ -208,6 +333,13 @@ func (x *LogoutRequest) GetRefreshToken() string {
 		return x.RefreshToken
 	}
 	return ""
+}
+
+func (x *LogoutRequest) GetLogoutAllDevices() bool {
+	if x != nil {
+		return x.LogoutAllDevices
+	}
+	return false
 }
 
 type ValidateTokenRequest struct {
@@ -298,23 +430,285 @@ func (x *RefreshTokenRequest) GetRefreshToken() string {
 	return ""
 }
 
-// Response Messages
-type AuthResponse struct {
+type ChangePasswordRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken        string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	CurrentPassword    string                 `protobuf:"bytes,2,opt,name=current_password,json=currentPassword,proto3" json:"current_password,omitempty"`
+	NewPassword        string                 `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	ConfirmNewPassword string                 `protobuf:"bytes,4,opt,name=confirm_new_password,json=confirmNewPassword,proto3" json:"confirm_new_password,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ChangePasswordRequest) Reset() {
+	*x = ChangePasswordRequest{}
+	mi := &file_auth_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangePasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangePasswordRequest) ProtoMessage() {}
+
+func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
+func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ChangePasswordRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetCurrentPassword() string {
+	if x != nil {
+		return x.CurrentPassword
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetConfirmNewPassword() string {
+	if x != nil {
+		return x.ConfirmNewPassword
+	}
+	return ""
+}
+
+type ForgotPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
-	AccessToken   string                 `protobuf:"bytes,4,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,5,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	User          *UserInfo              `protobuf:"bytes,6,opt,name=user,proto3" json:"user,omitempty"`
-	ExpiresAt     int64                  `protobuf:"varint,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"` // Unix timestamp
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *ForgotPasswordRequest) Reset() {
+	*x = ForgotPasswordRequest{}
+	mi := &file_auth_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgotPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgotPasswordRequest) ProtoMessage() {}
+
+func (x *ForgotPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgotPasswordRequest.ProtoReflect.Descriptor instead.
+func (*ForgotPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ForgotPasswordRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type ResetPasswordRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ResetToken         string                 `protobuf:"bytes,1,opt,name=reset_token,json=resetToken,proto3" json:"reset_token,omitempty"`
+	NewPassword        string                 `protobuf:"bytes,2,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	ConfirmNewPassword string                 `protobuf:"bytes,3,opt,name=confirm_new_password,json=confirmNewPassword,proto3" json:"confirm_new_password,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ResetPasswordRequest) Reset() {
+	*x = ResetPasswordRequest{}
+	mi := &file_auth_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPasswordRequest) ProtoMessage() {}
+
+func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
+func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ResetPasswordRequest) GetResetToken() string {
+	if x != nil {
+		return x.ResetToken
+	}
+	return ""
+}
+
+func (x *ResetPasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+func (x *ResetPasswordRequest) GetConfirmNewPassword() string {
+	if x != nil {
+		return x.ConfirmNewPassword
+	}
+	return ""
+}
+
+type VerifyEmailRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	VerificationToken string                 `protobuf:"bytes,1,opt,name=verification_token,json=verificationToken,proto3" json:"verification_token,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *VerifyEmailRequest) Reset() {
+	*x = VerifyEmailRequest{}
+	mi := &file_auth_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyEmailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyEmailRequest) ProtoMessage() {}
+
+func (x *VerifyEmailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyEmailRequest.ProtoReflect.Descriptor instead.
+func (*VerifyEmailRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *VerifyEmailRequest) GetVerificationToken() string {
+	if x != nil {
+		return x.VerificationToken
+	}
+	return ""
+}
+
+type ResendVerificationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResendVerificationRequest) Reset() {
+	*x = ResendVerificationRequest{}
+	mi := &file_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResendVerificationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResendVerificationRequest) ProtoMessage() {}
+
+func (x *ResendVerificationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResendVerificationRequest.ProtoReflect.Descriptor instead.
+func (*ResendVerificationRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ResendVerificationRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+// Response Messages
+type AuthResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Success          bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message          string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Error            string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	AccessToken      string                 `protobuf:"bytes,4,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken     string                 `protobuf:"bytes,5,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	User             *UserInfo              `protobuf:"bytes,6,opt,name=user,proto3" json:"user,omitempty"`
+	ExpiresAt        int64                  `protobuf:"varint,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`                        // Unix timestamp for access token
+	RefreshExpiresAt int64                  `protobuf:"varint,8,opt,name=refresh_expires_at,json=refreshExpiresAt,proto3" json:"refresh_expires_at,omitempty"` // Unix timestamp for refresh token
+	TokenInfo        *TokenInfo             `protobuf:"bytes,9,opt,name=token_info,json=tokenInfo,proto3" json:"token_info,omitempty"`                         // Additional token metadata
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
 func (x *AuthResponse) Reset() {
 	*x = AuthResponse{}
-	mi := &file_auth_proto_msgTypes[5]
+	mi := &file_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -326,7 +720,7 @@ func (x *AuthResponse) String() string {
 func (*AuthResponse) ProtoMessage() {}
 
 func (x *AuthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_proto_msgTypes[5]
+	mi := &file_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -339,7 +733,7 @@ func (x *AuthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthResponse.ProtoReflect.Descriptor instead.
 func (*AuthResponse) Descriptor() ([]byte, []int) {
-	return file_auth_proto_rawDescGZIP(), []int{5}
+	return file_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AuthResponse) GetSuccess() bool {
@@ -391,6 +785,20 @@ func (x *AuthResponse) GetExpiresAt() int64 {
 	return 0
 }
 
+func (x *AuthResponse) GetRefreshExpiresAt() int64 {
+	if x != nil {
+		return x.RefreshExpiresAt
+	}
+	return 0
+}
+
+func (x *AuthResponse) GetTokenInfo() *TokenInfo {
+	if x != nil {
+		return x.TokenInfo
+	}
+	return nil
+}
+
 type LogoutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -401,7 +809,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_auth_proto_msgTypes[6]
+	mi := &file_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -413,7 +821,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_proto_msgTypes[6]
+	mi := &file_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +834,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_auth_proto_rawDescGZIP(), []int{6}
+	return file_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *LogoutResponse) GetSuccess() bool {
@@ -449,13 +857,15 @@ type ValidateTokenResponse struct {
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	UserId        uint64                 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Permissions   []string               `protobuf:"bytes,6,rep,name=permissions,proto3" json:"permissions,omitempty"` // User permissions/roles
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValidateTokenResponse) Reset() {
 	*x = ValidateTokenResponse{}
-	mi := &file_auth_proto_msgTypes[7]
+	mi := &file_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -467,7 +877,7 @@ func (x *ValidateTokenResponse) String() string {
 func (*ValidateTokenResponse) ProtoMessage() {}
 
 func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_proto_msgTypes[7]
+	mi := &file_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -480,7 +890,7 @@ func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenResponse.ProtoReflect.Descriptor instead.
 func (*ValidateTokenResponse) Descriptor() ([]byte, []int) {
-	return file_auth_proto_rawDescGZIP(), []int{7}
+	return file_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ValidateTokenResponse) GetValid() bool {
@@ -511,22 +921,304 @@ func (x *ValidateTokenResponse) GetEmail() string {
 	return ""
 }
 
+func (x *ValidateTokenResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *ValidateTokenResponse) GetPermissions() []string {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+type ChangePasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangePasswordResponse) Reset() {
+	*x = ChangePasswordResponse{}
+	mi := &file_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangePasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangePasswordResponse) ProtoMessage() {}
+
+func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangePasswordResponse.ProtoReflect.Descriptor instead.
+func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ChangePasswordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ChangePasswordResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ForgotPasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForgotPasswordResponse) Reset() {
+	*x = ForgotPasswordResponse{}
+	mi := &file_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgotPasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgotPasswordResponse) ProtoMessage() {}
+
+func (x *ForgotPasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgotPasswordResponse.ProtoReflect.Descriptor instead.
+func (*ForgotPasswordResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ForgotPasswordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ForgotPasswordResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ResetPasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPasswordResponse) Reset() {
+	*x = ResetPasswordResponse{}
+	mi := &file_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPasswordResponse) ProtoMessage() {}
+
+func (x *ResetPasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPasswordResponse.ProtoReflect.Descriptor instead.
+func (*ResetPasswordResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ResetPasswordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ResetPasswordResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type VerifyEmailResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyEmailResponse) Reset() {
+	*x = VerifyEmailResponse{}
+	mi := &file_auth_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyEmailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyEmailResponse) ProtoMessage() {}
+
+func (x *VerifyEmailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyEmailResponse.ProtoReflect.Descriptor instead.
+func (*VerifyEmailResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *VerifyEmailResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *VerifyEmailResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ResendVerificationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResendVerificationResponse) Reset() {
+	*x = ResendVerificationResponse{}
+	mi := &file_auth_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResendVerificationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResendVerificationResponse) ProtoMessage() {}
+
+func (x *ResendVerificationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResendVerificationResponse.ProtoReflect.Descriptor instead.
+func (*ResendVerificationResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ResendVerificationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ResendVerificationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// Data Messages
 type UserInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	IsVerified    bool                   `protobuf:"varint,6,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
-	Country       string                 `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty"`
+	Bio           string                 `protobuf:"bytes,5,opt,name=bio,proto3" json:"bio,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	IsVerified    bool                   `protobuf:"varint,7,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
+	IsPrivate     bool                   `protobuf:"varint,8,opt,name=is_private,json=isPrivate,proto3" json:"is_private,omitempty"`
+	IsActive      bool                   `protobuf:"varint,9,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	Country       string                 `protobuf:"bytes,10,opt,name=country,proto3" json:"country,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastLoginAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"`
+	Preferences   *UserPreferences       `protobuf:"bytes,13,opt,name=preferences,proto3" json:"preferences,omitempty"`
+	Stats         *UserStats             `protobuf:"bytes,14,opt,name=stats,proto3" json:"stats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_auth_proto_msgTypes[8]
+	mi := &file_auth_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -538,7 +1230,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_proto_msgTypes[8]
+	mi := &file_auth_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +1243,7 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_auth_proto_rawDescGZIP(), []int{8}
+	return file_auth_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UserInfo) GetId() uint64 {
@@ -582,6 +1274,13 @@ func (x *UserInfo) GetDisplayName() string {
 	return ""
 }
 
+func (x *UserInfo) GetBio() string {
+	if x != nil {
+		return x.Bio
+	}
+	return ""
+}
+
 func (x *UserInfo) GetAvatarUrl() string {
 	if x != nil {
 		return x.AvatarUrl
@@ -596,6 +1295,20 @@ func (x *UserInfo) GetIsVerified() bool {
 	return false
 }
 
+func (x *UserInfo) GetIsPrivate() bool {
+	if x != nil {
+		return x.IsPrivate
+	}
+	return false
+}
+
+func (x *UserInfo) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
 func (x *UserInfo) GetCountry() string {
 	if x != nil {
 		return x.Country
@@ -603,30 +1316,421 @@ func (x *UserInfo) GetCountry() string {
 	return ""
 }
 
+func (x *UserInfo) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *UserInfo) GetLastLoginAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastLoginAt
+	}
+	return nil
+}
+
+func (x *UserInfo) GetPreferences() *UserPreferences {
+	if x != nil {
+		return x.Preferences
+	}
+	return nil
+}
+
+func (x *UserInfo) GetStats() *UserStats {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
+type UserPreferences struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	AllowDuet           bool                   `protobuf:"varint,1,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch         bool                   `protobuf:"varint,2,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	AllowDownload       bool                   `protobuf:"varint,3,opt,name=allow_download,json=allowDownload,proto3" json:"allow_download,omitempty"`
+	AllowComments       bool                   `protobuf:"varint,4,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	EmailNotifications  bool                   `protobuf:"varint,5,opt,name=email_notifications,json=emailNotifications,proto3" json:"email_notifications,omitempty"`
+	PushNotifications   bool                   `protobuf:"varint,6,opt,name=push_notifications,json=pushNotifications,proto3" json:"push_notifications,omitempty"`
+	PrivacyLevel        string                 `protobuf:"bytes,7,opt,name=privacy_level,json=privacyLevel,proto3" json:"privacy_level,omitempty"`    // "public", "friends", "private"
+	CommentFilter       string                 `protobuf:"bytes,8,opt,name=comment_filter,json=commentFilter,proto3" json:"comment_filter,omitempty"` // "all", "friends", "none"
+	ShowActivityStatus  bool                   `protobuf:"varint,9,opt,name=show_activity_status,json=showActivityStatus,proto3" json:"show_activity_status,omitempty"`
+	AllowMentions       bool                   `protobuf:"varint,10,opt,name=allow_mentions,json=allowMentions,proto3" json:"allow_mentions,omitempty"`
+	AllowDirectMessages bool                   `protobuf:"varint,11,opt,name=allow_direct_messages,json=allowDirectMessages,proto3" json:"allow_direct_messages,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *UserPreferences) Reset() {
+	*x = UserPreferences{}
+	mi := &file_auth_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserPreferences) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserPreferences) ProtoMessage() {}
+
+func (x *UserPreferences) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserPreferences.ProtoReflect.Descriptor instead.
+func (*UserPreferences) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *UserPreferences) GetAllowDuet() bool {
+	if x != nil {
+		return x.AllowDuet
+	}
+	return false
+}
+
+func (x *UserPreferences) GetAllowStitch() bool {
+	if x != nil {
+		return x.AllowStitch
+	}
+	return false
+}
+
+func (x *UserPreferences) GetAllowDownload() bool {
+	if x != nil {
+		return x.AllowDownload
+	}
+	return false
+}
+
+func (x *UserPreferences) GetAllowComments() bool {
+	if x != nil {
+		return x.AllowComments
+	}
+	return false
+}
+
+func (x *UserPreferences) GetEmailNotifications() bool {
+	if x != nil {
+		return x.EmailNotifications
+	}
+	return false
+}
+
+func (x *UserPreferences) GetPushNotifications() bool {
+	if x != nil {
+		return x.PushNotifications
+	}
+	return false
+}
+
+func (x *UserPreferences) GetPrivacyLevel() string {
+	if x != nil {
+		return x.PrivacyLevel
+	}
+	return ""
+}
+
+func (x *UserPreferences) GetCommentFilter() string {
+	if x != nil {
+		return x.CommentFilter
+	}
+	return ""
+}
+
+func (x *UserPreferences) GetShowActivityStatus() bool {
+	if x != nil {
+		return x.ShowActivityStatus
+	}
+	return false
+}
+
+func (x *UserPreferences) GetAllowMentions() bool {
+	if x != nil {
+		return x.AllowMentions
+	}
+	return false
+}
+
+func (x *UserPreferences) GetAllowDirectMessages() bool {
+	if x != nil {
+		return x.AllowDirectMessages
+	}
+	return false
+}
+
+type UserStats struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	FollowersCount uint64                 `protobuf:"varint,1,opt,name=followers_count,json=followersCount,proto3" json:"followers_count,omitempty"`
+	FollowingCount uint64                 `protobuf:"varint,2,opt,name=following_count,json=followingCount,proto3" json:"following_count,omitempty"`
+	VideosCount    uint64                 `protobuf:"varint,3,opt,name=videos_count,json=videosCount,proto3" json:"videos_count,omitempty"`
+	LikesReceived  uint64                 `protobuf:"varint,4,opt,name=likes_received,json=likesReceived,proto3" json:"likes_received,omitempty"`
+	ViewsReceived  uint64                 `protobuf:"varint,5,opt,name=views_received,json=viewsReceived,proto3" json:"views_received,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UserStats) Reset() {
+	*x = UserStats{}
+	mi := &file_auth_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserStats) ProtoMessage() {}
+
+func (x *UserStats) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserStats.ProtoReflect.Descriptor instead.
+func (*UserStats) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *UserStats) GetFollowersCount() uint64 {
+	if x != nil {
+		return x.FollowersCount
+	}
+	return 0
+}
+
+func (x *UserStats) GetFollowingCount() uint64 {
+	if x != nil {
+		return x.FollowingCount
+	}
+	return 0
+}
+
+func (x *UserStats) GetVideosCount() uint64 {
+	if x != nil {
+		return x.VideosCount
+	}
+	return 0
+}
+
+func (x *UserStats) GetLikesReceived() uint64 {
+	if x != nil {
+		return x.LikesReceived
+	}
+	return 0
+}
+
+func (x *UserStats) GetViewsReceived() uint64 {
+	if x != nil {
+		return x.ViewsReceived
+	}
+	return 0
+}
+
+type TokenInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TokenType     string                 `protobuf:"bytes,1,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`  // "Bearer"
+	ExpiresIn     int64                  `protobuf:"varint,2,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"` // Seconds until expiration
+	Scopes        []string               `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"`                         // Token scopes/permissions
+	DeviceId      string                 `protobuf:"bytes,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`     // Device identifier
+	IssuedAt      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=issued_at,json=issuedAt,proto3" json:"issued_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TokenInfo) Reset() {
+	*x = TokenInfo{}
+	mi := &file_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TokenInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TokenInfo) ProtoMessage() {}
+
+func (x *TokenInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TokenInfo.ProtoReflect.Descriptor instead.
+func (*TokenInfo) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *TokenInfo) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *TokenInfo) GetExpiresIn() int64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+func (x *TokenInfo) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+func (x *TokenInfo) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *TokenInfo) GetIssuedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.IssuedAt
+	}
+	return nil
+}
+
+// Enhanced error response
+type AuthError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          AuthErrorCode          `protobuf:"varint,1,opt,name=code,proto3,enum=auth.AuthErrorCode" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Details       map[string]string      `protobuf:"bytes,3,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Additional error details
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthError) Reset() {
+	*x = AuthError{}
+	mi := &file_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthError) ProtoMessage() {}
+
+func (x *AuthError) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthError.ProtoReflect.Descriptor instead.
+func (*AuthError) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *AuthError) GetCode() AuthErrorCode {
+	if x != nil {
+		return x.Code
+	}
+	return AuthErrorCode_AUTH_ERROR_UNKNOWN
+}
+
+func (x *AuthError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *AuthError) GetDetails() map[string]string {
+	if x != nil {
+		return x.Details
+	}
+	return nil
+}
+
 var File_auth_proto protoreflect.FileDescriptor
 
 const file_auth_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"auth.proto\x12\x04auth\"\xcd\x01\n" +
+	"auth.proto\x12\x04auth\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd0\x02\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x12!\n" +
-	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x10\n" +
-	"\x03bio\x18\x05 \x01(\tR\x03bio\x12\x1d\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12)\n" +
+	"\x10confirm_password\x18\x04 \x01(\tR\x0fconfirmPassword\x12!\n" +
+	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12\x10\n" +
+	"\x03bio\x18\x06 \x01(\tR\x03bio\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x06 \x01(\tR\tavatarUrl\x12\x18\n" +
-	"\acountry\x18\a \x01(\tR\acountry\"@\n" +
+	"avatar_url\x18\a \x01(\tR\tavatarUrl\x12\x18\n" +
+	"\acountry\x18\b \x01(\tR\acountry\x12\x1d\n" +
+	"\n" +
+	"is_private\x18\t \x01(\bR\tisPrivate\x127\n" +
+	"\vpreferences\x18\n" +
+	" \x01(\v2\x15.auth.UserPreferencesR\vpreferences\"\x82\x01\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"4\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x1f\n" +
+	"\vremember_me\x18\x03 \x01(\bR\n" +
+	"rememberMe\x12\x1f\n" +
+	"\vdevice_info\x18\x04 \x01(\tR\n" +
+	"deviceInfo\"b\n" +
 	"\rLogoutRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"9\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\x12,\n" +
+	"\x12logout_all_devices\x18\x02 \x01(\bR\x10logoutAllDevices\"9\n" +
 	"\x14ValidateTokenRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\":\n" +
 	"\x13RefreshTokenRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xe3\x01\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xba\x01\n" +
+	"\x15ChangePasswordRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12)\n" +
+	"\x10current_password\x18\x02 \x01(\tR\x0fcurrentPassword\x12!\n" +
+	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\x120\n" +
+	"\x14confirm_new_password\x18\x04 \x01(\tR\x12confirmNewPassword\"-\n" +
+	"\x15ForgotPasswordRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"\x8c\x01\n" +
+	"\x14ResetPasswordRequest\x12\x1f\n" +
+	"\vreset_token\x18\x01 \x01(\tR\n" +
+	"resetToken\x12!\n" +
+	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\x120\n" +
+	"\x14confirm_new_password\x18\x03 \x01(\tR\x12confirmNewPassword\"C\n" +
+	"\x12VerifyEmailRequest\x12-\n" +
+	"\x12verification_token\x18\x01 \x01(\tR\x11verificationToken\"1\n" +
+	"\x19ResendVerificationRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"\xc1\x02\n" +
 	"\fAuthResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
@@ -635,31 +1739,118 @@ const file_auth_proto_rawDesc = "" +
 	"\rrefresh_token\x18\x05 \x01(\tR\frefreshToken\x12\"\n" +
 	"\x04user\x18\x06 \x01(\v2\x0e.auth.UserInfoR\x04user\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\a \x01(\x03R\texpiresAt\"D\n" +
+	"expires_at\x18\a \x01(\x03R\texpiresAt\x12,\n" +
+	"\x12refresh_expires_at\x18\b \x01(\x03R\x10refreshExpiresAt\x12.\n" +
+	"\n" +
+	"token_info\x18\t \x01(\v2\x0f.auth.TokenInfoR\ttokenInfo\"D\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"v\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xd3\x01\n" +
 	"\x15ValidateTokenResponse\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\x04R\x06userId\x12\x14\n" +
-	"\x05email\x18\x04 \x01(\tR\x05email\"\xc9\x01\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x129\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12 \n" +
+	"\vpermissions\x18\x06 \x03(\tR\vpermissions\"L\n" +
+	"\x16ChangePasswordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"L\n" +
+	"\x16ForgotPasswordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"K\n" +
+	"\x15ResetPasswordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"I\n" +
+	"\x13VerifyEmailResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"P\n" +
+	"\x1aResendVerificationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xf2\x03\n" +
 	"\bUserInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12!\n" +
-	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x10\n" +
+	"\x03bio\x18\x05 \x01(\tR\x03bio\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x05 \x01(\tR\tavatarUrl\x12\x1f\n" +
-	"\vis_verified\x18\x06 \x01(\bR\n" +
-	"isVerified\x12\x18\n" +
-	"\acountry\x18\a \x01(\tR\acountry2\xb3\x02\n" +
+	"avatar_url\x18\x06 \x01(\tR\tavatarUrl\x12\x1f\n" +
+	"\vis_verified\x18\a \x01(\bR\n" +
+	"isVerified\x12\x1d\n" +
+	"\n" +
+	"is_private\x18\b \x01(\bR\tisPrivate\x12\x1b\n" +
+	"\tis_active\x18\t \x01(\bR\bisActive\x12\x18\n" +
+	"\acountry\x18\n" +
+	" \x01(\tR\acountry\x129\n" +
+	"\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12>\n" +
+	"\rlast_login_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\vlastLoginAt\x127\n" +
+	"\vpreferences\x18\r \x01(\v2\x15.auth.UserPreferencesR\vpreferences\x12%\n" +
+	"\x05stats\x18\x0e \x01(\v2\x0f.auth.UserStatsR\x05stats\"\xda\x03\n" +
+	"\x0fUserPreferences\x12\x1d\n" +
+	"\n" +
+	"allow_duet\x18\x01 \x01(\bR\tallowDuet\x12!\n" +
+	"\fallow_stitch\x18\x02 \x01(\bR\vallowStitch\x12%\n" +
+	"\x0eallow_download\x18\x03 \x01(\bR\rallowDownload\x12%\n" +
+	"\x0eallow_comments\x18\x04 \x01(\bR\rallowComments\x12/\n" +
+	"\x13email_notifications\x18\x05 \x01(\bR\x12emailNotifications\x12-\n" +
+	"\x12push_notifications\x18\x06 \x01(\bR\x11pushNotifications\x12#\n" +
+	"\rprivacy_level\x18\a \x01(\tR\fprivacyLevel\x12%\n" +
+	"\x0ecomment_filter\x18\b \x01(\tR\rcommentFilter\x120\n" +
+	"\x14show_activity_status\x18\t \x01(\bR\x12showActivityStatus\x12%\n" +
+	"\x0eallow_mentions\x18\n" +
+	" \x01(\bR\rallowMentions\x122\n" +
+	"\x15allow_direct_messages\x18\v \x01(\bR\x13allowDirectMessages\"\xce\x01\n" +
+	"\tUserStats\x12'\n" +
+	"\x0ffollowers_count\x18\x01 \x01(\x04R\x0efollowersCount\x12'\n" +
+	"\x0ffollowing_count\x18\x02 \x01(\x04R\x0efollowingCount\x12!\n" +
+	"\fvideos_count\x18\x03 \x01(\x04R\vvideosCount\x12%\n" +
+	"\x0elikes_received\x18\x04 \x01(\x04R\rlikesReceived\x12%\n" +
+	"\x0eviews_received\x18\x05 \x01(\x04R\rviewsReceived\"\xb7\x01\n" +
+	"\tTokenInfo\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x01 \x01(\tR\ttokenType\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x02 \x01(\x03R\texpiresIn\x12\x16\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\x12\x1b\n" +
+	"\tdevice_id\x18\x04 \x01(\tR\bdeviceId\x127\n" +
+	"\tissued_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\bissuedAt\"\xc2\x01\n" +
+	"\tAuthError\x12'\n" +
+	"\x04code\x18\x01 \x01(\x0e2\x13.auth.AuthErrorCodeR\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x126\n" +
+	"\adetails\x18\x03 \x03(\v2\x1c.auth.AuthError.DetailsEntryR\adetails\x1a:\n" +
+	"\fDetailsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\xd7\x03\n" +
+	"\rAuthErrorCode\x12\x16\n" +
+	"\x12AUTH_ERROR_UNKNOWN\x10\x00\x12\"\n" +
+	"\x1eAUTH_ERROR_INVALID_CREDENTIALS\x10\x01\x12\x1d\n" +
+	"\x19AUTH_ERROR_USER_NOT_FOUND\x10\x02\x12\"\n" +
+	"\x1eAUTH_ERROR_USER_ALREADY_EXISTS\x10\x03\x12\x1c\n" +
+	"\x18AUTH_ERROR_INVALID_TOKEN\x10\x04\x12\x1c\n" +
+	"\x18AUTH_ERROR_TOKEN_EXPIRED\x10\x05\x12\x1f\n" +
+	"\x1bAUTH_ERROR_ACCOUNT_DISABLED\x10\x06\x12#\n" +
+	"\x1fAUTH_ERROR_ACCOUNT_NOT_VERIFIED\x10\a\x12 \n" +
+	"\x1cAUTH_ERROR_PASSWORD_TOO_WEAK\x10\b\x12!\n" +
+	"\x1dAUTH_ERROR_EMAIL_NOT_VERIFIED\x10\t\x12 \n" +
+	"\x1cAUTH_ERROR_TOO_MANY_ATTEMPTS\x10\n" +
+	"\x12#\n" +
+	"\x1fAUTH_ERROR_INVALID_EMAIL_FORMAT\x10\v\x12\x1d\n" +
+	"\x19AUTH_ERROR_USERNAME_TAKEN\x10\f\x12\x1a\n" +
+	"\x16AUTH_ERROR_EMAIL_TAKEN\x10\r2\xb4\x05\n" +
 	"\vAuthService\x125\n" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x12.auth.AuthResponse\x12/\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x12.auth.AuthResponse\x123\n" +
 	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\x12H\n" +
 	"\rValidateToken\x12\x1a.auth.ValidateTokenRequest\x1a\x1b.auth.ValidateTokenResponse\x12=\n" +
-	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x12.auth.AuthResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/auth;authb\x06proto3"
+	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x12.auth.AuthResponse\x12K\n" +
+	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x1c.auth.ChangePasswordResponse\x12K\n" +
+	"\x0eForgotPassword\x12\x1b.auth.ForgotPasswordRequest\x1a\x1c.auth.ForgotPasswordResponse\x12H\n" +
+	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x1b.auth.ResetPasswordResponse\x12B\n" +
+	"\vVerifyEmail\x12\x18.auth.VerifyEmailRequest\x1a\x19.auth.VerifyEmailResponse\x12W\n" +
+	"\x12ResendVerification\x12\x1f.auth.ResendVerificationRequest\x1a .auth.ResendVerificationResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/auth;authb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
@@ -673,35 +1864,73 @@ func file_auth_proto_rawDescGZIP() []byte {
 	return file_auth_proto_rawDescData
 }
 
-var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_auth_proto_goTypes = []any{
-	(*RegisterRequest)(nil),       // 0: auth.RegisterRequest
-	(*LoginRequest)(nil),          // 1: auth.LoginRequest
-	(*LogoutRequest)(nil),         // 2: auth.LogoutRequest
-	(*ValidateTokenRequest)(nil),  // 3: auth.ValidateTokenRequest
-	(*RefreshTokenRequest)(nil),   // 4: auth.RefreshTokenRequest
-	(*AuthResponse)(nil),          // 5: auth.AuthResponse
-	(*LogoutResponse)(nil),        // 6: auth.LogoutResponse
-	(*ValidateTokenResponse)(nil), // 7: auth.ValidateTokenResponse
-	(*UserInfo)(nil),              // 8: auth.UserInfo
+	(AuthErrorCode)(0),                 // 0: auth.AuthErrorCode
+	(*RegisterRequest)(nil),            // 1: auth.RegisterRequest
+	(*LoginRequest)(nil),               // 2: auth.LoginRequest
+	(*LogoutRequest)(nil),              // 3: auth.LogoutRequest
+	(*ValidateTokenRequest)(nil),       // 4: auth.ValidateTokenRequest
+	(*RefreshTokenRequest)(nil),        // 5: auth.RefreshTokenRequest
+	(*ChangePasswordRequest)(nil),      // 6: auth.ChangePasswordRequest
+	(*ForgotPasswordRequest)(nil),      // 7: auth.ForgotPasswordRequest
+	(*ResetPasswordRequest)(nil),       // 8: auth.ResetPasswordRequest
+	(*VerifyEmailRequest)(nil),         // 9: auth.VerifyEmailRequest
+	(*ResendVerificationRequest)(nil),  // 10: auth.ResendVerificationRequest
+	(*AuthResponse)(nil),               // 11: auth.AuthResponse
+	(*LogoutResponse)(nil),             // 12: auth.LogoutResponse
+	(*ValidateTokenResponse)(nil),      // 13: auth.ValidateTokenResponse
+	(*ChangePasswordResponse)(nil),     // 14: auth.ChangePasswordResponse
+	(*ForgotPasswordResponse)(nil),     // 15: auth.ForgotPasswordResponse
+	(*ResetPasswordResponse)(nil),      // 16: auth.ResetPasswordResponse
+	(*VerifyEmailResponse)(nil),        // 17: auth.VerifyEmailResponse
+	(*ResendVerificationResponse)(nil), // 18: auth.ResendVerificationResponse
+	(*UserInfo)(nil),                   // 19: auth.UserInfo
+	(*UserPreferences)(nil),            // 20: auth.UserPreferences
+	(*UserStats)(nil),                  // 21: auth.UserStats
+	(*TokenInfo)(nil),                  // 22: auth.TokenInfo
+	(*AuthError)(nil),                  // 23: auth.AuthError
+	nil,                                // 24: auth.AuthError.DetailsEntry
+	(*timestamppb.Timestamp)(nil),      // 25: google.protobuf.Timestamp
 }
 var file_auth_proto_depIdxs = []int32{
-	8, // 0: auth.AuthResponse.user:type_name -> auth.UserInfo
-	0, // 1: auth.AuthService.Register:input_type -> auth.RegisterRequest
-	1, // 2: auth.AuthService.Login:input_type -> auth.LoginRequest
-	2, // 3: auth.AuthService.Logout:input_type -> auth.LogoutRequest
-	3, // 4: auth.AuthService.ValidateToken:input_type -> auth.ValidateTokenRequest
-	4, // 5: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
-	5, // 6: auth.AuthService.Register:output_type -> auth.AuthResponse
-	5, // 7: auth.AuthService.Login:output_type -> auth.AuthResponse
-	6, // 8: auth.AuthService.Logout:output_type -> auth.LogoutResponse
-	7, // 9: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
-	5, // 10: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	20, // 0: auth.RegisterRequest.preferences:type_name -> auth.UserPreferences
+	19, // 1: auth.AuthResponse.user:type_name -> auth.UserInfo
+	22, // 2: auth.AuthResponse.token_info:type_name -> auth.TokenInfo
+	25, // 3: auth.ValidateTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	25, // 4: auth.UserInfo.created_at:type_name -> google.protobuf.Timestamp
+	25, // 5: auth.UserInfo.last_login_at:type_name -> google.protobuf.Timestamp
+	20, // 6: auth.UserInfo.preferences:type_name -> auth.UserPreferences
+	21, // 7: auth.UserInfo.stats:type_name -> auth.UserStats
+	25, // 8: auth.TokenInfo.issued_at:type_name -> google.protobuf.Timestamp
+	0,  // 9: auth.AuthError.code:type_name -> auth.AuthErrorCode
+	24, // 10: auth.AuthError.details:type_name -> auth.AuthError.DetailsEntry
+	1,  // 11: auth.AuthService.Register:input_type -> auth.RegisterRequest
+	2,  // 12: auth.AuthService.Login:input_type -> auth.LoginRequest
+	3,  // 13: auth.AuthService.Logout:input_type -> auth.LogoutRequest
+	4,  // 14: auth.AuthService.ValidateToken:input_type -> auth.ValidateTokenRequest
+	5,  // 15: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
+	6,  // 16: auth.AuthService.ChangePassword:input_type -> auth.ChangePasswordRequest
+	7,  // 17: auth.AuthService.ForgotPassword:input_type -> auth.ForgotPasswordRequest
+	8,  // 18: auth.AuthService.ResetPassword:input_type -> auth.ResetPasswordRequest
+	9,  // 19: auth.AuthService.VerifyEmail:input_type -> auth.VerifyEmailRequest
+	10, // 20: auth.AuthService.ResendVerification:input_type -> auth.ResendVerificationRequest
+	11, // 21: auth.AuthService.Register:output_type -> auth.AuthResponse
+	11, // 22: auth.AuthService.Login:output_type -> auth.AuthResponse
+	12, // 23: auth.AuthService.Logout:output_type -> auth.LogoutResponse
+	13, // 24: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
+	11, // 25: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
+	14, // 26: auth.AuthService.ChangePassword:output_type -> auth.ChangePasswordResponse
+	15, // 27: auth.AuthService.ForgotPassword:output_type -> auth.ForgotPasswordResponse
+	16, // 28: auth.AuthService.ResetPassword:output_type -> auth.ResetPasswordResponse
+	17, // 29: auth.AuthService.VerifyEmail:output_type -> auth.VerifyEmailResponse
+	18, // 30: auth.AuthService.ResendVerification:output_type -> auth.ResendVerificationResponse
+	21, // [21:31] is the sub-list for method output_type
+	11, // [11:21] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_auth_proto_init() }
@@ -714,13 +1943,14 @@ func file_auth_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc), len(file_auth_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   9,
+			NumEnums:      1,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_auth_proto_goTypes,
 		DependencyIndexes: file_auth_proto_depIdxs,
+		EnumInfos:         file_auth_proto_enumTypes,
 		MessageInfos:      file_auth_proto_msgTypes,
 	}.Build()
 	File_auth_proto = out.File

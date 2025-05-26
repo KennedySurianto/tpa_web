@@ -3,9 +3,9 @@ package controller
 import (
 	"context"
 	"fmt"
-	"time"
 
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/service"
 )
 
@@ -22,12 +22,35 @@ func NewUserController(userService service.UserService) *UserController {
 
 func (u *UserController) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
 	fmt.Println("Received CreateUser request:", req)
-	result, err := u.userService.CreateUser(req.Username, req.Email, req.Password)
+
+	createdUser, err := u.userService.CreateUser(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %v", err)
 	}
-	fmt.Println("User created successfully:", result)
-	return &pb.UserResponse{Message: result}, nil
+
+	return &pb.UserResponse{
+		Message: "User created successfully",
+		User: &pb.User{
+			Id:          uint64(createdUser.ID),
+			Username:    createdUser.Username,
+			Email:       createdUser.Email,
+			Password:    createdUser.Password,
+			DisplayName: createdUser.DisplayName,
+			Bio:         createdUser.Bio,
+			AvatarUrl:   createdUser.AvatarURL,
+			IsVerified:  createdUser.IsVerified,
+			IsPrivate:   createdUser.IsPrivate,
+			IsActive:    createdUser.IsActive,
+			LastLoginAt: createdUser.LastLoginAt.Unix(),
+			Country:     createdUser.Country,
+			AllowDuet:   createdUser.AllowDuet,
+			AllowStitch: createdUser.AllowStitch,
+			AllowDownload: createdUser.AllowDownload,
+			AllowComments: createdUser.AllowComments,
+			CreatedAt:     createdUser.CreatedAt.Unix(),
+			UpdatedAt:     createdUser.UpdatedAt.Unix(),
+		},
+	}, nil
 }
 
 func (u *UserController) GetAllUsers(ctx context.Context, _ *pb.Empty) (*pb.UserListResponse, error) {
@@ -42,7 +65,12 @@ func (u *UserController) GetAllUsers(ctx context.Context, _ *pb.Empty) (*pb.User
 		pbUsers = append(pbUsers, pbUser)
 	}
 
-	return &pb.UserListResponse{Users: pbUsers}, nil
+	return &pb.UserListResponse{
+		Users:      pbUsers,
+		TotalCount: int32(len(pbUsers)),
+		Page:       1,           // static/default value
+		PageSize:   int32(len(pbUsers)), // since returning all
+	}, nil
 }
 
 func (u *UserController) GetUserByEmail(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
@@ -50,7 +78,7 @@ func (u *UserController) GetUserByEmail(ctx context.Context, req *pb.GetUserRequ
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %v", err)
 	}
-	return convertModelToPbUser(user), nil
+	return convertModelToPbUser(*user), nil
 }
 
 func (u *UserController) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
@@ -75,33 +103,10 @@ func (u *UserController) GetUserById(ctx context.Context, req *pb.GetUserByIdReq
 		return nil, fmt.Errorf("user not found: %v", err)
 	}
 
-	return convertModelToPbUser(user), nil
+	return convertModelToPbUser(*user), nil
 }
 
-// Helper function to convert model User to protobuf User
-func convertModelToPbUser(user interface{}) *pb.User {
-	// Assuming user is your model.User struct
-	// You'll need to adjust this based on your actual model structure
-	u := user.(struct {
-		ID               uint      `json:"id"`
-		Username         string    `json:"username"`
-		Email            string    `json:"email"`
-		DisplayName      string    `json:"display_name"`
-		Bio              string    `json:"bio"`
-		AvatarURL        string    `json:"avatar_url"`
-		IsVerified       bool      `json:"is_verified"`
-		IsPrivate        bool      `json:"is_private"`
-		IsActive         bool      `json:"is_active"`
-		LastLoginAt      time.Time `json:"last_login_at"`
-		Country          string    `json:"country"`
-		AllowDuet        bool      `json:"allow_duet"`
-		AllowStitch      bool      `json:"allow_stitch"`
-		AllowDownload    bool      `json:"allow_download"`
-		AllowComments    bool      `json:"allow_comments"`
-		CreatedAt        time.Time `json:"created_at"`
-		UpdatedAt        time.Time `json:"updated_at"`
-	})
-
+func convertModelToPbUser(u model.User) *pb.User {
 	return &pb.User{
 		Id:               uint64(u.ID),
 		Username:         u.Username,

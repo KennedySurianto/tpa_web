@@ -8,27 +8,142 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
+import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "auth";
+
+/** Error codes for better error handling */
+export enum AuthErrorCode {
+  AUTH_ERROR_UNKNOWN = 0,
+  AUTH_ERROR_INVALID_CREDENTIALS = 1,
+  AUTH_ERROR_USER_NOT_FOUND = 2,
+  AUTH_ERROR_USER_ALREADY_EXISTS = 3,
+  AUTH_ERROR_INVALID_TOKEN = 4,
+  AUTH_ERROR_TOKEN_EXPIRED = 5,
+  AUTH_ERROR_ACCOUNT_DISABLED = 6,
+  AUTH_ERROR_ACCOUNT_NOT_VERIFIED = 7,
+  AUTH_ERROR_PASSWORD_TOO_WEAK = 8,
+  AUTH_ERROR_EMAIL_NOT_VERIFIED = 9,
+  AUTH_ERROR_TOO_MANY_ATTEMPTS = 10,
+  AUTH_ERROR_INVALID_EMAIL_FORMAT = 11,
+  AUTH_ERROR_USERNAME_TAKEN = 12,
+  AUTH_ERROR_EMAIL_TAKEN = 13,
+  UNRECOGNIZED = -1,
+}
+
+export function authErrorCodeFromJSON(object: any): AuthErrorCode {
+  switch (object) {
+    case 0:
+    case "AUTH_ERROR_UNKNOWN":
+      return AuthErrorCode.AUTH_ERROR_UNKNOWN;
+    case 1:
+    case "AUTH_ERROR_INVALID_CREDENTIALS":
+      return AuthErrorCode.AUTH_ERROR_INVALID_CREDENTIALS;
+    case 2:
+    case "AUTH_ERROR_USER_NOT_FOUND":
+      return AuthErrorCode.AUTH_ERROR_USER_NOT_FOUND;
+    case 3:
+    case "AUTH_ERROR_USER_ALREADY_EXISTS":
+      return AuthErrorCode.AUTH_ERROR_USER_ALREADY_EXISTS;
+    case 4:
+    case "AUTH_ERROR_INVALID_TOKEN":
+      return AuthErrorCode.AUTH_ERROR_INVALID_TOKEN;
+    case 5:
+    case "AUTH_ERROR_TOKEN_EXPIRED":
+      return AuthErrorCode.AUTH_ERROR_TOKEN_EXPIRED;
+    case 6:
+    case "AUTH_ERROR_ACCOUNT_DISABLED":
+      return AuthErrorCode.AUTH_ERROR_ACCOUNT_DISABLED;
+    case 7:
+    case "AUTH_ERROR_ACCOUNT_NOT_VERIFIED":
+      return AuthErrorCode.AUTH_ERROR_ACCOUNT_NOT_VERIFIED;
+    case 8:
+    case "AUTH_ERROR_PASSWORD_TOO_WEAK":
+      return AuthErrorCode.AUTH_ERROR_PASSWORD_TOO_WEAK;
+    case 9:
+    case "AUTH_ERROR_EMAIL_NOT_VERIFIED":
+      return AuthErrorCode.AUTH_ERROR_EMAIL_NOT_VERIFIED;
+    case 10:
+    case "AUTH_ERROR_TOO_MANY_ATTEMPTS":
+      return AuthErrorCode.AUTH_ERROR_TOO_MANY_ATTEMPTS;
+    case 11:
+    case "AUTH_ERROR_INVALID_EMAIL_FORMAT":
+      return AuthErrorCode.AUTH_ERROR_INVALID_EMAIL_FORMAT;
+    case 12:
+    case "AUTH_ERROR_USERNAME_TAKEN":
+      return AuthErrorCode.AUTH_ERROR_USERNAME_TAKEN;
+    case 13:
+    case "AUTH_ERROR_EMAIL_TAKEN":
+      return AuthErrorCode.AUTH_ERROR_EMAIL_TAKEN;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return AuthErrorCode.UNRECOGNIZED;
+  }
+}
+
+export function authErrorCodeToJSON(object: AuthErrorCode): string {
+  switch (object) {
+    case AuthErrorCode.AUTH_ERROR_UNKNOWN:
+      return "AUTH_ERROR_UNKNOWN";
+    case AuthErrorCode.AUTH_ERROR_INVALID_CREDENTIALS:
+      return "AUTH_ERROR_INVALID_CREDENTIALS";
+    case AuthErrorCode.AUTH_ERROR_USER_NOT_FOUND:
+      return "AUTH_ERROR_USER_NOT_FOUND";
+    case AuthErrorCode.AUTH_ERROR_USER_ALREADY_EXISTS:
+      return "AUTH_ERROR_USER_ALREADY_EXISTS";
+    case AuthErrorCode.AUTH_ERROR_INVALID_TOKEN:
+      return "AUTH_ERROR_INVALID_TOKEN";
+    case AuthErrorCode.AUTH_ERROR_TOKEN_EXPIRED:
+      return "AUTH_ERROR_TOKEN_EXPIRED";
+    case AuthErrorCode.AUTH_ERROR_ACCOUNT_DISABLED:
+      return "AUTH_ERROR_ACCOUNT_DISABLED";
+    case AuthErrorCode.AUTH_ERROR_ACCOUNT_NOT_VERIFIED:
+      return "AUTH_ERROR_ACCOUNT_NOT_VERIFIED";
+    case AuthErrorCode.AUTH_ERROR_PASSWORD_TOO_WEAK:
+      return "AUTH_ERROR_PASSWORD_TOO_WEAK";
+    case AuthErrorCode.AUTH_ERROR_EMAIL_NOT_VERIFIED:
+      return "AUTH_ERROR_EMAIL_NOT_VERIFIED";
+    case AuthErrorCode.AUTH_ERROR_TOO_MANY_ATTEMPTS:
+      return "AUTH_ERROR_TOO_MANY_ATTEMPTS";
+    case AuthErrorCode.AUTH_ERROR_INVALID_EMAIL_FORMAT:
+      return "AUTH_ERROR_INVALID_EMAIL_FORMAT";
+    case AuthErrorCode.AUTH_ERROR_USERNAME_TAKEN:
+      return "AUTH_ERROR_USERNAME_TAKEN";
+    case AuthErrorCode.AUTH_ERROR_EMAIL_TAKEN:
+      return "AUTH_ERROR_EMAIL_TAKEN";
+    case AuthErrorCode.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
 
 /** Request Messages */
 export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  confirmPassword: string;
   displayName: string;
   bio: string;
   avatarUrl: string;
   country: string;
+  isPrivate: boolean;
+  preferences?: UserPreferences | undefined;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe: boolean;
+  /** Optional device/browser info for security */
+  deviceInfo: string;
 }
 
 export interface LogoutRequest {
   refreshToken: string;
+  /** Logout from all devices */
+  logoutAllDevices: boolean;
 }
 
 export interface ValidateTokenRequest {
@@ -37,6 +152,31 @@ export interface ValidateTokenRequest {
 
 export interface RefreshTokenRequest {
   refreshToken: string;
+}
+
+export interface ChangePasswordRequest {
+  accessToken: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface VerifyEmailRequest {
+  verificationToken: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
 }
 
 /** Response Messages */
@@ -49,8 +189,12 @@ export interface AuthResponse {
   user?:
     | UserInfo
     | undefined;
-  /** Unix timestamp */
+  /** Unix timestamp for access token */
   expiresAt: string;
+  /** Unix timestamp for refresh token */
+  refreshExpiresAt: string;
+  /** Additional token metadata */
+  tokenInfo?: TokenInfo | undefined;
 }
 
 export interface LogoutResponse {
@@ -63,20 +207,118 @@ export interface ValidateTokenResponse {
   message: string;
   userId: string;
   email: string;
+  expiresAt?:
+    | Date
+    | undefined;
+  /** User permissions/roles */
+  permissions: string[];
 }
 
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResendVerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+/** Data Messages */
 export interface UserInfo {
   id: string;
   username: string;
   email: string;
   displayName: string;
+  bio: string;
   avatarUrl: string;
   isVerified: boolean;
+  isPrivate: boolean;
+  isActive: boolean;
   country: string;
+  createdAt?: Date | undefined;
+  lastLoginAt?: Date | undefined;
+  preferences?: UserPreferences | undefined;
+  stats?: UserStats | undefined;
+}
+
+export interface UserPreferences {
+  allowDuet: boolean;
+  allowStitch: boolean;
+  allowDownload: boolean;
+  allowComments: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  /** "public", "friends", "private" */
+  privacyLevel: string;
+  /** "all", "friends", "none" */
+  commentFilter: string;
+  showActivityStatus: boolean;
+  allowMentions: boolean;
+  allowDirectMessages: boolean;
+}
+
+export interface UserStats {
+  followersCount: string;
+  followingCount: string;
+  videosCount: string;
+  likesReceived: string;
+  viewsReceived: string;
+}
+
+export interface TokenInfo {
+  /** "Bearer" */
+  tokenType: string;
+  /** Seconds until expiration */
+  expiresIn: string;
+  /** Token scopes/permissions */
+  scopes: string[];
+  /** Device identifier */
+  deviceId: string;
+  issuedAt?: Date | undefined;
+}
+
+/** Enhanced error response */
+export interface AuthError {
+  code: AuthErrorCode;
+  message: string;
+  /** Additional error details */
+  details: { [key: string]: string };
+}
+
+export interface AuthError_DetailsEntry {
+  key: string;
+  value: string;
 }
 
 function createBaseRegisterRequest(): RegisterRequest {
-  return { username: "", email: "", password: "", displayName: "", bio: "", avatarUrl: "", country: "" };
+  return {
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    displayName: "",
+    bio: "",
+    avatarUrl: "",
+    country: "",
+    isPrivate: false,
+    preferences: undefined,
+  };
 }
 
 export const RegisterRequest: MessageFns<RegisterRequest> = {
@@ -90,17 +332,26 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     if (message.password !== "") {
       writer.uint32(26).string(message.password);
     }
+    if (message.confirmPassword !== "") {
+      writer.uint32(34).string(message.confirmPassword);
+    }
     if (message.displayName !== "") {
-      writer.uint32(34).string(message.displayName);
+      writer.uint32(42).string(message.displayName);
     }
     if (message.bio !== "") {
-      writer.uint32(42).string(message.bio);
+      writer.uint32(50).string(message.bio);
     }
     if (message.avatarUrl !== "") {
-      writer.uint32(50).string(message.avatarUrl);
+      writer.uint32(58).string(message.avatarUrl);
     }
     if (message.country !== "") {
-      writer.uint32(58).string(message.country);
+      writer.uint32(66).string(message.country);
+    }
+    if (message.isPrivate !== false) {
+      writer.uint32(72).bool(message.isPrivate);
+    }
+    if (message.preferences !== undefined) {
+      UserPreferences.encode(message.preferences, writer.uint32(82).fork()).join();
     }
     return writer;
   },
@@ -141,7 +392,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
             break;
           }
 
-          message.displayName = reader.string();
+          message.confirmPassword = reader.string();
           continue;
         }
         case 5: {
@@ -149,7 +400,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
             break;
           }
 
-          message.bio = reader.string();
+          message.displayName = reader.string();
           continue;
         }
         case 6: {
@@ -157,7 +408,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.bio = reader.string();
           continue;
         }
         case 7: {
@@ -165,7 +416,31 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
             break;
           }
 
+          message.avatarUrl = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
           message.country = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.isPrivate = reader.bool();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.preferences = UserPreferences.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -182,10 +457,13 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
+      confirmPassword: isSet(object.confirmPassword) ? globalThis.String(object.confirmPassword) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
       avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
       country: isSet(object.country) ? globalThis.String(object.country) : "",
+      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
+      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
     };
   },
 
@@ -200,6 +478,9 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     if (message.password !== "") {
       obj.password = message.password;
     }
+    if (message.confirmPassword !== "") {
+      obj.confirmPassword = message.confirmPassword;
+    }
     if (message.displayName !== "") {
       obj.displayName = message.displayName;
     }
@@ -212,6 +493,12 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     if (message.country !== "") {
       obj.country = message.country;
     }
+    if (message.isPrivate !== false) {
+      obj.isPrivate = message.isPrivate;
+    }
+    if (message.preferences !== undefined) {
+      obj.preferences = UserPreferences.toJSON(message.preferences);
+    }
     return obj;
   },
 
@@ -223,16 +510,21 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.password = object.password ?? "";
+    message.confirmPassword = object.confirmPassword ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
     message.avatarUrl = object.avatarUrl ?? "";
     message.country = object.country ?? "";
+    message.isPrivate = object.isPrivate ?? false;
+    message.preferences = (object.preferences !== undefined && object.preferences !== null)
+      ? UserPreferences.fromPartial(object.preferences)
+      : undefined;
     return message;
   },
 };
 
 function createBaseLoginRequest(): LoginRequest {
-  return { email: "", password: "" };
+  return { email: "", password: "", rememberMe: false, deviceInfo: "" };
 }
 
 export const LoginRequest: MessageFns<LoginRequest> = {
@@ -242,6 +534,12 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     }
     if (message.password !== "") {
       writer.uint32(18).string(message.password);
+    }
+    if (message.rememberMe !== false) {
+      writer.uint32(24).bool(message.rememberMe);
+    }
+    if (message.deviceInfo !== "") {
+      writer.uint32(34).string(message.deviceInfo);
     }
     return writer;
   },
@@ -269,6 +567,22 @@ export const LoginRequest: MessageFns<LoginRequest> = {
           message.password = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.rememberMe = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.deviceInfo = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -282,6 +596,8 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     return {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
+      rememberMe: isSet(object.rememberMe) ? globalThis.Boolean(object.rememberMe) : false,
+      deviceInfo: isSet(object.deviceInfo) ? globalThis.String(object.deviceInfo) : "",
     };
   },
 
@@ -293,6 +609,12 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     if (message.password !== "") {
       obj.password = message.password;
     }
+    if (message.rememberMe !== false) {
+      obj.rememberMe = message.rememberMe;
+    }
+    if (message.deviceInfo !== "") {
+      obj.deviceInfo = message.deviceInfo;
+    }
     return obj;
   },
 
@@ -303,18 +625,23 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     const message = createBaseLoginRequest();
     message.email = object.email ?? "";
     message.password = object.password ?? "";
+    message.rememberMe = object.rememberMe ?? false;
+    message.deviceInfo = object.deviceInfo ?? "";
     return message;
   },
 };
 
 function createBaseLogoutRequest(): LogoutRequest {
-  return { refreshToken: "" };
+  return { refreshToken: "", logoutAllDevices: false };
 }
 
 export const LogoutRequest: MessageFns<LogoutRequest> = {
   encode(message: LogoutRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.refreshToken !== "") {
       writer.uint32(10).string(message.refreshToken);
+    }
+    if (message.logoutAllDevices !== false) {
+      writer.uint32(16).bool(message.logoutAllDevices);
     }
     return writer;
   },
@@ -334,6 +661,14 @@ export const LogoutRequest: MessageFns<LogoutRequest> = {
           message.refreshToken = reader.string();
           continue;
         }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.logoutAllDevices = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -344,13 +679,19 @@ export const LogoutRequest: MessageFns<LogoutRequest> = {
   },
 
   fromJSON(object: any): LogoutRequest {
-    return { refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "" };
+    return {
+      refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
+      logoutAllDevices: isSet(object.logoutAllDevices) ? globalThis.Boolean(object.logoutAllDevices) : false,
+    };
   },
 
   toJSON(message: LogoutRequest): unknown {
     const obj: any = {};
     if (message.refreshToken !== "") {
       obj.refreshToken = message.refreshToken;
+    }
+    if (message.logoutAllDevices !== false) {
+      obj.logoutAllDevices = message.logoutAllDevices;
     }
     return obj;
   },
@@ -361,6 +702,7 @@ export const LogoutRequest: MessageFns<LogoutRequest> = {
   fromPartial<I extends Exact<DeepPartial<LogoutRequest>, I>>(object: I): LogoutRequest {
     const message = createBaseLogoutRequest();
     message.refreshToken = object.refreshToken ?? "";
+    message.logoutAllDevices = object.logoutAllDevices ?? false;
     return message;
   },
 };
@@ -481,8 +823,392 @@ export const RefreshTokenRequest: MessageFns<RefreshTokenRequest> = {
   },
 };
 
+function createBaseChangePasswordRequest(): ChangePasswordRequest {
+  return { accessToken: "", currentPassword: "", newPassword: "", confirmNewPassword: "" };
+}
+
+export const ChangePasswordRequest: MessageFns<ChangePasswordRequest> = {
+  encode(message: ChangePasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.accessToken !== "") {
+      writer.uint32(10).string(message.accessToken);
+    }
+    if (message.currentPassword !== "") {
+      writer.uint32(18).string(message.currentPassword);
+    }
+    if (message.newPassword !== "") {
+      writer.uint32(26).string(message.newPassword);
+    }
+    if (message.confirmNewPassword !== "") {
+      writer.uint32(34).string(message.confirmNewPassword);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ChangePasswordRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChangePasswordRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.accessToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.currentPassword = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.newPassword = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.confirmNewPassword = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChangePasswordRequest {
+    return {
+      accessToken: isSet(object.accessToken) ? globalThis.String(object.accessToken) : "",
+      currentPassword: isSet(object.currentPassword) ? globalThis.String(object.currentPassword) : "",
+      newPassword: isSet(object.newPassword) ? globalThis.String(object.newPassword) : "",
+      confirmNewPassword: isSet(object.confirmNewPassword) ? globalThis.String(object.confirmNewPassword) : "",
+    };
+  },
+
+  toJSON(message: ChangePasswordRequest): unknown {
+    const obj: any = {};
+    if (message.accessToken !== "") {
+      obj.accessToken = message.accessToken;
+    }
+    if (message.currentPassword !== "") {
+      obj.currentPassword = message.currentPassword;
+    }
+    if (message.newPassword !== "") {
+      obj.newPassword = message.newPassword;
+    }
+    if (message.confirmNewPassword !== "") {
+      obj.confirmNewPassword = message.confirmNewPassword;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChangePasswordRequest>, I>>(base?: I): ChangePasswordRequest {
+    return ChangePasswordRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ChangePasswordRequest>, I>>(object: I): ChangePasswordRequest {
+    const message = createBaseChangePasswordRequest();
+    message.accessToken = object.accessToken ?? "";
+    message.currentPassword = object.currentPassword ?? "";
+    message.newPassword = object.newPassword ?? "";
+    message.confirmNewPassword = object.confirmNewPassword ?? "";
+    return message;
+  },
+};
+
+function createBaseForgotPasswordRequest(): ForgotPasswordRequest {
+  return { email: "" };
+}
+
+export const ForgotPasswordRequest: MessageFns<ForgotPasswordRequest> = {
+  encode(message: ForgotPasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ForgotPasswordRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForgotPasswordRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ForgotPasswordRequest {
+    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
+  },
+
+  toJSON(message: ForgotPasswordRequest): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ForgotPasswordRequest>, I>>(base?: I): ForgotPasswordRequest {
+    return ForgotPasswordRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ForgotPasswordRequest>, I>>(object: I): ForgotPasswordRequest {
+    const message = createBaseForgotPasswordRequest();
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseResetPasswordRequest(): ResetPasswordRequest {
+  return { resetToken: "", newPassword: "", confirmNewPassword: "" };
+}
+
+export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
+  encode(message: ResetPasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.resetToken !== "") {
+      writer.uint32(10).string(message.resetToken);
+    }
+    if (message.newPassword !== "") {
+      writer.uint32(18).string(message.newPassword);
+    }
+    if (message.confirmNewPassword !== "") {
+      writer.uint32(26).string(message.confirmNewPassword);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResetPasswordRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResetPasswordRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.resetToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.newPassword = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.confirmNewPassword = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResetPasswordRequest {
+    return {
+      resetToken: isSet(object.resetToken) ? globalThis.String(object.resetToken) : "",
+      newPassword: isSet(object.newPassword) ? globalThis.String(object.newPassword) : "",
+      confirmNewPassword: isSet(object.confirmNewPassword) ? globalThis.String(object.confirmNewPassword) : "",
+    };
+  },
+
+  toJSON(message: ResetPasswordRequest): unknown {
+    const obj: any = {};
+    if (message.resetToken !== "") {
+      obj.resetToken = message.resetToken;
+    }
+    if (message.newPassword !== "") {
+      obj.newPassword = message.newPassword;
+    }
+    if (message.confirmNewPassword !== "") {
+      obj.confirmNewPassword = message.confirmNewPassword;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(base?: I): ResetPasswordRequest {
+    return ResetPasswordRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(object: I): ResetPasswordRequest {
+    const message = createBaseResetPasswordRequest();
+    message.resetToken = object.resetToken ?? "";
+    message.newPassword = object.newPassword ?? "";
+    message.confirmNewPassword = object.confirmNewPassword ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyEmailRequest(): VerifyEmailRequest {
+  return { verificationToken: "" };
+}
+
+export const VerifyEmailRequest: MessageFns<VerifyEmailRequest> = {
+  encode(message: VerifyEmailRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.verificationToken !== "") {
+      writer.uint32(10).string(message.verificationToken);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyEmailRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyEmailRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.verificationToken = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyEmailRequest {
+    return { verificationToken: isSet(object.verificationToken) ? globalThis.String(object.verificationToken) : "" };
+  },
+
+  toJSON(message: VerifyEmailRequest): unknown {
+    const obj: any = {};
+    if (message.verificationToken !== "") {
+      obj.verificationToken = message.verificationToken;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyEmailRequest>, I>>(base?: I): VerifyEmailRequest {
+    return VerifyEmailRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyEmailRequest>, I>>(object: I): VerifyEmailRequest {
+    const message = createBaseVerifyEmailRequest();
+    message.verificationToken = object.verificationToken ?? "";
+    return message;
+  },
+};
+
+function createBaseResendVerificationRequest(): ResendVerificationRequest {
+  return { email: "" };
+}
+
+export const ResendVerificationRequest: MessageFns<ResendVerificationRequest> = {
+  encode(message: ResendVerificationRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResendVerificationRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResendVerificationRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResendVerificationRequest {
+    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
+  },
+
+  toJSON(message: ResendVerificationRequest): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(base?: I): ResendVerificationRequest {
+    return ResendVerificationRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(object: I): ResendVerificationRequest {
+    const message = createBaseResendVerificationRequest();
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
 function createBaseAuthResponse(): AuthResponse {
-  return { success: false, message: "", error: "", accessToken: "", refreshToken: "", user: undefined, expiresAt: "0" };
+  return {
+    success: false,
+    message: "",
+    error: "",
+    accessToken: "",
+    refreshToken: "",
+    user: undefined,
+    expiresAt: "0",
+    refreshExpiresAt: "0",
+    tokenInfo: undefined,
+  };
 }
 
 export const AuthResponse: MessageFns<AuthResponse> = {
@@ -507,6 +1233,12 @@ export const AuthResponse: MessageFns<AuthResponse> = {
     }
     if (message.expiresAt !== "0") {
       writer.uint32(56).int64(message.expiresAt);
+    }
+    if (message.refreshExpiresAt !== "0") {
+      writer.uint32(64).int64(message.refreshExpiresAt);
+    }
+    if (message.tokenInfo !== undefined) {
+      TokenInfo.encode(message.tokenInfo, writer.uint32(74).fork()).join();
     }
     return writer;
   },
@@ -574,6 +1306,22 @@ export const AuthResponse: MessageFns<AuthResponse> = {
           message.expiresAt = reader.int64().toString();
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.refreshExpiresAt = reader.int64().toString();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.tokenInfo = TokenInfo.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -592,6 +1340,8 @@ export const AuthResponse: MessageFns<AuthResponse> = {
       refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
       user: isSet(object.user) ? UserInfo.fromJSON(object.user) : undefined,
       expiresAt: isSet(object.expiresAt) ? globalThis.String(object.expiresAt) : "0",
+      refreshExpiresAt: isSet(object.refreshExpiresAt) ? globalThis.String(object.refreshExpiresAt) : "0",
+      tokenInfo: isSet(object.tokenInfo) ? TokenInfo.fromJSON(object.tokenInfo) : undefined,
     };
   },
 
@@ -618,6 +1368,12 @@ export const AuthResponse: MessageFns<AuthResponse> = {
     if (message.expiresAt !== "0") {
       obj.expiresAt = message.expiresAt;
     }
+    if (message.refreshExpiresAt !== "0") {
+      obj.refreshExpiresAt = message.refreshExpiresAt;
+    }
+    if (message.tokenInfo !== undefined) {
+      obj.tokenInfo = TokenInfo.toJSON(message.tokenInfo);
+    }
     return obj;
   },
 
@@ -633,6 +1389,10 @@ export const AuthResponse: MessageFns<AuthResponse> = {
     message.refreshToken = object.refreshToken ?? "";
     message.user = (object.user !== undefined && object.user !== null) ? UserInfo.fromPartial(object.user) : undefined;
     message.expiresAt = object.expiresAt ?? "0";
+    message.refreshExpiresAt = object.refreshExpiresAt ?? "0";
+    message.tokenInfo = (object.tokenInfo !== undefined && object.tokenInfo !== null)
+      ? TokenInfo.fromPartial(object.tokenInfo)
+      : undefined;
     return message;
   },
 };
@@ -714,7 +1474,7 @@ export const LogoutResponse: MessageFns<LogoutResponse> = {
 };
 
 function createBaseValidateTokenResponse(): ValidateTokenResponse {
-  return { valid: false, message: "", userId: "0", email: "" };
+  return { valid: false, message: "", userId: "0", email: "", expiresAt: undefined, permissions: [] };
 }
 
 export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
@@ -730,6 +1490,12 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     }
     if (message.email !== "") {
       writer.uint32(34).string(message.email);
+    }
+    if (message.expiresAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.expiresAt), writer.uint32(42).fork()).join();
+    }
+    for (const v of message.permissions) {
+      writer.uint32(50).string(v!);
     }
     return writer;
   },
@@ -773,6 +1539,22 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
           message.email = reader.string();
           continue;
         }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.expiresAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.permissions.push(reader.string());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -788,6 +1570,10 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      expiresAt: isSet(object.expiresAt) ? fromJsonTimestamp(object.expiresAt) : undefined,
+      permissions: globalThis.Array.isArray(object?.permissions)
+        ? object.permissions.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -805,6 +1591,12 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     if (message.email !== "") {
       obj.email = message.email;
     }
+    if (message.expiresAt !== undefined) {
+      obj.expiresAt = message.expiresAt.toISOString();
+    }
+    if (message.permissions?.length) {
+      obj.permissions = message.permissions;
+    }
     return obj;
   },
 
@@ -817,12 +1609,409 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     message.message = object.message ?? "";
     message.userId = object.userId ?? "0";
     message.email = object.email ?? "";
+    message.expiresAt = object.expiresAt ?? undefined;
+    message.permissions = object.permissions?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseChangePasswordResponse(): ChangePasswordResponse {
+  return { success: false, message: "" };
+}
+
+export const ChangePasswordResponse: MessageFns<ChangePasswordResponse> = {
+  encode(message: ChangePasswordResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ChangePasswordResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChangePasswordResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChangePasswordResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: ChangePasswordResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(base?: I): ChangePasswordResponse {
+    return ChangePasswordResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(object: I): ChangePasswordResponse {
+    const message = createBaseChangePasswordResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseForgotPasswordResponse(): ForgotPasswordResponse {
+  return { success: false, message: "" };
+}
+
+export const ForgotPasswordResponse: MessageFns<ForgotPasswordResponse> = {
+  encode(message: ForgotPasswordResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ForgotPasswordResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForgotPasswordResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ForgotPasswordResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: ForgotPasswordResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(base?: I): ForgotPasswordResponse {
+    return ForgotPasswordResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(object: I): ForgotPasswordResponse {
+    const message = createBaseForgotPasswordResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseResetPasswordResponse(): ResetPasswordResponse {
+  return { success: false, message: "" };
+}
+
+export const ResetPasswordResponse: MessageFns<ResetPasswordResponse> = {
+  encode(message: ResetPasswordResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResetPasswordResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResetPasswordResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResetPasswordResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: ResetPasswordResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResetPasswordResponse>, I>>(base?: I): ResetPasswordResponse {
+    return ResetPasswordResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResetPasswordResponse>, I>>(object: I): ResetPasswordResponse {
+    const message = createBaseResetPasswordResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyEmailResponse(): VerifyEmailResponse {
+  return { success: false, message: "" };
+}
+
+export const VerifyEmailResponse: MessageFns<VerifyEmailResponse> = {
+  encode(message: VerifyEmailResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyEmailResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyEmailResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyEmailResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: VerifyEmailResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyEmailResponse>, I>>(base?: I): VerifyEmailResponse {
+    return VerifyEmailResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyEmailResponse>, I>>(object: I): VerifyEmailResponse {
+    const message = createBaseVerifyEmailResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseResendVerificationResponse(): ResendVerificationResponse {
+  return { success: false, message: "" };
+}
+
+export const ResendVerificationResponse: MessageFns<ResendVerificationResponse> = {
+  encode(message: ResendVerificationResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResendVerificationResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResendVerificationResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResendVerificationResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: ResendVerificationResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(base?: I): ResendVerificationResponse {
+    return ResendVerificationResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(object: I): ResendVerificationResponse {
+    const message = createBaseResendVerificationResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
     return message;
   },
 };
 
 function createBaseUserInfo(): UserInfo {
-  return { id: "0", username: "", email: "", displayName: "", avatarUrl: "", isVerified: false, country: "" };
+  return {
+    id: "0",
+    username: "",
+    email: "",
+    displayName: "",
+    bio: "",
+    avatarUrl: "",
+    isVerified: false,
+    isPrivate: false,
+    isActive: false,
+    country: "",
+    createdAt: undefined,
+    lastLoginAt: undefined,
+    preferences: undefined,
+    stats: undefined,
+  };
 }
 
 export const UserInfo: MessageFns<UserInfo> = {
@@ -839,14 +2028,35 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.displayName !== "") {
       writer.uint32(34).string(message.displayName);
     }
+    if (message.bio !== "") {
+      writer.uint32(42).string(message.bio);
+    }
     if (message.avatarUrl !== "") {
-      writer.uint32(42).string(message.avatarUrl);
+      writer.uint32(50).string(message.avatarUrl);
     }
     if (message.isVerified !== false) {
-      writer.uint32(48).bool(message.isVerified);
+      writer.uint32(56).bool(message.isVerified);
+    }
+    if (message.isPrivate !== false) {
+      writer.uint32(64).bool(message.isPrivate);
+    }
+    if (message.isActive !== false) {
+      writer.uint32(72).bool(message.isActive);
     }
     if (message.country !== "") {
-      writer.uint32(58).string(message.country);
+      writer.uint32(82).string(message.country);
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(90).fork()).join();
+    }
+    if (message.lastLoginAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.lastLoginAt), writer.uint32(98).fork()).join();
+    }
+    if (message.preferences !== undefined) {
+      UserPreferences.encode(message.preferences, writer.uint32(106).fork()).join();
+    }
+    if (message.stats !== undefined) {
+      UserStats.encode(message.stats, writer.uint32(114).fork()).join();
     }
     return writer;
   },
@@ -895,23 +2105,79 @@ export const UserInfo: MessageFns<UserInfo> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.bio = reader.string();
           continue;
         }
         case 6: {
-          if (tag !== 48) {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.avatarUrl = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
             break;
           }
 
           message.isVerified = reader.bool();
           continue;
         }
-        case 7: {
-          if (tag !== 58) {
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.isPrivate = reader.bool();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.isActive = reader.bool();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
             break;
           }
 
           message.country = reader.string();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.lastLoginAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.preferences = UserPreferences.decode(reader, reader.uint32());
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.stats = UserStats.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -929,9 +2195,16 @@ export const UserInfo: MessageFns<UserInfo> = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
+      bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
       avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
       isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
+      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
       country: isSet(object.country) ? globalThis.String(object.country) : "",
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+      lastLoginAt: isSet(object.lastLoginAt) ? fromJsonTimestamp(object.lastLoginAt) : undefined,
+      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
+      stats: isSet(object.stats) ? UserStats.fromJSON(object.stats) : undefined,
     };
   },
 
@@ -949,14 +2222,35 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.displayName !== "") {
       obj.displayName = message.displayName;
     }
+    if (message.bio !== "") {
+      obj.bio = message.bio;
+    }
     if (message.avatarUrl !== "") {
       obj.avatarUrl = message.avatarUrl;
     }
     if (message.isVerified !== false) {
       obj.isVerified = message.isVerified;
     }
+    if (message.isPrivate !== false) {
+      obj.isPrivate = message.isPrivate;
+    }
+    if (message.isActive !== false) {
+      obj.isActive = message.isActive;
+    }
     if (message.country !== "") {
       obj.country = message.country;
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    if (message.lastLoginAt !== undefined) {
+      obj.lastLoginAt = message.lastLoginAt.toISOString();
+    }
+    if (message.preferences !== undefined) {
+      obj.preferences = UserPreferences.toJSON(message.preferences);
+    }
+    if (message.stats !== undefined) {
+      obj.stats = UserStats.toJSON(message.stats);
     }
     return obj;
   },
@@ -970,9 +2264,687 @@ export const UserInfo: MessageFns<UserInfo> = {
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.displayName = object.displayName ?? "";
+    message.bio = object.bio ?? "";
     message.avatarUrl = object.avatarUrl ?? "";
     message.isVerified = object.isVerified ?? false;
+    message.isPrivate = object.isPrivate ?? false;
+    message.isActive = object.isActive ?? false;
     message.country = object.country ?? "";
+    message.createdAt = object.createdAt ?? undefined;
+    message.lastLoginAt = object.lastLoginAt ?? undefined;
+    message.preferences = (object.preferences !== undefined && object.preferences !== null)
+      ? UserPreferences.fromPartial(object.preferences)
+      : undefined;
+    message.stats = (object.stats !== undefined && object.stats !== null)
+      ? UserStats.fromPartial(object.stats)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUserPreferences(): UserPreferences {
+  return {
+    allowDuet: false,
+    allowStitch: false,
+    allowDownload: false,
+    allowComments: false,
+    emailNotifications: false,
+    pushNotifications: false,
+    privacyLevel: "",
+    commentFilter: "",
+    showActivityStatus: false,
+    allowMentions: false,
+    allowDirectMessages: false,
+  };
+}
+
+export const UserPreferences: MessageFns<UserPreferences> = {
+  encode(message: UserPreferences, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.allowDuet !== false) {
+      writer.uint32(8).bool(message.allowDuet);
+    }
+    if (message.allowStitch !== false) {
+      writer.uint32(16).bool(message.allowStitch);
+    }
+    if (message.allowDownload !== false) {
+      writer.uint32(24).bool(message.allowDownload);
+    }
+    if (message.allowComments !== false) {
+      writer.uint32(32).bool(message.allowComments);
+    }
+    if (message.emailNotifications !== false) {
+      writer.uint32(40).bool(message.emailNotifications);
+    }
+    if (message.pushNotifications !== false) {
+      writer.uint32(48).bool(message.pushNotifications);
+    }
+    if (message.privacyLevel !== "") {
+      writer.uint32(58).string(message.privacyLevel);
+    }
+    if (message.commentFilter !== "") {
+      writer.uint32(66).string(message.commentFilter);
+    }
+    if (message.showActivityStatus !== false) {
+      writer.uint32(72).bool(message.showActivityStatus);
+    }
+    if (message.allowMentions !== false) {
+      writer.uint32(80).bool(message.allowMentions);
+    }
+    if (message.allowDirectMessages !== false) {
+      writer.uint32(88).bool(message.allowDirectMessages);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserPreferences {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserPreferences();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.allowDuet = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.allowStitch = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.allowDownload = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.allowComments = reader.bool();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.emailNotifications = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.pushNotifications = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.privacyLevel = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.commentFilter = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.showActivityStatus = reader.bool();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.allowMentions = reader.bool();
+          continue;
+        }
+        case 11: {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.allowDirectMessages = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UserPreferences {
+    return {
+      allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
+      allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
+      allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
+      allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
+      emailNotifications: isSet(object.emailNotifications) ? globalThis.Boolean(object.emailNotifications) : false,
+      pushNotifications: isSet(object.pushNotifications) ? globalThis.Boolean(object.pushNotifications) : false,
+      privacyLevel: isSet(object.privacyLevel) ? globalThis.String(object.privacyLevel) : "",
+      commentFilter: isSet(object.commentFilter) ? globalThis.String(object.commentFilter) : "",
+      showActivityStatus: isSet(object.showActivityStatus) ? globalThis.Boolean(object.showActivityStatus) : false,
+      allowMentions: isSet(object.allowMentions) ? globalThis.Boolean(object.allowMentions) : false,
+      allowDirectMessages: isSet(object.allowDirectMessages) ? globalThis.Boolean(object.allowDirectMessages) : false,
+    };
+  },
+
+  toJSON(message: UserPreferences): unknown {
+    const obj: any = {};
+    if (message.allowDuet !== false) {
+      obj.allowDuet = message.allowDuet;
+    }
+    if (message.allowStitch !== false) {
+      obj.allowStitch = message.allowStitch;
+    }
+    if (message.allowDownload !== false) {
+      obj.allowDownload = message.allowDownload;
+    }
+    if (message.allowComments !== false) {
+      obj.allowComments = message.allowComments;
+    }
+    if (message.emailNotifications !== false) {
+      obj.emailNotifications = message.emailNotifications;
+    }
+    if (message.pushNotifications !== false) {
+      obj.pushNotifications = message.pushNotifications;
+    }
+    if (message.privacyLevel !== "") {
+      obj.privacyLevel = message.privacyLevel;
+    }
+    if (message.commentFilter !== "") {
+      obj.commentFilter = message.commentFilter;
+    }
+    if (message.showActivityStatus !== false) {
+      obj.showActivityStatus = message.showActivityStatus;
+    }
+    if (message.allowMentions !== false) {
+      obj.allowMentions = message.allowMentions;
+    }
+    if (message.allowDirectMessages !== false) {
+      obj.allowDirectMessages = message.allowDirectMessages;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UserPreferences>, I>>(base?: I): UserPreferences {
+    return UserPreferences.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UserPreferences>, I>>(object: I): UserPreferences {
+    const message = createBaseUserPreferences();
+    message.allowDuet = object.allowDuet ?? false;
+    message.allowStitch = object.allowStitch ?? false;
+    message.allowDownload = object.allowDownload ?? false;
+    message.allowComments = object.allowComments ?? false;
+    message.emailNotifications = object.emailNotifications ?? false;
+    message.pushNotifications = object.pushNotifications ?? false;
+    message.privacyLevel = object.privacyLevel ?? "";
+    message.commentFilter = object.commentFilter ?? "";
+    message.showActivityStatus = object.showActivityStatus ?? false;
+    message.allowMentions = object.allowMentions ?? false;
+    message.allowDirectMessages = object.allowDirectMessages ?? false;
+    return message;
+  },
+};
+
+function createBaseUserStats(): UserStats {
+  return { followersCount: "0", followingCount: "0", videosCount: "0", likesReceived: "0", viewsReceived: "0" };
+}
+
+export const UserStats: MessageFns<UserStats> = {
+  encode(message: UserStats, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.followersCount !== "0") {
+      writer.uint32(8).uint64(message.followersCount);
+    }
+    if (message.followingCount !== "0") {
+      writer.uint32(16).uint64(message.followingCount);
+    }
+    if (message.videosCount !== "0") {
+      writer.uint32(24).uint64(message.videosCount);
+    }
+    if (message.likesReceived !== "0") {
+      writer.uint32(32).uint64(message.likesReceived);
+    }
+    if (message.viewsReceived !== "0") {
+      writer.uint32(40).uint64(message.viewsReceived);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserStats {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserStats();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.followersCount = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.followingCount = reader.uint64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.videosCount = reader.uint64().toString();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.likesReceived = reader.uint64().toString();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.viewsReceived = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UserStats {
+    return {
+      followersCount: isSet(object.followersCount) ? globalThis.String(object.followersCount) : "0",
+      followingCount: isSet(object.followingCount) ? globalThis.String(object.followingCount) : "0",
+      videosCount: isSet(object.videosCount) ? globalThis.String(object.videosCount) : "0",
+      likesReceived: isSet(object.likesReceived) ? globalThis.String(object.likesReceived) : "0",
+      viewsReceived: isSet(object.viewsReceived) ? globalThis.String(object.viewsReceived) : "0",
+    };
+  },
+
+  toJSON(message: UserStats): unknown {
+    const obj: any = {};
+    if (message.followersCount !== "0") {
+      obj.followersCount = message.followersCount;
+    }
+    if (message.followingCount !== "0") {
+      obj.followingCount = message.followingCount;
+    }
+    if (message.videosCount !== "0") {
+      obj.videosCount = message.videosCount;
+    }
+    if (message.likesReceived !== "0") {
+      obj.likesReceived = message.likesReceived;
+    }
+    if (message.viewsReceived !== "0") {
+      obj.viewsReceived = message.viewsReceived;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UserStats>, I>>(base?: I): UserStats {
+    return UserStats.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UserStats>, I>>(object: I): UserStats {
+    const message = createBaseUserStats();
+    message.followersCount = object.followersCount ?? "0";
+    message.followingCount = object.followingCount ?? "0";
+    message.videosCount = object.videosCount ?? "0";
+    message.likesReceived = object.likesReceived ?? "0";
+    message.viewsReceived = object.viewsReceived ?? "0";
+    return message;
+  },
+};
+
+function createBaseTokenInfo(): TokenInfo {
+  return { tokenType: "", expiresIn: "0", scopes: [], deviceId: "", issuedAt: undefined };
+}
+
+export const TokenInfo: MessageFns<TokenInfo> = {
+  encode(message: TokenInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.tokenType !== "") {
+      writer.uint32(10).string(message.tokenType);
+    }
+    if (message.expiresIn !== "0") {
+      writer.uint32(16).int64(message.expiresIn);
+    }
+    for (const v of message.scopes) {
+      writer.uint32(26).string(v!);
+    }
+    if (message.deviceId !== "") {
+      writer.uint32(34).string(message.deviceId);
+    }
+    if (message.issuedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.issuedAt), writer.uint32(42).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TokenInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTokenInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.tokenType = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.expiresIn = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.scopes.push(reader.string());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.deviceId = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.issuedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TokenInfo {
+    return {
+      tokenType: isSet(object.tokenType) ? globalThis.String(object.tokenType) : "",
+      expiresIn: isSet(object.expiresIn) ? globalThis.String(object.expiresIn) : "0",
+      scopes: globalThis.Array.isArray(object?.scopes) ? object.scopes.map((e: any) => globalThis.String(e)) : [],
+      deviceId: isSet(object.deviceId) ? globalThis.String(object.deviceId) : "",
+      issuedAt: isSet(object.issuedAt) ? fromJsonTimestamp(object.issuedAt) : undefined,
+    };
+  },
+
+  toJSON(message: TokenInfo): unknown {
+    const obj: any = {};
+    if (message.tokenType !== "") {
+      obj.tokenType = message.tokenType;
+    }
+    if (message.expiresIn !== "0") {
+      obj.expiresIn = message.expiresIn;
+    }
+    if (message.scopes?.length) {
+      obj.scopes = message.scopes;
+    }
+    if (message.deviceId !== "") {
+      obj.deviceId = message.deviceId;
+    }
+    if (message.issuedAt !== undefined) {
+      obj.issuedAt = message.issuedAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TokenInfo>, I>>(base?: I): TokenInfo {
+    return TokenInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TokenInfo>, I>>(object: I): TokenInfo {
+    const message = createBaseTokenInfo();
+    message.tokenType = object.tokenType ?? "";
+    message.expiresIn = object.expiresIn ?? "0";
+    message.scopes = object.scopes?.map((e) => e) || [];
+    message.deviceId = object.deviceId ?? "";
+    message.issuedAt = object.issuedAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseAuthError(): AuthError {
+  return { code: 0, message: "", details: {} };
+}
+
+export const AuthError: MessageFns<AuthError> = {
+  encode(message: AuthError, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.code !== 0) {
+      writer.uint32(8).int32(message.code);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    Object.entries(message.details).forEach(([key, value]) => {
+      AuthError_DetailsEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).join();
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AuthError {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAuthError();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.code = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          const entry3 = AuthError_DetailsEntry.decode(reader, reader.uint32());
+          if (entry3.value !== undefined) {
+            message.details[entry3.key] = entry3.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AuthError {
+    return {
+      code: isSet(object.code) ? authErrorCodeFromJSON(object.code) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      details: isObject(object.details)
+        ? Object.entries(object.details).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: AuthError): unknown {
+    const obj: any = {};
+    if (message.code !== 0) {
+      obj.code = authErrorCodeToJSON(message.code);
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.details) {
+      const entries = Object.entries(message.details);
+      if (entries.length > 0) {
+        obj.details = {};
+        entries.forEach(([k, v]) => {
+          obj.details[k] = v;
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AuthError>, I>>(base?: I): AuthError {
+    return AuthError.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AuthError>, I>>(object: I): AuthError {
+    const message = createBaseAuthError();
+    message.code = object.code ?? 0;
+    message.message = object.message ?? "";
+    message.details = Object.entries(object.details ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = globalThis.String(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseAuthError_DetailsEntry(): AuthError_DetailsEntry {
+  return { key: "", value: "" };
+}
+
+export const AuthError_DetailsEntry: MessageFns<AuthError_DetailsEntry> = {
+  encode(message: AuthError_DetailsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AuthError_DetailsEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAuthError_DetailsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AuthError_DetailsEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: AuthError_DetailsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(base?: I): AuthError_DetailsEntry {
+    return AuthError_DetailsEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(object: I): AuthError_DetailsEntry {
+    const message = createBaseAuthError_DetailsEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };
@@ -983,6 +2955,20 @@ export interface AuthService {
   Logout(request: DeepPartial<LogoutRequest>, metadata?: grpc.Metadata): Promise<LogoutResponse>;
   ValidateToken(request: DeepPartial<ValidateTokenRequest>, metadata?: grpc.Metadata): Promise<ValidateTokenResponse>;
   RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
+  ChangePassword(
+    request: DeepPartial<ChangePasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ChangePasswordResponse>;
+  ForgotPassword(
+    request: DeepPartial<ForgotPasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ForgotPasswordResponse>;
+  ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse>;
+  VerifyEmail(request: DeepPartial<VerifyEmailRequest>, metadata?: grpc.Metadata): Promise<VerifyEmailResponse>;
+  ResendVerification(
+    request: DeepPartial<ResendVerificationRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResendVerificationResponse>;
 }
 
 export class AuthServiceClientImpl implements AuthService {
@@ -995,6 +2981,11 @@ export class AuthServiceClientImpl implements AuthService {
     this.Logout = this.Logout.bind(this);
     this.ValidateToken = this.ValidateToken.bind(this);
     this.RefreshToken = this.RefreshToken.bind(this);
+    this.ChangePassword = this.ChangePassword.bind(this);
+    this.ForgotPassword = this.ForgotPassword.bind(this);
+    this.ResetPassword = this.ResetPassword.bind(this);
+    this.VerifyEmail = this.VerifyEmail.bind(this);
+    this.ResendVerification = this.ResendVerification.bind(this);
   }
 
   Register(request: DeepPartial<RegisterRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
@@ -1015,6 +3006,35 @@ export class AuthServiceClientImpl implements AuthService {
 
   RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
     return this.rpc.unary(AuthServiceRefreshTokenDesc, RefreshTokenRequest.fromPartial(request), metadata);
+  }
+
+  ChangePassword(
+    request: DeepPartial<ChangePasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ChangePasswordResponse> {
+    return this.rpc.unary(AuthServiceChangePasswordDesc, ChangePasswordRequest.fromPartial(request), metadata);
+  }
+
+  ForgotPassword(
+    request: DeepPartial<ForgotPasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ForgotPasswordResponse> {
+    return this.rpc.unary(AuthServiceForgotPasswordDesc, ForgotPasswordRequest.fromPartial(request), metadata);
+  }
+
+  ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse> {
+    return this.rpc.unary(AuthServiceResetPasswordDesc, ResetPasswordRequest.fromPartial(request), metadata);
+  }
+
+  VerifyEmail(request: DeepPartial<VerifyEmailRequest>, metadata?: grpc.Metadata): Promise<VerifyEmailResponse> {
+    return this.rpc.unary(AuthServiceVerifyEmailDesc, VerifyEmailRequest.fromPartial(request), metadata);
+  }
+
+  ResendVerification(
+    request: DeepPartial<ResendVerificationRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResendVerificationResponse> {
+    return this.rpc.unary(AuthServiceResendVerificationDesc, ResendVerificationRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1135,6 +3155,121 @@ export const AuthServiceRefreshTokenDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const AuthServiceChangePasswordDesc: UnaryMethodDefinitionish = {
+  methodName: "ChangePassword",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ChangePasswordRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ChangePasswordResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceForgotPasswordDesc: UnaryMethodDefinitionish = {
+  methodName: "ForgotPassword",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ForgotPasswordRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ForgotPasswordResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceResetPasswordDesc: UnaryMethodDefinitionish = {
+  methodName: "ResetPassword",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ResetPasswordRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ResetPasswordResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceVerifyEmailDesc: UnaryMethodDefinitionish = {
+  methodName: "VerifyEmail",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return VerifyEmailRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = VerifyEmailResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceResendVerificationDesc: UnaryMethodDefinitionish = {
+  methodName: "ResendVerification",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ResendVerificationRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ResendVerificationResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
@@ -1142,7 +3277,7 @@ interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any>
 
 type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
 
-export interface Rpc {
+interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
@@ -1214,6 +3349,32 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (globalThis.Number(t.seconds) || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

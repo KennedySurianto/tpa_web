@@ -4,13 +4,13 @@
 proto:
 	@echo "Generating protobuf files..."
 
-	protoc -Iproto -Ithird_party \
+	protoc -Iproto \
 		--go_out=shared/gen/user --go_opt=paths=source_relative \
 		--go-grpc_out=shared/gen/user --go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=shared/gen/user --grpc-gateway_opt=paths=source_relative \
 		proto/user.proto
 
-	protoc -Iproto -Ithird_party \
+	protoc -Iproto \
 		--go_out=shared/gen/auth --go_opt=paths=source_relative \
 		--go-grpc_out=shared/gen/auth --go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=shared/gen/auth --grpc-gateway_opt=paths=source_relative \
