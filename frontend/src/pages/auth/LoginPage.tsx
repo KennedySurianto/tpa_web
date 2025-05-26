@@ -48,8 +48,8 @@ const LoginPage: React.FC = () => {
         localStorage.setItem("access_token", response.accessToken);
         localStorage.setItem("refresh_token", response.refreshToken);
 
-        // Navigate to dashboard or home page
-        navigate("/dashboard");
+        // Navigate to home page
+        navigate("/home");
       } else {
         console.error("Login failed:", response.message || response.error);
         alert(response.message || "Login failed");
