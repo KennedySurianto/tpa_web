@@ -1,4 +1,18 @@
 services:
+  # nanti setiap db nya kan pasti bakal banyak, bikin aja kek user-db, tambahin depends on & environment (DB URL) kek user-service.
+  # make sure di db service backend codenya pake DATABASE_URL environment variable untuk koneksi ke database
+  # jgn lupa bikin volume untuk persist data
+  user-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user_service_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
   envoy:
     image: envoyproxy/envoy:v1.29-latest
     volumes:
@@ -7,22 +21,26 @@ services:
       - 8080:8080
       - 9901:9901
     depends_on:
-      - auth_service
-      - user_service
+      - auth-service
+      - user-service
     # optional explicit command:
     # command: ["-c", "/etc/envoy/envoy.yaml"]
 
-  auth_service:
+  auth-service:
     build: 
       context: ./backend
       dockerfile: auth-service/Dockerfile
     ports:
       - 50052:50052
 
-  user_service:
+  user-service:
     build: 
       context: ./backend
       dockerfile: user-service/Dockerfile
+    depends_on:
+      - user-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_service_db
     ports:
       - 50051:50051
 
@@ -30,3 +48,6 @@ services:
     build: ./frontend
     ports:
       - 3000:80
+
+volumes:
+  user-db-data:

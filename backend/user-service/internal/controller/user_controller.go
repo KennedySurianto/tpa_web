@@ -21,10 +21,12 @@ func NewUserController(userService service.UserService) *UserController {
 }
 
 func (u *UserController) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
+	fmt.Println("Received CreateUser request:", req)
 	result, err := u.userService.CreateUser(req.Username, req.Email, req.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %v", err)
 	}
+	fmt.Println("User created successfully:", result)
 	return &pb.UserResponse{Message: result}, nil
 }
 

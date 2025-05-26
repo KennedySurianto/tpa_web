@@ -1,15 +1,20 @@
 package database
 
 import (
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+	"fmt"
+	"os"
+
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-// Exported function
 func ConnectDatabase() *gorm.DB {
-    dbURL := "postgres://postgres:postgres@localhost:5432/user_service_db"
-    // <username>:<password>@localhost:5432/<db_name>
+    dbURL := os.Getenv("DATABASE_URL")
+    fmt.Println("[USER_SERVICE_DB] Connecting to database at:", dbURL)
+    if dbURL == "" {
+        panic("DATABASE_URL environment variable is not set")
+    }
 
     db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
     if err != nil {
@@ -19,10 +24,9 @@ func ConnectDatabase() *gorm.DB {
     err = db.AutoMigrate(
         &model.User{},
     )
-
     if err != nil {
         panic(err)
     }
-    
+
     return db
 }

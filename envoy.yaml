@@ -27,17 +27,17 @@ static_resources:
                         expose_headers: "grpc-status,grpc-message,grpc-status-details-bin"
                         allow_credentials: false
                       routes:
-                        # Route user_service gRPC calls
+                        # Route user-service gRPC calls
                         - match:
                             prefix: "/user.UserService/"
                           route:
-                            cluster: user_service
+                            cluster: user-service
 
-                        # Route auth_service gRPC calls
+                        # Route auth-service gRPC calls
                         - match:
                             prefix: "/auth.AuthService/"
                           route:
-                            cluster: auth_service
+                            cluster: auth-service
 
                 http_filters:
                   - name: envoy.filters.http.grpc_web
@@ -52,35 +52,35 @@ static_resources:
 
   clusters:
     # User Service cluster
-    - name: user_service
+    - name: user-service
       connect_timeout: 0.25s
       type: logical_dns
       http2_protocol_options: {}  # Enable HTTP/2 for gRPC
       lb_policy: round_robin
       load_assignment:
-        cluster_name: user_service
+        cluster_name: user-service
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
-                      address: user_service
+                      address: user-service
                       port_value: 50051
 
     # Auth Service cluster
-    - name: auth_service
+    - name: auth-service
       connect_timeout: 0.25s
       type: logical_dns
       http2_protocol_options: {}  # Enable HTTP/2 for gRPC
       lb_policy: round_robin
       load_assignment:
-        cluster_name: auth_service
+        cluster_name: auth-service
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
-                      address: auth_service
+                      address: auth-service
                       port_value: 50052
 
 admin:
