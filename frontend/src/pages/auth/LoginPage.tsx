@@ -1,13 +1,25 @@
 // src/pages/LoginPage.tsx
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { AuthServiceClientImpl, LoginRequest } from "../../grpc/gen/auth";
+import { GrpcWebImpl } from "../../grpc/gen/auth";
+import { BrowserHeaders } from "browser-headers";
+import { useNavigate, Link } from "react-router-dom";
+
+const transport = new GrpcWebImpl("http://localhost:8080", {
+  transport: undefined,
+  metadata: new BrowserHeaders(),
+});
+
+const authClient = new AuthServiceClientImpl(transport);
 
 const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -16,10 +28,36 @@ const LoginPage: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", formData);
-    // Implement login logic here
+
+    const loginRequest: LoginRequest = {
+      email: formData.email,
+      password: formData.password,
+      rememberMe: true, // optionally bind this to a checkbox
+      deviceInfo: navigator.userAgent
+    };
+
+    try {
+      const response = await authClient.Login(loginRequest);
+
+      if (response.success) {
+        console.log("Login successful:", response);
+
+        // Save tokens (e.g., in localStorage or secure cookie)
+        localStorage.setItem("access_token", response.accessToken);
+        localStorage.setItem("refresh_token", response.refreshToken);
+
+        // Navigate to dashboard or home page
+        navigate("/dashboard");
+      } else {
+        console.error("Login failed:", response.message || response.error);
+        alert(response.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An unexpected error occurred during login.");
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -75,7 +113,12 @@ const LoginPage: React.FC = () => {
 
                 <div className="d-flex justify-between align-center mb-3">
                   <label className="d-flex align-center">
-                    <input type="checkbox" className="mr-2" />
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={rememberMe}
+                      onChange={() => setRememberMe(!rememberMe)}
+                    />
                     Remember me
                   </label>
                   <Link 

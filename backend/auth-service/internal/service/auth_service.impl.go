@@ -214,42 +214,56 @@ func (s *AuthServiceImpl) validateRegisterRequest(req *auth.RegisterRequest) err
 func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*auth.AuthResponse, error) {
 	// Input validation
 	if req == nil {
+		log.Println("[DEBUG] Login request is nil")
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "login request cannot be empty",
 		}, errors.New("invalid request")
 	}
 
+	log.Printf("[DEBUG] Received login request - Email: '%s', Password: '%s'\n", req.Email, req.Password)
+
 	if strings.TrimSpace(req.Email) == "" || strings.TrimSpace(req.Password) == "" {
+		log.Println("[DEBUG] Email or password is empty after trimming")
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "email and password are required",
 		}, errors.New("missing credentials")
 	}
 
+	// Normalize email
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	log.Printf("[DEBUG] Normalized email: '%s'\n", email)
+
 	// Get user from user service
-	getUserReq := &user.GetUserRequest{Email: strings.TrimSpace(strings.ToLower(req.Email))}
+	getUserReq := &user.GetUserRequest{Email: email}
 	userData, err := s.userClient.GetUserByEmail(ctx, getUserReq)
 	if err != nil {
-		log.Printf("Failed to get user by email: %v", err)
+		log.Printf("[DEBUG] Failed to get user by email: %v\n", err)
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "Invalid email or password",
 		}, err
 	}
 
+	log.Printf("[DEBUG] Found user: ID=%d, Email=%s, Username=%s, PasswordHash=%s\n",
+		userData.Id, userData.Email, userData.Username, userData.Password)
+
 	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(req.Password))
 	if err != nil {
-		log.Printf("Password verification failed for user %s", req.Email)
+		log.Printf("[DEBUG] Password verification failed for email %s. Error: %v\n", req.Email, err)
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "Invalid email or password",
 		}, errors.New("invalid credentials")
 	}
 
+	log.Println("[DEBUG] Password verification successful")
+
 	// Check if user is active
 	if !userData.IsActive {
+		log.Printf("[DEBUG] User account is deactivated: %s\n", userData.Email)
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "Account is deactivated",
@@ -261,21 +275,24 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*a
 		UserId: userData.Id,
 	})
 	if err != nil {
-		log.Printf("Failed to update last login: %v", err)
+		log.Printf("[DEBUG] Failed to update last login: %v\n", err)
 	}
 
 	// Generate tokens
 	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email)
 	if err != nil {
-		log.Printf("Failed to generate tokens: %v", err)
+		log.Printf("[DEBUG] Failed to generate tokens: %v\n", err)
 		return &auth.AuthResponse{
 			Success: false,
 			Message: "Authentication successful but failed to generate tokens",
 		}, err
 	}
 
+	log.Printf("[DEBUG] Tokens generated successfully. AccessToken: %s\n", accessToken)
+
 	// Store refresh token
 	s.storeRefreshToken(refreshToken, userData.Id)
+	log.Println("[DEBUG] Refresh token stored")
 
 	return &auth.AuthResponse{
 		Success:      true,

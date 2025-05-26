@@ -111,6 +111,7 @@ func convertModelToPbUser(u model.User) *pb.User {
 		Id:               uint64(u.ID),
 		Username:         u.Username,
 		Email:            u.Email,
+		Password: 		  u.Password,
 		DisplayName:      u.DisplayName,
 		Bio:              u.Bio,
 		AvatarUrl:        u.AvatarURL,

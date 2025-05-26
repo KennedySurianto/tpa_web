@@ -5,6 +5,7 @@ import { AuthServiceClientImpl, RegisterRequest, UserPreferences } from "../../g
 import { Link } from "react-router-dom";
 import { GrpcWebImpl } from "../../grpc/gen/auth";
 import { BrowserHeaders } from "browser-headers";
+import { useNavigate } from "react-router-dom";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
     transport: undefined,
@@ -42,6 +43,7 @@ interface FormData {
 }
 
 const RegisterPage: React.FC = () => {
+    const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<FormData>({
         month: "",
@@ -161,6 +163,7 @@ const RegisterPage: React.FC = () => {
                 console.log("Registration successful:", response.message);
                 // Redirect to login or dashboard
                 // Example: navigate('/login') or navigate('/dashboard')
+                navigate("/login");
             } else {
                 setError(response.error || response.message || "Registration failed");
                 console.warn("Registration failed:", response.error || response.message);
