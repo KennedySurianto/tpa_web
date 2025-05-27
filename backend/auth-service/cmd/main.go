@@ -10,7 +10,9 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcache"
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/service"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
+	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -24,11 +26,33 @@ func main() {
 	}
 
 	// Initialize services
-	authService := service.NewAuthService()
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+    userServicePort := os.Getenv("USER_SERVICE_PORT")
+    
+    if userServiceHost == "" {
+        userServiceHost = "user-service" // Docker service name
+    }
+
+    if userServicePort == "" {
+        userServicePort = "50051"
+    }
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", userServiceHost, userServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to user service: %v", err)
+    }
+    
+    userClient := user.NewUserServiceClient(conn)
+
+	authService := service.NewAuthService(userClient)
 	memcacheHost := getEnv("MEMCACHED_HOST", ":11211")
 	memcacheClient := memcache.NewMemcacheClient(memcacheHost)
 	otpService := service.NewOTPService(memcacheClient)
-	authController := controller.NewAuthController(authService, otpService)
+	authController := controller.NewAuthController(authService, otpService, userClient)
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer()

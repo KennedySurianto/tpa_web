@@ -89,6 +89,14 @@ func (u *UserController) UpdateUser(ctx context.Context, req *pb.UpdateUserReque
 	return &pb.UserResponse{Message: "User updated successfully"}, nil
 }
 
+func (u *UserController) UpdateUserPassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UserResponse, error) {
+	err := u.userService.UpdateUserPassword(req.Email, req.NewPassword);
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user password: %v", err)
+	}
+	return &pb.UserResponse{Message: "User password updated successfully"}, nil
+}
+
 func (u *UserController) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.UserResponse, error) {
 	err := u.userService.DeleteUser(req.Email)
 	if err != nil {

@@ -16,8 +16,6 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type AuthServiceImpl struct {
@@ -26,31 +24,7 @@ type AuthServiceImpl struct {
 	tokenStorage map[string]*model.TokenInfo // In production, use Redis or database
 }
 
-func NewAuthService() AuthService {
-	// Get connection details from environment or config
-    userServiceHost := os.Getenv("USER_SERVICE_HOST")
-    userServicePort := os.Getenv("USER_SERVICE_PORT")
-    
-    if userServiceHost == "" {
-        userServiceHost = "user-service" // Docker service name
-    }
-
-    if userServicePort == "" {
-        userServicePort = "50051"
-    }
-    
-    // Create connection to user service
-    conn, err := grpc.NewClient(
-        fmt.Sprintf("%s:%s", userServiceHost, userServicePort),
-        grpc.WithTransportCredentials(insecure.NewCredentials()),
-    )
-
-    if err != nil {
-        log.Fatalf("Failed to connect to user service: %v", err)
-    }
-    
-    userClient := user.NewUserServiceClient(conn)
-
+func NewAuthService(userClient user.UserServiceClient) AuthService {
 	// Get JWT secret from environment variable, fallback to default for development
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -313,10 +287,10 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*a
 }
 
 func (s *AuthServiceImpl) Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
-	if req == nil || req.RefreshToken == "" {
-		return &auth.LogoutResponse{
-			Success: false,
-			Message: "refresh token is required",
+		if req == nil || req.RefreshToken == "" {
+			return &auth.LogoutResponse{
+				Success: false,
+				Message: "refresh token is required",
 		}, nil
 	}
 
@@ -334,7 +308,7 @@ func (s *AuthServiceImpl) ValidateToken(ctx context.Context, req *auth.ValidateT
 		return &auth.ValidateTokenResponse{
 			Valid:   false,
 			Message: "access token is required",
-		}, nil
+			}, nil
 	}
 
 	token, err := jwt.Parse(req.AccessToken, func(token *jwt.Token) (interface{}, error) {

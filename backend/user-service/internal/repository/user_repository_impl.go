@@ -37,6 +37,10 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*model.User, error) {
 	return &user, err
 }
 
+func (r *UserRepositoryImpl) UpdateUserPassword(email string, newPassword string) error {
+	return r.db.Model(&model.User{}).Where("email = ?", email).Update("password", newPassword).Error
+}
+
 func (r *UserRepositoryImpl) UpdateUser(email string, updatedUser *model.User) error {
 	return r.db.Model(&model.User{}).Where("email = ?", email).Updates(updatedUser).Error
 }
@@ -83,5 +87,5 @@ func (r *UserRepositoryImpl) SetUserActiveStatus(userID uint64, isActive bool) e
 }
 
 func (r *UserRepositoryImpl) UpdateLastLogin(userID uint64) error {
-	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("last_login", time.Now()).Error
+	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("last_login_at", time.Now()).Error
 }

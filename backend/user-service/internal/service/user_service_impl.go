@@ -43,6 +43,10 @@ func (u *UserServiceImpl) GetUserByEmail(email string) (*model.User, error) {
 	return u.userRepo.GetUserByEmail(email)
 }
 
+func (u *UserServiceImpl) UpdateUserPassword(email string, newPassword string) error {
+	return u.userRepo.UpdateUserPassword(email, newPassword);
+}
+
 func (u *UserServiceImpl) UpdateUser(email, name, password string) error {
 	updatedUser := &model.User{
 		Username: name,

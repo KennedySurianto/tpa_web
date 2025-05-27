@@ -13,6 +13,4 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.AuthResponse, error)
 	generateTokens(userId uint64, email string) (string, string, error)
 	storeRefreshToken(token string, userId uint64)
-
-	
 }

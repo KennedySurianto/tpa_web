@@ -11,6 +11,11 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "user";
 
+export interface UpdateUserPasswordRequest {
+  email: string;
+  newPassword: string;
+}
+
 /** Request Messages */
 export interface UserPreferences {
   allowDuet: boolean;
@@ -171,6 +176,82 @@ export interface SearchUsersRequest {
   activeOnly: boolean;
   country: string;
 }
+
+function createBaseUpdateUserPasswordRequest(): UpdateUserPasswordRequest {
+  return { email: "", newPassword: "" };
+}
+
+export const UpdateUserPasswordRequest: MessageFns<UpdateUserPasswordRequest> = {
+  encode(message: UpdateUserPasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    if (message.newPassword !== "") {
+      writer.uint32(18).string(message.newPassword);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserPasswordRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateUserPasswordRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.newPassword = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateUserPasswordRequest {
+    return {
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      newPassword: isSet(object.newPassword) ? globalThis.String(object.newPassword) : "",
+    };
+  },
+
+  toJSON(message: UpdateUserPasswordRequest): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.newPassword !== "") {
+      obj.newPassword = message.newPassword;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(base?: I): UpdateUserPasswordRequest {
+    return UpdateUserPasswordRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(object: I): UpdateUserPasswordRequest {
+    const message = createBaseUpdateUserPasswordRequest();
+    message.email = object.email ?? "";
+    message.newPassword = object.newPassword ?? "";
+    return message;
+  },
+};
 
 function createBaseUserPreferences(): UserPreferences {
   return { allowDuet: false, allowStitch: false, allowDownload: false, allowComments: false };
@@ -2467,6 +2548,7 @@ export interface UserService {
   UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   DeleteUser(request: DeepPartial<DeleteUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   GetUserById(request: DeepPartial<GetUserByIdRequest>, metadata?: grpc.Metadata): Promise<User>;
+  UpdateUserPassword(request: DeepPartial<UpdateUserPasswordRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   /** Additional profile and preference management endpoints */
   UpdateUserProfile(request: DeepPartial<UpdateUserProfileRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   UpdateUserPreferences(
@@ -2500,6 +2582,7 @@ export class UserServiceClientImpl implements UserService {
     this.UpdateUser = this.UpdateUser.bind(this);
     this.DeleteUser = this.DeleteUser.bind(this);
     this.GetUserById = this.GetUserById.bind(this);
+    this.UpdateUserPassword = this.UpdateUserPassword.bind(this);
     this.UpdateUserProfile = this.UpdateUserProfile.bind(this);
     this.UpdateUserPreferences = this.UpdateUserPreferences.bind(this);
     this.SetUserPrivacyStatus = this.SetUserPrivacyStatus.bind(this);
@@ -2531,6 +2614,10 @@ export class UserServiceClientImpl implements UserService {
 
   GetUserById(request: DeepPartial<GetUserByIdRequest>, metadata?: grpc.Metadata): Promise<User> {
     return this.rpc.unary(UserServiceGetUserByIdDesc, GetUserByIdRequest.fromPartial(request), metadata);
+  }
+
+  UpdateUserPassword(request: DeepPartial<UpdateUserPasswordRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
+    return this.rpc.unary(UserServiceUpdateUserPasswordDesc, UpdateUserPasswordRequest.fromPartial(request), metadata);
   }
 
   UpdateUserProfile(request: DeepPartial<UpdateUserProfileRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
@@ -2716,6 +2803,29 @@ export const UserServiceGetUserByIdDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = User.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const UserServiceUpdateUserPasswordDesc: UnaryMethodDefinitionish = {
+  methodName: "UpdateUserPassword",
+  service: UserServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return UpdateUserPasswordRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = UserResponse.decode(data);
       return {
         ...value,
         toObject() {

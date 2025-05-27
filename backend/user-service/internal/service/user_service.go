@@ -12,6 +12,7 @@ type UserService interface {
 	UpdateUser(email, name, password string) error
 	DeleteUser(email string) error
 	GetUserById(id uint) (*model.User, error)
+	UpdateUserPassword(email string, newPassword string) error
 
 	UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error
 	UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error

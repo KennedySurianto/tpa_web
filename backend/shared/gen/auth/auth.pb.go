@@ -736,12 +736,12 @@ func (x *ForgotPasswordRequest) GetEmail() string {
 }
 
 type ResetPasswordRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ResetToken         string                 `protobuf:"bytes,1,opt,name=reset_token,json=resetToken,proto3" json:"reset_token,omitempty"`
-	NewPassword        string                 `protobuf:"bytes,2,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
-	ConfirmNewPassword string                 `protobuf:"bytes,3,opt,name=confirm_new_password,json=confirmNewPassword,proto3" json:"confirm_new_password,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Otp           string                 `protobuf:"bytes,2,opt,name=otp,proto3" json:"otp,omitempty"`
+	NewPassword   string                 `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ResetPasswordRequest) Reset() {
@@ -774,9 +774,16 @@ func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
 	return file_auth_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *ResetPasswordRequest) GetResetToken() string {
+func (x *ResetPasswordRequest) GetEmail() string {
 	if x != nil {
-		return x.ResetToken
+		return x.Email
+	}
+	return ""
+}
+
+func (x *ResetPasswordRequest) GetOtp() string {
+	if x != nil {
+		return x.Otp
 	}
 	return ""
 }
@@ -784,13 +791,6 @@ func (x *ResetPasswordRequest) GetResetToken() string {
 func (x *ResetPasswordRequest) GetNewPassword() string {
 	if x != nil {
 		return x.NewPassword
-	}
-	return ""
-}
-
-func (x *ResetPasswordRequest) GetConfirmNewPassword() string {
-	if x != nil {
-		return x.ConfirmNewPassword
 	}
 	return ""
 }
@@ -1924,12 +1924,11 @@ const file_auth_proto_rawDesc = "" +
 	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\x120\n" +
 	"\x14confirm_new_password\x18\x04 \x01(\tR\x12confirmNewPassword\"-\n" +
 	"\x15ForgotPasswordRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\"\x8c\x01\n" +
-	"\x14ResetPasswordRequest\x12\x1f\n" +
-	"\vreset_token\x18\x01 \x01(\tR\n" +
-	"resetToken\x12!\n" +
-	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\x120\n" +
-	"\x14confirm_new_password\x18\x03 \x01(\tR\x12confirmNewPassword\"C\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"a\n" +
+	"\x14ResetPasswordRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x10\n" +
+	"\x03otp\x18\x02 \x01(\tR\x03otp\x12!\n" +
+	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\"C\n" +
 	"\x12VerifyEmailRequest\x12-\n" +
 	"\x12verification_token\x18\x01 \x01(\tR\x11verificationToken\"1\n" +
 	"\x19ResendVerificationRequest\x12\x14\n" +
@@ -2042,15 +2041,13 @@ const file_auth_proto_rawDesc = "" +
 	"\x12#\n" +
 	"\x1fAUTH_ERROR_INVALID_EMAIL_FORMAT\x10\v\x12\x1d\n" +
 	"\x19AUTH_ERROR_USERNAME_TAKEN\x10\f\x12\x1a\n" +
-	"\x16AUTH_ERROR_EMAIL_TAKEN\x10\r2\xaa\x06\n" +
+	"\x16AUTH_ERROR_EMAIL_TAKEN\x10\r2\x90\x05\n" +
 	"\vAuthService\x125\n" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x12.auth.AuthResponse\x12/\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x12.auth.AuthResponse\x123\n" +
 	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\x12H\n" +
 	"\rValidateToken\x12\x1a.auth.ValidateTokenRequest\x1a\x1b.auth.ValidateTokenResponse\x12=\n" +
-	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x12.auth.AuthResponse\x12K\n" +
-	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x1c.auth.ChangePasswordResponse\x12K\n" +
-	"\x0eForgotPassword\x12\x1b.auth.ForgotPasswordRequest\x1a\x1c.auth.ForgotPasswordResponse\x12H\n" +
+	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x12.auth.AuthResponse\x12H\n" +
 	"\rResetPassword\x12\x1a.auth.ResetPasswordRequest\x1a\x1b.auth.ResetPasswordResponse\x12B\n" +
 	"\vVerifyEmail\x12\x18.auth.VerifyEmailRequest\x1a\x19.auth.VerifyEmailResponse\x12W\n" +
 	"\x12ResendVerification\x12\x1f.auth.ResendVerificationRequest\x1a .auth.ResendVerificationResponse\x126\n" +
@@ -2120,27 +2117,23 @@ var file_auth_proto_depIdxs = []int32{
 	7,  // 13: auth.AuthService.Logout:input_type -> auth.LogoutRequest
 	8,  // 14: auth.AuthService.ValidateToken:input_type -> auth.ValidateTokenRequest
 	9,  // 15: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
-	10, // 16: auth.AuthService.ChangePassword:input_type -> auth.ChangePasswordRequest
-	11, // 17: auth.AuthService.ForgotPassword:input_type -> auth.ForgotPasswordRequest
-	12, // 18: auth.AuthService.ResetPassword:input_type -> auth.ResetPasswordRequest
-	13, // 19: auth.AuthService.VerifyEmail:input_type -> auth.VerifyEmailRequest
-	14, // 20: auth.AuthService.ResendVerification:input_type -> auth.ResendVerificationRequest
-	1,  // 21: auth.AuthService.SendOTP:input_type -> auth.SendOTPRequest
-	3,  // 22: auth.AuthService.VerifyOTP:input_type -> auth.VerifyOTPRequest
-	15, // 23: auth.AuthService.Register:output_type -> auth.AuthResponse
-	15, // 24: auth.AuthService.Login:output_type -> auth.AuthResponse
-	16, // 25: auth.AuthService.Logout:output_type -> auth.LogoutResponse
-	17, // 26: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
-	15, // 27: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
-	18, // 28: auth.AuthService.ChangePassword:output_type -> auth.ChangePasswordResponse
-	19, // 29: auth.AuthService.ForgotPassword:output_type -> auth.ForgotPasswordResponse
-	20, // 30: auth.AuthService.ResetPassword:output_type -> auth.ResetPasswordResponse
-	21, // 31: auth.AuthService.VerifyEmail:output_type -> auth.VerifyEmailResponse
-	22, // 32: auth.AuthService.ResendVerification:output_type -> auth.ResendVerificationResponse
-	2,  // 33: auth.AuthService.SendOTP:output_type -> auth.SendOTPResponse
-	4,  // 34: auth.AuthService.VerifyOTP:output_type -> auth.VerifyOTPResponse
-	23, // [23:35] is the sub-list for method output_type
-	11, // [11:23] is the sub-list for method input_type
+	12, // 16: auth.AuthService.ResetPassword:input_type -> auth.ResetPasswordRequest
+	13, // 17: auth.AuthService.VerifyEmail:input_type -> auth.VerifyEmailRequest
+	14, // 18: auth.AuthService.ResendVerification:input_type -> auth.ResendVerificationRequest
+	1,  // 19: auth.AuthService.SendOTP:input_type -> auth.SendOTPRequest
+	3,  // 20: auth.AuthService.VerifyOTP:input_type -> auth.VerifyOTPRequest
+	15, // 21: auth.AuthService.Register:output_type -> auth.AuthResponse
+	15, // 22: auth.AuthService.Login:output_type -> auth.AuthResponse
+	16, // 23: auth.AuthService.Logout:output_type -> auth.LogoutResponse
+	17, // 24: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
+	15, // 25: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
+	20, // 26: auth.AuthService.ResetPassword:output_type -> auth.ResetPasswordResponse
+	21, // 27: auth.AuthService.VerifyEmail:output_type -> auth.VerifyEmailResponse
+	22, // 28: auth.AuthService.ResendVerification:output_type -> auth.ResendVerificationResponse
+	2,  // 29: auth.AuthService.SendOTP:output_type -> auth.SendOTPResponse
+	4,  // 30: auth.AuthService.VerifyOTP:output_type -> auth.VerifyOTPResponse
+	21, // [21:31] is the sub-list for method output_type
+	11, // [11:21] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name

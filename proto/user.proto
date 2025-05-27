@@ -11,6 +11,7 @@ service UserService {
   rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (UserResponse);
   rpc GetUserById(GetUserByIdRequest) returns (User);
+  rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UserResponse);
 
   // Additional profile and preference management endpoints
   rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserResponse);
@@ -21,6 +22,11 @@ service UserService {
 
   rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse);
   rpc GetVerifiedUsers(Empty) returns (UserListResponse);
+}
+
+message UpdateUserPasswordRequest {
+  string email = 1;
+  string new_password = 2;
 }
 
 // Request Messages

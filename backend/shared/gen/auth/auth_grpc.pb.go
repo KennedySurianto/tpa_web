@@ -24,8 +24,6 @@ const (
 	AuthService_Logout_FullMethodName             = "/auth.AuthService/Logout"
 	AuthService_ValidateToken_FullMethodName      = "/auth.AuthService/ValidateToken"
 	AuthService_RefreshToken_FullMethodName       = "/auth.AuthService/RefreshToken"
-	AuthService_ChangePassword_FullMethodName     = "/auth.AuthService/ChangePassword"
-	AuthService_ForgotPassword_FullMethodName     = "/auth.AuthService/ForgotPassword"
 	AuthService_ResetPassword_FullMethodName      = "/auth.AuthService/ResetPassword"
 	AuthService_VerifyEmail_FullMethodName        = "/auth.AuthService/VerifyEmail"
 	AuthService_ResendVerification_FullMethodName = "/auth.AuthService/ResendVerification"
@@ -42,8 +40,6 @@ type AuthServiceClient interface {
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*AuthResponse, error)
-	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
-	ForgotPassword(ctx context.Context, in *ForgotPasswordRequest, opts ...grpc.CallOption) (*ForgotPasswordResponse, error)
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
 	ResendVerification(ctx context.Context, in *ResendVerificationRequest, opts ...grpc.CallOption) (*ResendVerificationResponse, error)
@@ -109,26 +105,6 @@ func (c *authServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRe
 	return out, nil
 }
 
-func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChangePasswordResponse)
-	err := c.cc.Invoke(ctx, AuthService_ChangePassword_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) ForgotPassword(ctx context.Context, in *ForgotPasswordRequest, opts ...grpc.CallOption) (*ForgotPasswordResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ForgotPasswordResponse)
-	err := c.cc.Invoke(ctx, AuthService_ForgotPassword_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ResetPasswordResponse)
@@ -188,8 +164,6 @@ type AuthServiceServer interface {
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*AuthResponse, error)
-	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
-	ForgotPassword(context.Context, *ForgotPasswordRequest) (*ForgotPasswordResponse, error)
 	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
 	ResendVerification(context.Context, *ResendVerificationRequest) (*ResendVerificationResponse, error)
@@ -219,12 +193,6 @@ func (UnimplementedAuthServiceServer) ValidateToken(context.Context, *ValidateTo
 }
 func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*AuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
-}
-func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
-}
-func (UnimplementedAuthServiceServer) ForgotPassword(context.Context, *ForgotPasswordRequest) (*ForgotPasswordResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ForgotPassword not implemented")
 }
 func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
@@ -352,42 +320,6 @@ func _AuthService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangePasswordRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).ChangePassword(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_ChangePassword_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_ForgotPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ForgotPasswordRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).ForgotPassword(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_ForgotPassword_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).ForgotPassword(ctx, req.(*ForgotPasswordRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AuthService_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResetPasswordRequest)
 	if err := dec(in); err != nil {
@@ -504,14 +436,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _AuthService_RefreshToken_Handler,
-		},
-		{
-			MethodName: "ChangePassword",
-			Handler:    _AuthService_ChangePassword_Handler,
-		},
-		{
-			MethodName: "ForgotPassword",
-			Handler:    _AuthService_ForgotPassword_Handler,
 		},
 		{
 			MethodName: "ResetPassword",

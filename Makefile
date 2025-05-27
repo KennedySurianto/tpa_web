@@ -26,6 +26,6 @@ proto-web:
 		--ts_proto_opt=outputClientImpl=grpc-web,esModuleInterop=true,forceLong=string,useOptionals=messages,outputRpcImpl=true \
 		proto/*.proto
 
-dbr:
+d:
 	@echo "Building Docker images..."
-	docker compose -d --build
+	docker compose up -d --build

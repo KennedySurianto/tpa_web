@@ -185,9 +185,9 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  resetToken: string;
+  email: string;
+  otp: string;
   newPassword: string;
-  confirmNewPassword: string;
 }
 
 export interface VerifyEmailRequest {
@@ -1277,19 +1277,19 @@ export const ForgotPasswordRequest: MessageFns<ForgotPasswordRequest> = {
 };
 
 function createBaseResetPasswordRequest(): ResetPasswordRequest {
-  return { resetToken: "", newPassword: "", confirmNewPassword: "" };
+  return { email: "", otp: "", newPassword: "" };
 }
 
 export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
   encode(message: ResetPasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.resetToken !== "") {
-      writer.uint32(10).string(message.resetToken);
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    if (message.otp !== "") {
+      writer.uint32(18).string(message.otp);
     }
     if (message.newPassword !== "") {
-      writer.uint32(18).string(message.newPassword);
-    }
-    if (message.confirmNewPassword !== "") {
-      writer.uint32(26).string(message.confirmNewPassword);
+      writer.uint32(26).string(message.newPassword);
     }
     return writer;
   },
@@ -1306,7 +1306,7 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
             break;
           }
 
-          message.resetToken = reader.string();
+          message.email = reader.string();
           continue;
         }
         case 2: {
@@ -1314,7 +1314,7 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
             break;
           }
 
-          message.newPassword = reader.string();
+          message.otp = reader.string();
           continue;
         }
         case 3: {
@@ -1322,7 +1322,7 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
             break;
           }
 
-          message.confirmNewPassword = reader.string();
+          message.newPassword = reader.string();
           continue;
         }
       }
@@ -1336,22 +1336,22 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
 
   fromJSON(object: any): ResetPasswordRequest {
     return {
-      resetToken: isSet(object.resetToken) ? globalThis.String(object.resetToken) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      otp: isSet(object.otp) ? globalThis.String(object.otp) : "",
       newPassword: isSet(object.newPassword) ? globalThis.String(object.newPassword) : "",
-      confirmNewPassword: isSet(object.confirmNewPassword) ? globalThis.String(object.confirmNewPassword) : "",
     };
   },
 
   toJSON(message: ResetPasswordRequest): unknown {
     const obj: any = {};
-    if (message.resetToken !== "") {
-      obj.resetToken = message.resetToken;
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.otp !== "") {
+      obj.otp = message.otp;
     }
     if (message.newPassword !== "") {
       obj.newPassword = message.newPassword;
-    }
-    if (message.confirmNewPassword !== "") {
-      obj.confirmNewPassword = message.confirmNewPassword;
     }
     return obj;
   },
@@ -1361,9 +1361,9 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(object: I): ResetPasswordRequest {
     const message = createBaseResetPasswordRequest();
-    message.resetToken = object.resetToken ?? "";
+    message.email = object.email ?? "";
+    message.otp = object.otp ?? "";
     message.newPassword = object.newPassword ?? "";
-    message.confirmNewPassword = object.confirmNewPassword ?? "";
     return message;
   },
 };
@@ -3242,14 +3242,6 @@ export interface AuthService {
   Logout(request: DeepPartial<LogoutRequest>, metadata?: grpc.Metadata): Promise<LogoutResponse>;
   ValidateToken(request: DeepPartial<ValidateTokenRequest>, metadata?: grpc.Metadata): Promise<ValidateTokenResponse>;
   RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
-  ChangePassword(
-    request: DeepPartial<ChangePasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ChangePasswordResponse>;
-  ForgotPassword(
-    request: DeepPartial<ForgotPasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ForgotPasswordResponse>;
   ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse>;
   VerifyEmail(request: DeepPartial<VerifyEmailRequest>, metadata?: grpc.Metadata): Promise<VerifyEmailResponse>;
   ResendVerification(
@@ -3270,8 +3262,6 @@ export class AuthServiceClientImpl implements AuthService {
     this.Logout = this.Logout.bind(this);
     this.ValidateToken = this.ValidateToken.bind(this);
     this.RefreshToken = this.RefreshToken.bind(this);
-    this.ChangePassword = this.ChangePassword.bind(this);
-    this.ForgotPassword = this.ForgotPassword.bind(this);
     this.ResetPassword = this.ResetPassword.bind(this);
     this.VerifyEmail = this.VerifyEmail.bind(this);
     this.ResendVerification = this.ResendVerification.bind(this);
@@ -3297,20 +3287,6 @@ export class AuthServiceClientImpl implements AuthService {
 
   RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
     return this.rpc.unary(AuthServiceRefreshTokenDesc, RefreshTokenRequest.fromPartial(request), metadata);
-  }
-
-  ChangePassword(
-    request: DeepPartial<ChangePasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ChangePasswordResponse> {
-    return this.rpc.unary(AuthServiceChangePasswordDesc, ChangePasswordRequest.fromPartial(request), metadata);
-  }
-
-  ForgotPassword(
-    request: DeepPartial<ForgotPasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ForgotPasswordResponse> {
-    return this.rpc.unary(AuthServiceForgotPasswordDesc, ForgotPasswordRequest.fromPartial(request), metadata);
   }
 
   ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse> {
@@ -3444,52 +3420,6 @@ export const AuthServiceRefreshTokenDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = AuthResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const AuthServiceChangePasswordDesc: UnaryMethodDefinitionish = {
-  methodName: "ChangePassword",
-  service: AuthServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return ChangePasswordRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = ChangePasswordResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const AuthServiceForgotPasswordDesc: UnaryMethodDefinitionish = {
-  methodName: "ForgotPassword",
-  service: AuthServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return ForgotPasswordRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = ForgotPasswordResponse.decode(data);
       return {
         ...value,
         toObject() {
