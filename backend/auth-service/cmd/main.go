@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/controller"
+	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcache"
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/service"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"google.golang.org/grpc"
@@ -22,9 +23,12 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// Initialize auth service with user service client
+	// Initialize services
 	authService := service.NewAuthService()
-	authController := controller.NewAuthController(authService)
+	memcacheHost := getEnv("MEMCACHED_HOST", ":11211")
+	memcacheClient := memcache.NewMemcacheClient(memcacheHost)
+	otpService := service.NewOTPService(memcacheClient)
+	authController := controller.NewAuthController(authService, otpService)
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer()

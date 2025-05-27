@@ -114,7 +114,6 @@ export interface User {
 }
 
 export interface UserResponse {
-  [x: string]: any;
   message: string;
   /** Optional: return user data after operations */
   user?: User | undefined;

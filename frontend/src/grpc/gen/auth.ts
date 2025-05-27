@@ -118,6 +118,25 @@ export function authErrorCodeToJSON(object: AuthErrorCode): string {
   }
 }
 
+/** OTP REQUESTS AND RESPONSES */
+export interface SendOTPRequest {
+  email: string;
+}
+
+export interface SendOTPResponse {
+  message: string;
+}
+
+export interface VerifyOTPRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOTPResponse {
+  success: boolean;
+  message: string;
+}
+
 /** Request Messages */
 export interface RegisterRequest {
   username: string;
@@ -305,6 +324,274 @@ export interface AuthError_DetailsEntry {
   key: string;
   value: string;
 }
+
+function createBaseSendOTPRequest(): SendOTPRequest {
+  return { email: "" };
+}
+
+export const SendOTPRequest: MessageFns<SendOTPRequest> = {
+  encode(message: SendOTPRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendOTPRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendOTPRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SendOTPRequest {
+    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
+  },
+
+  toJSON(message: SendOTPRequest): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SendOTPRequest>, I>>(base?: I): SendOTPRequest {
+    return SendOTPRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SendOTPRequest>, I>>(object: I): SendOTPRequest {
+    const message = createBaseSendOTPRequest();
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseSendOTPResponse(): SendOTPResponse {
+  return { message: "" };
+}
+
+export const SendOTPResponse: MessageFns<SendOTPResponse> = {
+  encode(message: SendOTPResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendOTPResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendOTPResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SendOTPResponse {
+    return { message: isSet(object.message) ? globalThis.String(object.message) : "" };
+  },
+
+  toJSON(message: SendOTPResponse): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SendOTPResponse>, I>>(base?: I): SendOTPResponse {
+    return SendOTPResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SendOTPResponse>, I>>(object: I): SendOTPResponse {
+    const message = createBaseSendOTPResponse();
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyOTPRequest(): VerifyOTPRequest {
+  return { email: "", otp: "" };
+}
+
+export const VerifyOTPRequest: MessageFns<VerifyOTPRequest> = {
+  encode(message: VerifyOTPRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    if (message.otp !== "") {
+      writer.uint32(18).string(message.otp);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyOTPRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyOTPRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.otp = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyOTPRequest {
+    return {
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      otp: isSet(object.otp) ? globalThis.String(object.otp) : "",
+    };
+  },
+
+  toJSON(message: VerifyOTPRequest): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.otp !== "") {
+      obj.otp = message.otp;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyOTPRequest>, I>>(base?: I): VerifyOTPRequest {
+    return VerifyOTPRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyOTPRequest>, I>>(object: I): VerifyOTPRequest {
+    const message = createBaseVerifyOTPRequest();
+    message.email = object.email ?? "";
+    message.otp = object.otp ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyOTPResponse(): VerifyOTPResponse {
+  return { success: false, message: "" };
+}
+
+export const VerifyOTPResponse: MessageFns<VerifyOTPResponse> = {
+  encode(message: VerifyOTPResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyOTPResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyOTPResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyOTPResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: VerifyOTPResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyOTPResponse>, I>>(base?: I): VerifyOTPResponse {
+    return VerifyOTPResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyOTPResponse>, I>>(object: I): VerifyOTPResponse {
+    const message = createBaseVerifyOTPResponse();
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
 
 function createBaseRegisterRequest(): RegisterRequest {
   return {
@@ -2969,6 +3256,8 @@ export interface AuthService {
     request: DeepPartial<ResendVerificationRequest>,
     metadata?: grpc.Metadata,
   ): Promise<ResendVerificationResponse>;
+  SendOTP(request: DeepPartial<SendOTPRequest>, metadata?: grpc.Metadata): Promise<SendOTPResponse>;
+  VerifyOTP(request: DeepPartial<VerifyOTPRequest>, metadata?: grpc.Metadata): Promise<VerifyOTPResponse>;
 }
 
 export class AuthServiceClientImpl implements AuthService {
@@ -2986,6 +3275,8 @@ export class AuthServiceClientImpl implements AuthService {
     this.ResetPassword = this.ResetPassword.bind(this);
     this.VerifyEmail = this.VerifyEmail.bind(this);
     this.ResendVerification = this.ResendVerification.bind(this);
+    this.SendOTP = this.SendOTP.bind(this);
+    this.VerifyOTP = this.VerifyOTP.bind(this);
   }
 
   Register(request: DeepPartial<RegisterRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
@@ -3035,6 +3326,14 @@ export class AuthServiceClientImpl implements AuthService {
     metadata?: grpc.Metadata,
   ): Promise<ResendVerificationResponse> {
     return this.rpc.unary(AuthServiceResendVerificationDesc, ResendVerificationRequest.fromPartial(request), metadata);
+  }
+
+  SendOTP(request: DeepPartial<SendOTPRequest>, metadata?: grpc.Metadata): Promise<SendOTPResponse> {
+    return this.rpc.unary(AuthServiceSendOTPDesc, SendOTPRequest.fromPartial(request), metadata);
+  }
+
+  VerifyOTP(request: DeepPartial<VerifyOTPRequest>, metadata?: grpc.Metadata): Promise<VerifyOTPResponse> {
+    return this.rpc.unary(AuthServiceVerifyOTPDesc, VerifyOTPRequest.fromPartial(request), metadata);
   }
 }
 
@@ -3260,6 +3559,52 @@ export const AuthServiceResendVerificationDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = ResendVerificationResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceSendOTPDesc: UnaryMethodDefinitionish = {
+  methodName: "SendOTP",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return SendOTPRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = SendOTPResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AuthServiceVerifyOTPDesc: UnaryMethodDefinitionish = {
+  methodName: "VerifyOTP",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return VerifyOTPRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = VerifyOTPResponse.decode(data);
       return {
         ...value,
         toObject() {

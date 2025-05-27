@@ -30,6 +30,13 @@ services:
     # optional explicit command:
     # command: ["-c", "/etc/envoy/envoy.yaml"]
 
+  memcached:
+    image: memcached:1.6-alpine
+    ports:
+      - "11211:11211"
+    networks:
+      - app-network
+
   auth-service:
     build: 
       context: ./backend
@@ -38,6 +45,13 @@ services:
       - 50052:50052
     depends_on:
       - user-service
+      - memcached
+    environment:
+      MEMCACHED_HOST: memcached:11211
+      SMTP_USER: tpawebkn@gmail.com
+      SMTP_PASS: dwjb nfyf usuq qhuz
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
     networks:
       - app-network
 

@@ -10,11 +10,13 @@ import (
 type AuthController struct {
 	auth.UnimplementedAuthServiceServer
 	authService service.AuthService
+	otpService service.OTPService
 }
 
-func NewAuthController(authService service.AuthService) *AuthController {
+func NewAuthController(authService service.AuthService, otpService service.OTPService) *AuthController {
 	return &AuthController{
 		authService: authService,
+		otpService:  otpService,
 	}
 }
 
@@ -36,4 +38,12 @@ func (c *AuthController) ValidateToken(ctx context.Context, req *auth.ValidateTo
 
 func (c *AuthController) RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.AuthResponse, error) {
 	return c.authService.RefreshToken(ctx, req)
+}
+
+func (c *AuthController) SendOTP(ctx context.Context, req *auth.SendOTPRequest) (*auth.SendOTPResponse, error) {
+	return c.otpService.SendOTP(ctx, req)
+}
+
+func (c *AuthController) VerifyOTP(ctx context.Context, req *auth.VerifyOTPRequest) (*auth.VerifyOTPResponse, error) {
+	return c.otpService.VerifyOTP(ctx, req)
 }

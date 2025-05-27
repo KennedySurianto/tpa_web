@@ -17,6 +17,28 @@ service AuthService {
   rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
   rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
   rpc ResendVerification(ResendVerificationRequest) returns (ResendVerificationResponse);
+
+  rpc SendOTP (SendOTPRequest) returns (SendOTPResponse);
+  rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
+}
+
+// OTP REQUESTS AND RESPONSES
+message SendOTPRequest {
+  string email = 1;
+}
+
+message SendOTPResponse {
+  string message = 1;
+}
+
+message VerifyOTPRequest {
+  string email = 1;
+  string otp = 2;
+}
+
+message VerifyOTPResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 // Request Messages

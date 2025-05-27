@@ -1,7 +1,7 @@
 // src/pages/RegisterPage.tsx
 
 import React, { useState } from "react";
-import { AuthServiceClientImpl, RegisterRequest, UserPreferences } from "../../grpc/gen/auth";
+import { AuthServiceClientImpl, RegisterRequest, SendOTPRequest, UserPreferences } from "../../grpc/gen/auth";
 import { Link } from "react-router-dom";
 import { GrpcWebImpl } from "../../grpc/gen/auth";
 import { BrowserHeaders } from "browser-headers";
@@ -76,6 +76,10 @@ const RegisterPage: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [isPhoneSignup, setIsPhoneSignup] = useState(false);
     const [passwordMatch, setPasswordMatch] = useState(true);
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -92,6 +96,13 @@ const RegisterPage: React.FC = () => {
             const confirmPassword = name === "confirmPassword" ? value : formData.confirmPassword;
             setPasswordMatch(password === confirmPassword || confirmPassword === "");
         }
+
+        // Reset OTP verification if email changes
+        if (name === "email") {
+            setOtpSent(false);
+            setOtpVerified(false);
+            setFormData(prev => ({ ...prev, verificationCode: "" }));
+        }
     };
 
     const validateStep = (step: number): boolean => {
@@ -100,9 +111,9 @@ const RegisterPage: React.FC = () => {
                 return !!(formData.month && formData.day && formData.year);
             case 2:
                 return !!(formData.username && formData.email && formData.password && 
-                         formData.confirmPassword && passwordMatch);
+                        formData.confirmPassword && passwordMatch);
             case 3:
-                return !!formData.verificationCode && formData.verificationCode.length === 6;
+                return otpVerified;
             default:
                 return true;
         }
@@ -113,7 +124,11 @@ const RegisterPage: React.FC = () => {
             setCurrentStep(prev => prev + 1);
             setError("");
         } else {
-            setError("Please fill in all required fields correctly.");
+            if (currentStep === 3 && !otpVerified) {
+                setError("Please verify your email address first.");
+            } else {
+                setError("Please fill in all required fields correctly.");
+            }
         }
     };
 
@@ -161,8 +176,6 @@ const RegisterPage: React.FC = () => {
             
             if (response.success) {
                 console.log("Registration successful:", response.message);
-                // Redirect to login or dashboard
-                // Example: navigate('/login') or navigate('/dashboard')
                 navigate("/login");
             } else {
                 setError(response.error || response.message || "Registration failed");
@@ -178,12 +191,69 @@ const RegisterPage: React.FC = () => {
     };
 
     const handleSendCode = async () => {
-        console.log("Send verification code");
-        try {
-            console.log("Verification code sent");
-        } catch (err) {
-            console.error("Failed to send verification code:", err);
+        if (!formData.email) {
+            setError("Please enter your email address first");
+            return;
         }
+
+        setSendingOtp(true);
+        setError("");
+        console.log("Send verification code to:", formData.email);
+        
+        try {
+            const req: SendOTPRequest = {
+                email: formData.email
+            };
+            
+            const response = await authClient.SendOTP(req);
+            
+            setOtpSent(true);
+            console.log(response.message);
+        } catch (err: any) {
+            const errorMessage = err?.message || err?.toString() || "Failed to send verification code";
+            setError(errorMessage);
+            console.error("Failed to send verification code:", err);
+        } finally {
+            setSendingOtp(false);
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (!formData.verificationCode || formData.verificationCode.length !== 6) {
+            setError("Please enter a valid 6-digit code");
+            return;
+        }
+
+        setVerifyingOtp(true);
+        setError("");
+        
+        try {
+            const req = {
+                email: formData.email,
+                otp: formData.verificationCode
+            };
+            
+            const response = await authClient.VerifyOTP(req);
+            
+            if (response.success) {
+                setOtpVerified(true);
+                console.log("OTP verified successfully");
+            } else {
+                setError("Invalid verification code");
+            }
+        } catch (err: any) {
+            const errorMessage = err?.message || err?.toString() || "Failed to verify code";
+            setError(errorMessage);
+            console.error("Failed to verify OTP:", err);
+        } finally {
+            setVerifyingOtp(false);
+        }
+    };
+
+    const handleResendCode = async () => {
+        setFormData(prev => ({ ...prev, verificationCode: "" }));
+        setOtpVerified(false);
+        await handleSendCode();
     };
 
     // Generate arrays for dropdowns
@@ -442,37 +512,78 @@ const RegisterPage: React.FC = () => {
             <div className="text-center mb-4">
                 <h1 className="mb-3">Verify your account</h1>
                 <p style={{ color: "#666" }}>Step 3 of 4: Enter verification code</p>
+                {otpSent && !otpVerified && (
+                    <p style={{ color: "#28a745", fontSize: "0.875rem" }}>
+                        Verification code sent to {formData.email}
+                    </p>
+                )}
+                {otpVerified && (
+                    <p style={{ color: "#28a745", fontSize: "0.875rem" }}>
+                        ✓ Email verified successfully
+                    </p>
+                )}
             </div>
 
             {/* Verification Code */}
-            <div className="row mb-3">
-                <div className="col-8">
-                    <input
-                        type="text"
-                        name="verificationCode"
-                        placeholder="Enter 6-digit code"
-                        value={formData.verificationCode}
-                        onChange={handleChange}
-                        className="w-100 p-3"
-                        style={{
-                            border: "1px solid #ccc",
-                            background: "#f5f5f5",
-                            borderRadius: "4px"
-                        }}
-                        maxLength={6}
-                    />
-                </div>
-                <div className="col-4">
+            <div className="mb-3">
+                <input
+                    type="text"
+                    name="verificationCode"
+                    placeholder="Enter 6-digit code"
+                    value={formData.verificationCode}
+                    onChange={handleChange}
+                    className="w-100 p-3 mb-3"
+                    style={{
+                        border: "1px solid #ccc",
+                        background: "#f5f5f5",
+                        borderRadius: "4px"
+                    }}
+                    maxLength={6}
+                    disabled={otpVerified}
+                />
+
+                {!otpSent ? (
                     <button
                         type="button"
                         onClick={handleSendCode}
-                        className="btn btn-white w-100"
-                        style={{ height: "100%" }}
+                        className="btn btn-black w-100"
+                        disabled={sendingOtp || !formData.email}
                     >
-                        Send code
+                        {sendingOtp ? "Sending..." : "Send Code"}
+                    </button>
+                ) : !otpVerified ? (
+                    <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        className="btn btn-black w-100"
+                        disabled={verifyingOtp || !formData.verificationCode || formData.verificationCode.length !== 6}
+                    >
+                        {verifyingOtp ? "Verifying..." : "Verify Code"}
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        className="btn btn-success w-100"
+                        disabled
+                    >
+                        ✓ Verified
+                    </button>
+                )}
+            </div>
+
+            {otpSent && !otpVerified && (
+                <div className="text-center mb-3">
+                    <button
+                        type="button"
+                        onClick={handleResendCode}
+                        className="btn-link"
+                        style={{ color: "#666", fontSize: "0.875rem" }}
+                        disabled={sendingOtp}
+                    >
+                        {sendingOtp ? "Sending..." : "Didn't receive the code? Resend"}
                     </button>
                 </div>
-            </div>
+            )}
 
             <div className="d-flex justify-between">
                 <button
