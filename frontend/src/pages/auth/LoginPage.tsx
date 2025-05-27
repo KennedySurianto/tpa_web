@@ -20,8 +20,13 @@ const LoginPage: React.FC = () => {
     password: ""
   });
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Clear error when user starts typing
+    if (error) setError("");
+    
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -30,11 +35,13 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     const loginRequest: LoginRequest = {
       email: formData.email,
       password: formData.password,
-      rememberMe: true, // optionally bind this to a checkbox
+      rememberMe: rememberMe,
       deviceInfo: navigator.userAgent
     };
 
@@ -51,12 +58,13 @@ const LoginPage: React.FC = () => {
         // Navigate to home page
         navigate("/home");
       } else {
-        console.error("Login failed:", response.message || response.error);
-        alert(response.message || "Login failed");
+        setError(response.message || response.error || "Login failed. Please check your credentials.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      alert("An unexpected error occurred during login.");
+      setError(error.message || "Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,6 +85,21 @@ const LoginPage: React.FC = () => {
                 <p className="mb-4">Welcome back! Please sign in to your account.</p>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div 
+                  className="mb-4 p-3"
+                  style={{
+                    backgroundColor: "#fee",
+                    border: "1px solid #fcc",
+                    borderRadius: "4px",
+                    color: "#c33"
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="mb-4">
                 <div className="mb-3">
@@ -87,10 +110,12 @@ const LoginPage: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     className="w-100 p-3"
                     style={{
                       border: "1px solid #000",
-                      background: "#fff"
+                      background: "#fff",
+                      opacity: isLoading ? 0.6 : 1
                     }}
                   />
                 </div>
@@ -103,10 +128,12 @@ const LoginPage: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     className="w-100 p-3"
                     style={{
                       border: "1px solid #000",
-                      background: "#fff"
+                      background: "#fff",
+                      opacity: isLoading ? 0.6 : 1
                     }}
                   />
                 </div>
@@ -118,6 +145,7 @@ const LoginPage: React.FC = () => {
                       className="mr-2"
                       checked={rememberMe}
                       onChange={() => setRememberMe(!rememberMe)}
+                      disabled={isLoading}
                     />
                     Remember me
                   </label>
@@ -134,15 +162,17 @@ const LoginPage: React.FC = () => {
 
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="w-100 p-3 mb-3"
                   style={{
                     border: "1px solid #000",
-                    background: "#000",
+                    background: isLoading ? "#666" : "#000",
                     color: "#fff",
-                    cursor: "pointer"
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    opacity: isLoading ? 0.6 : 1
                   }}
                 >
-                  Sign In
+                  {isLoading ? "Signing In..." : "Sign In"}
                 </button>
               </form>
 
@@ -154,11 +184,13 @@ const LoginPage: React.FC = () => {
               {/* Google Login */}
               <button 
                 onClick={handleGoogleLogin}
+                disabled={isLoading}
                 className="w-100 mb-4 p-3"
                 style={{
                   border: "1px solid #000",
                   background: "#fff",
-                  cursor: "pointer"
+                  cursor: isLoading ? "not-allowed" : "pointer",
+                  opacity: isLoading ? 0.6 : 1
                 }}
               >
                 Continue with Google
