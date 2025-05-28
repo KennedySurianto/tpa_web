@@ -15,6 +15,19 @@ services:
     networks:
       - app-network
 
+  video-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: video_service_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - video-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   envoy:
     image: envoyproxy/envoy:v1.29-latest
     volumes:
@@ -25,6 +38,7 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - video-service
     networks:
       - app-network
     # optional explicit command:
@@ -34,6 +48,19 @@ services:
     image: memcached:1.6-alpine
     ports:
       - "11211:11211"
+    networks:
+      - app-network
+
+  user-service:
+    build: 
+      context: ./backend
+      dockerfile: user-service/Dockerfile
+    depends_on:
+      - user-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_service_db
+    ports:
+      - 50051:50051
     networks:
       - app-network
 
@@ -55,19 +82,20 @@ services:
     networks:
       - app-network
 
-  user-service:
+  video-service:
     build: 
       context: ./backend
-      dockerfile: user-service/Dockerfile
-    depends_on:
-      - user-db
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_service_db
+      dockerfile: video-service/Dockerfile
     ports:
-      - 50051:50051
+      - 50053:50053
+    depends_on:
+      - video-db
+      - user-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@video-db:5432/video_service_db
     networks:
       - app-network
-
+    
   frontend:
     build: ./frontend
     ports:
@@ -77,6 +105,7 @@ services:
 
 volumes:
   user-db-data:
+  video-db-data:
 
 networks:
   app-network:

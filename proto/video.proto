@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package video;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/video;video";
+
+import "google/protobuf/timestamp.proto";
+
+// Video message definition
+message Video {
+  uint32 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  google.protobuf.Timestamp deleted_at = 4;
+  
+  // Video metadata
+  uint32 user_id = 5;
+  string video_url = 6;
+  string thumbnail_url = 7;
+  string caption = 8;
+  int32 duration = 9;
+  
+  // Optional associations
+  optional uint32 sound_id = 10;
+  string privacy = 11;
+  
+  // Cached metrics
+  uint32 views_count = 12;
+  uint32 likes_count = 13;
+  uint32 comments_count = 14;
+  
+  // Feature flags
+  bool allow_comments = 15;
+  bool allow_duet = 16;
+  bool allow_stitch = 17;
+}
+
+// Request/Response messages
+message CreateVideoRequest {
+  uint32 user_id = 1;
+  string video_url = 2;
+  string thumbnail_url = 3;
+  string caption = 4;
+  int32 duration = 5;
+  optional uint32 sound_id = 6;
+  string privacy = 7;
+  bool allow_comments = 8;
+  bool allow_duet = 9;
+  bool allow_stitch = 10;
+}
+
+message CreateVideoResponse {
+  Video video = 1;
+}
+
+message GetVideoRequest {
+  uint32 id = 1;
+}
+
+message GetVideoResponse {
+  Video video = 1;
+}
+
+message UpdateVideoRequest {
+  uint32 id = 1;
+  optional string thumbnail_url = 2;
+  optional string caption = 3;
+  optional string privacy = 4;
+  optional bool allow_comments = 5;
+  optional bool allow_duet = 6;
+  optional bool allow_stitch = 7;
+}
+
+message UpdateVideoResponse {
+  Video video = 1;
+}
+
+message DeleteVideoRequest {
+  uint32 id = 1;
+}
+
+message DeleteVideoResponse {
+  bool success = 1;
+}
+
+message ListVideosRequest {
+  uint32 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  string privacy = 4; // filter by privacy
+}
+
+message ListVideosResponse {
+  repeated Video videos = 1;
+  int32 total = 2;
+}
+
+message UpdateMetricsRequest {
+  uint32 id = 1;
+  optional uint32 views_count = 2;
+  optional uint32 likes_count = 3;
+  optional uint32 comments_count = 4;
+}
+
+message UpdateMetricsResponse {
+  Video video = 1;
+}
+
+// Video service definition
+service VideoService {
+  rpc CreateVideo(CreateVideoRequest) returns (CreateVideoResponse);
+  rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
+  rpc UpdateVideo(UpdateVideoRequest) returns (UpdateVideoResponse);
+  rpc DeleteVideo(DeleteVideoRequest) returns (DeleteVideoResponse);
+  rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
+  rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
+}

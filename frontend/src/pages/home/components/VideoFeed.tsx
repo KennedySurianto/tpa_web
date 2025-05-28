@@ -1,11 +1,11 @@
 import React from "react";
 
 const dummyVideos = [
-    { id: 1, src: "/videos/sample1.mp4", description: "Amazing sunset timelapse from the mountains" },
-    { id: 2, src: "/videos/sample2.mp4", description: "Street food cooking techniques from around the world" },
-    { id: 3, src: "/videos/sample3.mp4", description: "Wildlife photography in the African savanna" },
-    { id: 4, src: "/videos/sample4.mp4", description: "Urban architecture and modern design trends" },
-    { id: 5, src: "/videos/sample5.mp4", description: "Ocean waves and marine life exploration" },
+    { id: 1, src: "https://www.w3schools.com/tags/mov_bbb.mp4", description: "Amazing sunset timelapse from the mountains" },
+    { id: 2, src: "https://www.w3schools.com/tags/mov_bbb.mp4", description: "Street food cooking techniques from around the world" },
+    { id: 3, src: "https://www.w3schools.com/tags/mov_bbb.mp4", description: "Wildlife photography in the African savanna" },
+    { id: 4, src: "https://www.w3schools.com/tags/mov_bbb.mp4", description: "Urban architecture and modern design trends" },
+    { id: 5, src: "https://www.w3schools.com/tags/mov_bbb.mp4", description: "Ocean waves and marine life exploration" },
 ];
 
 const VideoFeed: React.FC = () => {
