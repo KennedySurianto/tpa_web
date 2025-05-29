@@ -212,6 +212,8 @@ type CreateVideoRequest struct {
 	AllowComments bool                   `protobuf:"varint,8,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
 	AllowDuet     bool                   `protobuf:"varint,9,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
 	AllowStitch   bool                   `protobuf:"varint,10,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	VideoData     []byte                 `protobuf:"bytes,11,opt,name=video_data,json=videoData,proto3" json:"video_data,omitempty"`       // Raw binary video data
+	ContentType   string                 `protobuf:"bytes,12,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"` // e.g. "video/mp4"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -314,6 +316,20 @@ func (x *CreateVideoRequest) GetAllowStitch() bool {
 		return x.AllowStitch
 	}
 	return false
+}
+
+func (x *CreateVideoRequest) GetVideoData() []byte {
+	if x != nil {
+		return x.VideoData
+	}
+	return nil
+}
+
+func (x *CreateVideoRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
 }
 
 type CreateVideoResponse struct {
@@ -934,7 +950,7 @@ const file_video_proto_rawDesc = "" +
 	"\n" +
 	"allow_duet\x18\x10 \x01(\bR\tallowDuet\x12!\n" +
 	"\fallow_stitch\x18\x11 \x01(\bR\vallowStitchB\v\n" +
-	"\t_sound_id\"\xd5\x02\n" +
+	"\t_sound_id\"\x97\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1b\n" +
 	"\tvideo_url\x18\x02 \x01(\tR\bvideoUrl\x12#\n" +
@@ -947,7 +963,10 @@ const file_video_proto_rawDesc = "" +
 	"\n" +
 	"allow_duet\x18\t \x01(\bR\tallowDuet\x12!\n" +
 	"\fallow_stitch\x18\n" +
-	" \x01(\bR\vallowStitchB\v\n" +
+	" \x01(\bR\vallowStitch\x12\x1d\n" +
+	"\n" +
+	"video_data\x18\v \x01(\fR\tvideoData\x12!\n" +
+	"\fcontent_type\x18\f \x01(\tR\vcontentTypeB\v\n" +
 	"\t_sound_id\"9\n" +
 	"\x13CreateVideoResponse\x12\"\n" +
 	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"!\n" +

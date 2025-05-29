@@ -13,6 +13,7 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
+	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -26,12 +27,17 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	const maxMsgSize = 1024 * 1024 * 20 // 20 MB
+	grpcServer := grpc.NewServer(
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize),
+	)
 
 	// Dependency Injection
 	db := database.ConnectDatabase()
 	videoRepo := repository.NewVideoRepository(db)
-	videoService := service.NewVideoService(videoRepo)
+	minioClient := storage.NewMinIOClient()
+	videoService := service.NewVideoService(videoRepo, minioClient)
 	videoController := controller.NewVideoController(videoService)
 
 	// Register gRPC service

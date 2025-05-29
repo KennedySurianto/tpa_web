@@ -47,6 +47,9 @@ message CreateVideoRequest {
   bool allow_comments = 8;
   bool allow_duet = 9;
   bool allow_stitch = 10;
+
+  bytes video_data = 11;         // Raw binary video data
+  string content_type = 12;      // e.g. "video/mp4"
 }
 
 message CreateVideoResponse {

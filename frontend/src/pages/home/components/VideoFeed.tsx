@@ -10,11 +10,11 @@ const dummyVideos = [
 
 const VideoFeed: React.FC = () => {
     return (
-        <div className="d-flex flex-column align-center p-3 p-md-4 p-lg-5"
+        <div className="d-flex flex-column align-center p-3 p-md-4 p-lg-5 video-feed-container"
              style={{
-                 marginLeft: '250px',
                  minHeight: '100vh',
-                 backgroundColor: '#f8f9fa'
+                 backgroundColor: '#f8f9fa',
+                 width: '100%'
              }}>
             
             <div className="container-md">
@@ -92,19 +92,11 @@ const VideoFeed: React.FC = () => {
             <style>{`
                 @media (max-width: 767.98px) {
                     .video-feed-container {
-                        margin-left: 0 !important;
-                        margin-bottom: 80px;
                         padding: 0.75rem !important;
                     }
                     
                     .video-feed-container video {
                         max-height: 300px !important;
-                    }
-                }
-                
-                @media (min-width: 768px) and (max-width: 991.98px) {
-                    .video-feed-container {
-                        margin-left: 200px !important;
                     }
                 }
             `}</style>

@@ -51,6 +51,21 @@ services:
     networks:
       - app-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - app-network
+
   user-service:
     build: 
       context: ./backend
@@ -93,6 +108,10 @@ services:
       - user-service
     environment:
       DATABASE_URL: postgres://postgres:postgres@video-db:5432/video_service_db
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: videos
     networks:
       - app-network
     
@@ -106,6 +125,7 @@ services:
 volumes:
   user-db-data:
   video-db-data:
+  minio-data:
 
 networks:
   app-network:

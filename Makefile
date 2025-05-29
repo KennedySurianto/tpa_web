@@ -23,7 +23,6 @@ proto:
 		proto/video.proto
 
 # Generate gRPC-Web files
-proto-web:
 	@echo "Generating gRPC-Web files..."
 	protoc \
 		-I=proto \

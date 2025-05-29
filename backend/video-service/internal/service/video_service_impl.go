@@ -1,23 +1,51 @@
 package service
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
+	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
 )
 
 type VideoServiceImpl struct {
 	videoRepo repository.VideoRepository
+	minio *storage.MinIOClient
 }
 
-func NewVideoService(videoRepo repository.VideoRepository) *VideoServiceImpl {
-	return &VideoServiceImpl{videoRepo: videoRepo}
+func NewVideoService(videoRepo repository.VideoRepository, minio *storage.MinIOClient) *VideoServiceImpl {
+	return &VideoServiceImpl{
+		videoRepo: 	videoRepo,
+		minio: 		minio,
+	}
 }
 
 func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video, error) {
+	var videoURL string
+
+	fmt.Println("[VIDEO_SERVICE_IMPL] Received CreateVideoRequest:", req)
+	if len(req.VideoData) > 0 && req.ContentType != "" {
+		// generate a filename, e.g. user_5_caption.mp4
+		fileName := fmt.Sprintf("user_%d_%d.mp4", req.UserId, time.Now().Unix())
+
+		fmt.Println("[VIDEO_SERVICE_IMPL] Uploading video with filename:", fileName)
+		uploadedURL, err := s.minio.UploadVideo(context.Background(), fileName, req.VideoData, req.ContentType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to upload video to MinIO: %w", err)
+		}
+
+		videoURL = uploadedURL
+	} else {
+		// fallback if no file is provided
+		videoURL = req.VideoUrl
+	}
+
 	video := &model.Video{
 		UserID:        uint(req.UserId),
-		VideoURL:      req.VideoUrl,
+		VideoURL:      videoURL,
 		ThumbnailURL:  req.ThumbnailUrl,
 		Caption:       req.Caption,
 		Duration:      int(req.Duration),
@@ -27,9 +55,13 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		AllowDuet:     req.AllowDuet,
 		AllowStitch:   req.AllowStitch,
 	}
+
+	fmt.Println("[VIDEO_SERVICE_IMPL] Creating video with details:", video)
 	if err := s.videoRepo.CreateVideo(video); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("[VIDEO_SERVICE_IMPL] Video created successfully with ID:", video.ID)
 	return video, nil
 }
 
