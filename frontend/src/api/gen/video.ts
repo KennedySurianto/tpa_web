@@ -25,6 +25,7 @@ export interface Video {
   videoUrl: string;
   thumbnailUrl: string;
   caption: string;
+  description?: string | undefined;
   duration: number;
   /** Optional associations */
   soundId?: number | undefined;
@@ -45,6 +46,7 @@ export interface CreateVideoRequest {
   videoUrl: string;
   thumbnailUrl: string;
   caption: string;
+  description?: string | undefined;
   duration: number;
   soundId?: number | undefined;
   privacy: string;
@@ -95,8 +97,6 @@ export interface ListVideosRequest {
   userId: number;
   page: number;
   limit: number;
-  /** filter by privacy */
-  privacy: string;
 }
 
 export interface ListVideosResponse {
@@ -125,6 +125,7 @@ function createBaseVideo(): Video {
     videoUrl: "",
     thumbnailUrl: "",
     caption: "",
+    description: undefined,
     duration: 0,
     soundId: undefined,
     privacy: "",
@@ -163,32 +164,35 @@ export const Video: MessageFns<Video> = {
     if (message.caption !== "") {
       writer.uint32(66).string(message.caption);
     }
+    if (message.description !== undefined) {
+      writer.uint32(74).string(message.description);
+    }
     if (message.duration !== 0) {
-      writer.uint32(72).int32(message.duration);
+      writer.uint32(80).int32(message.duration);
     }
     if (message.soundId !== undefined) {
-      writer.uint32(80).uint32(message.soundId);
+      writer.uint32(88).uint32(message.soundId);
     }
     if (message.privacy !== "") {
-      writer.uint32(90).string(message.privacy);
+      writer.uint32(98).string(message.privacy);
     }
     if (message.viewsCount !== 0) {
-      writer.uint32(96).uint32(message.viewsCount);
+      writer.uint32(104).uint32(message.viewsCount);
     }
     if (message.likesCount !== 0) {
-      writer.uint32(104).uint32(message.likesCount);
+      writer.uint32(112).uint32(message.likesCount);
     }
     if (message.commentsCount !== 0) {
-      writer.uint32(112).uint32(message.commentsCount);
+      writer.uint32(120).uint32(message.commentsCount);
     }
     if (message.allowComments !== false) {
-      writer.uint32(120).bool(message.allowComments);
+      writer.uint32(128).bool(message.allowComments);
     }
     if (message.allowDuet !== false) {
-      writer.uint32(128).bool(message.allowDuet);
+      writer.uint32(136).bool(message.allowDuet);
     }
     if (message.allowStitch !== false) {
-      writer.uint32(136).bool(message.allowStitch);
+      writer.uint32(144).bool(message.allowStitch);
     }
     return writer;
   },
@@ -265,11 +269,11 @@ export const Video: MessageFns<Video> = {
           continue;
         }
         case 9: {
-          if (tag !== 72) {
+          if (tag !== 74) {
             break;
           }
 
-          message.duration = reader.int32();
+          message.description = reader.string();
           continue;
         }
         case 10: {
@@ -277,23 +281,23 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.soundId = reader.uint32();
+          message.duration = reader.int32();
           continue;
         }
         case 11: {
-          if (tag !== 90) {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.soundId = reader.uint32();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
             break;
           }
 
           message.privacy = reader.string();
-          continue;
-        }
-        case 12: {
-          if (tag !== 96) {
-            break;
-          }
-
-          message.viewsCount = reader.uint32();
           continue;
         }
         case 13: {
@@ -301,7 +305,7 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.likesCount = reader.uint32();
+          message.viewsCount = reader.uint32();
           continue;
         }
         case 14: {
@@ -309,7 +313,7 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.commentsCount = reader.uint32();
+          message.likesCount = reader.uint32();
           continue;
         }
         case 15: {
@@ -317,7 +321,7 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.allowComments = reader.bool();
+          message.commentsCount = reader.uint32();
           continue;
         }
         case 16: {
@@ -325,11 +329,19 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.allowDuet = reader.bool();
+          message.allowComments = reader.bool();
           continue;
         }
         case 17: {
           if (tag !== 136) {
+            break;
+          }
+
+          message.allowDuet = reader.bool();
+          continue;
+        }
+        case 18: {
+          if (tag !== 144) {
             break;
           }
 
@@ -355,6 +367,7 @@ export const Video: MessageFns<Video> = {
       videoUrl: isSet(object.videoUrl) ? globalThis.String(object.videoUrl) : "",
       thumbnailUrl: isSet(object.thumbnailUrl) ? globalThis.String(object.thumbnailUrl) : "",
       caption: isSet(object.caption) ? globalThis.String(object.caption) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
       soundId: isSet(object.soundId) ? globalThis.Number(object.soundId) : undefined,
       privacy: isSet(object.privacy) ? globalThis.String(object.privacy) : "",
@@ -392,6 +405,9 @@ export const Video: MessageFns<Video> = {
     }
     if (message.caption !== "") {
       obj.caption = message.caption;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
     }
     if (message.duration !== 0) {
       obj.duration = Math.round(message.duration);
@@ -436,6 +452,7 @@ export const Video: MessageFns<Video> = {
     message.videoUrl = object.videoUrl ?? "";
     message.thumbnailUrl = object.thumbnailUrl ?? "";
     message.caption = object.caption ?? "";
+    message.description = object.description ?? undefined;
     message.duration = object.duration ?? 0;
     message.soundId = object.soundId ?? undefined;
     message.privacy = object.privacy ?? "";
@@ -455,6 +472,7 @@ function createBaseCreateVideoRequest(): CreateVideoRequest {
     videoUrl: "",
     thumbnailUrl: "",
     caption: "",
+    description: undefined,
     duration: 0,
     soundId: undefined,
     privacy: "",
@@ -480,29 +498,32 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     if (message.caption !== "") {
       writer.uint32(34).string(message.caption);
     }
+    if (message.description !== undefined) {
+      writer.uint32(42).string(message.description);
+    }
     if (message.duration !== 0) {
-      writer.uint32(40).int32(message.duration);
+      writer.uint32(48).int32(message.duration);
     }
     if (message.soundId !== undefined) {
-      writer.uint32(48).uint32(message.soundId);
+      writer.uint32(56).uint32(message.soundId);
     }
     if (message.privacy !== "") {
-      writer.uint32(58).string(message.privacy);
+      writer.uint32(66).string(message.privacy);
     }
     if (message.allowComments !== false) {
-      writer.uint32(64).bool(message.allowComments);
+      writer.uint32(72).bool(message.allowComments);
     }
     if (message.allowDuet !== false) {
-      writer.uint32(72).bool(message.allowDuet);
+      writer.uint32(80).bool(message.allowDuet);
     }
     if (message.allowStitch !== false) {
-      writer.uint32(80).bool(message.allowStitch);
+      writer.uint32(88).bool(message.allowStitch);
     }
     if (message.videoData.length !== 0) {
-      writer.uint32(90).bytes(message.videoData);
+      writer.uint32(98).bytes(message.videoData);
     }
     if (message.contentType !== "") {
-      writer.uint32(98).string(message.contentType);
+      writer.uint32(106).string(message.contentType);
     }
     return writer;
   },
@@ -547,11 +568,11 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
           continue;
         }
         case 5: {
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.duration = reader.int32();
+          message.description = reader.string();
           continue;
         }
         case 6: {
@@ -559,23 +580,23 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
             break;
           }
 
-          message.soundId = reader.uint32();
+          message.duration = reader.int32();
           continue;
         }
         case 7: {
-          if (tag !== 58) {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.soundId = reader.uint32();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
             break;
           }
 
           message.privacy = reader.string();
-          continue;
-        }
-        case 8: {
-          if (tag !== 64) {
-            break;
-          }
-
-          message.allowComments = reader.bool();
           continue;
         }
         case 9: {
@@ -583,7 +604,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
             break;
           }
 
-          message.allowDuet = reader.bool();
+          message.allowComments = reader.bool();
           continue;
         }
         case 10: {
@@ -591,19 +612,27 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
             break;
           }
 
-          message.allowStitch = reader.bool();
+          message.allowDuet = reader.bool();
           continue;
         }
         case 11: {
-          if (tag !== 90) {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.allowStitch = reader.bool();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
             break;
           }
 
           message.videoData = reader.bytes();
           continue;
         }
-        case 12: {
-          if (tag !== 98) {
+        case 13: {
+          if (tag !== 106) {
             break;
           }
 
@@ -625,6 +654,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
       videoUrl: isSet(object.videoUrl) ? globalThis.String(object.videoUrl) : "",
       thumbnailUrl: isSet(object.thumbnailUrl) ? globalThis.String(object.thumbnailUrl) : "",
       caption: isSet(object.caption) ? globalThis.String(object.caption) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
       soundId: isSet(object.soundId) ? globalThis.Number(object.soundId) : undefined,
       privacy: isSet(object.privacy) ? globalThis.String(object.privacy) : "",
@@ -649,6 +679,9 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     }
     if (message.caption !== "") {
       obj.caption = message.caption;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
     }
     if (message.duration !== 0) {
       obj.duration = Math.round(message.duration);
@@ -686,6 +719,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     message.videoUrl = object.videoUrl ?? "";
     message.thumbnailUrl = object.thumbnailUrl ?? "";
     message.caption = object.caption ?? "";
+    message.description = object.description ?? undefined;
     message.duration = object.duration ?? 0;
     message.soundId = object.soundId ?? undefined;
     message.privacy = object.privacy ?? "";
@@ -1211,7 +1245,7 @@ export const DeleteVideoResponse: MessageFns<DeleteVideoResponse> = {
 };
 
 function createBaseListVideosRequest(): ListVideosRequest {
-  return { userId: 0, page: 0, limit: 0, privacy: "" };
+  return { userId: 0, page: 0, limit: 0 };
 }
 
 export const ListVideosRequest: MessageFns<ListVideosRequest> = {
@@ -1224,9 +1258,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
     }
     if (message.limit !== 0) {
       writer.uint32(24).int32(message.limit);
-    }
-    if (message.privacy !== "") {
-      writer.uint32(34).string(message.privacy);
     }
     return writer;
   },
@@ -1262,14 +1293,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
           message.limit = reader.int32();
           continue;
         }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.privacy = reader.string();
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1284,7 +1307,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
       userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
       page: isSet(object.page) ? globalThis.Number(object.page) : 0,
       limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
-      privacy: isSet(object.privacy) ? globalThis.String(object.privacy) : "",
     };
   },
 
@@ -1299,9 +1321,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
     if (message.limit !== 0) {
       obj.limit = Math.round(message.limit);
     }
-    if (message.privacy !== "") {
-      obj.privacy = message.privacy;
-    }
     return obj;
   },
 
@@ -1313,7 +1332,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
     message.userId = object.userId ?? 0;
     message.page = object.page ?? 0;
     message.limit = object.limit ?? 0;
-    message.privacy = object.privacy ?? "";
     return message;
   },
 };

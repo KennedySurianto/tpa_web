@@ -1,9 +1,9 @@
 // src/pages/RegisterPage.tsx
 
 import React, { useState } from "react";
-import { AuthServiceClientImpl, RegisterRequest, SendOTPRequest, UserPreferences } from "../../grpc/gen/auth";
+import { AuthServiceClientImpl, RegisterRequest, SendOTPRequest, UserPreferences } from "../../api/gen/auth";
 import { Link } from "react-router-dom";
-import { GrpcWebImpl } from "../../grpc/gen/auth";
+import { GrpcWebImpl } from "../../api/gen/auth";
 import { BrowserHeaders } from "browser-headers";
 import { useNavigate } from "react-router-dom";
 

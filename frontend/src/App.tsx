@@ -5,9 +5,9 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import OnBoardingPage from './pages/auth/OnBoardingPage'
 import PublicRoute from './routes/PublicRoute'
 import { AuthProvider } from './utils/AuthProvider'
-import Layout from './pages/home/Layout'
-import VideoFeed from './pages/home/components/VideoFeed'
-import UploadVideoPage from './pages/home/UploadVideoPage'
+import Layout from './pages/main/Layout'
+import VideoFeed from './pages/main/pages/VideoFeed'
+import UploadVideoPage from './pages/main/pages/UploadVideoPage'
 
 const App = () => {
   return (

@@ -30,22 +30,23 @@ type Video struct {
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	DeletedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	// Video metadata
-	UserId       uint32 `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	VideoUrl     string `protobuf:"bytes,6,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
-	ThumbnailUrl string `protobuf:"bytes,7,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
-	Caption      string `protobuf:"bytes,8,opt,name=caption,proto3" json:"caption,omitempty"`
-	Duration     int32  `protobuf:"varint,9,opt,name=duration,proto3" json:"duration,omitempty"`
+	UserId       uint32  `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoUrl     string  `protobuf:"bytes,6,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
+	ThumbnailUrl string  `protobuf:"bytes,7,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
+	Caption      string  `protobuf:"bytes,8,opt,name=caption,proto3" json:"caption,omitempty"`
+	Description  *string `protobuf:"bytes,9,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Duration     int32   `protobuf:"varint,10,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Optional associations
-	SoundId *uint32 `protobuf:"varint,10,opt,name=sound_id,json=soundId,proto3,oneof" json:"sound_id,omitempty"`
-	Privacy string  `protobuf:"bytes,11,opt,name=privacy,proto3" json:"privacy,omitempty"`
+	SoundId *uint32 `protobuf:"varint,11,opt,name=sound_id,json=soundId,proto3,oneof" json:"sound_id,omitempty"`
+	Privacy string  `protobuf:"bytes,12,opt,name=privacy,proto3" json:"privacy,omitempty"`
 	// Cached metrics
-	ViewsCount    uint32 `protobuf:"varint,12,opt,name=views_count,json=viewsCount,proto3" json:"views_count,omitempty"`
-	LikesCount    uint32 `protobuf:"varint,13,opt,name=likes_count,json=likesCount,proto3" json:"likes_count,omitempty"`
-	CommentsCount uint32 `protobuf:"varint,14,opt,name=comments_count,json=commentsCount,proto3" json:"comments_count,omitempty"`
+	ViewsCount    uint32 `protobuf:"varint,13,opt,name=views_count,json=viewsCount,proto3" json:"views_count,omitempty"`
+	LikesCount    uint32 `protobuf:"varint,14,opt,name=likes_count,json=likesCount,proto3" json:"likes_count,omitempty"`
+	CommentsCount uint32 `protobuf:"varint,15,opt,name=comments_count,json=commentsCount,proto3" json:"comments_count,omitempty"`
 	// Feature flags
-	AllowComments bool `protobuf:"varint,15,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
-	AllowDuet     bool `protobuf:"varint,16,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
-	AllowStitch   bool `protobuf:"varint,17,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	AllowComments bool `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	AllowDuet     bool `protobuf:"varint,17,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch   bool `protobuf:"varint,18,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -136,6 +137,13 @@ func (x *Video) GetCaption() string {
 	return ""
 }
 
+func (x *Video) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
 func (x *Video) GetDuration() int32 {
 	if x != nil {
 		return x.Duration
@@ -206,14 +214,15 @@ type CreateVideoRequest struct {
 	VideoUrl      string                 `protobuf:"bytes,2,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
 	ThumbnailUrl  string                 `protobuf:"bytes,3,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
 	Caption       string                 `protobuf:"bytes,4,opt,name=caption,proto3" json:"caption,omitempty"`
-	Duration      int32                  `protobuf:"varint,5,opt,name=duration,proto3" json:"duration,omitempty"`
-	SoundId       *uint32                `protobuf:"varint,6,opt,name=sound_id,json=soundId,proto3,oneof" json:"sound_id,omitempty"`
-	Privacy       string                 `protobuf:"bytes,7,opt,name=privacy,proto3" json:"privacy,omitempty"`
-	AllowComments bool                   `protobuf:"varint,8,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
-	AllowDuet     bool                   `protobuf:"varint,9,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
-	AllowStitch   bool                   `protobuf:"varint,10,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
-	VideoData     []byte                 `protobuf:"bytes,11,opt,name=video_data,json=videoData,proto3" json:"video_data,omitempty"`       // Raw binary video data
-	ContentType   string                 `protobuf:"bytes,12,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"` // e.g. "video/mp4"
+	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Duration      int32                  `protobuf:"varint,6,opt,name=duration,proto3" json:"duration,omitempty"`
+	SoundId       *uint32                `protobuf:"varint,7,opt,name=sound_id,json=soundId,proto3,oneof" json:"sound_id,omitempty"`
+	Privacy       string                 `protobuf:"bytes,8,opt,name=privacy,proto3" json:"privacy,omitempty"`
+	AllowComments bool                   `protobuf:"varint,9,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	AllowDuet     bool                   `protobuf:"varint,10,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch   bool                   `protobuf:"varint,11,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	VideoData     []byte                 `protobuf:"bytes,12,opt,name=video_data,json=videoData,proto3" json:"video_data,omitempty"`       // Raw binary video data
+	ContentType   string                 `protobuf:"bytes,13,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"` // e.g. "video/mp4"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -272,6 +281,13 @@ func (x *CreateVideoRequest) GetThumbnailUrl() string {
 func (x *CreateVideoRequest) GetCaption() string {
 	if x != nil {
 		return x.Caption
+	}
+	return ""
+}
+
+func (x *CreateVideoRequest) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
@@ -693,7 +709,6 @@ type ListVideosRequest struct {
 	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	Privacy       string                 `protobuf:"bytes,4,opt,name=privacy,proto3" json:"privacy,omitempty"` // filter by privacy
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -747,13 +762,6 @@ func (x *ListVideosRequest) GetLimit() int32 {
 		return x.Limit
 	}
 	return 0
-}
-
-func (x *ListVideosRequest) GetPrivacy() string {
-	if x != nil {
-		return x.Privacy
-	}
-	return ""
 }
 
 type ListVideosResponse struct {
@@ -924,7 +932,7 @@ var File_video_proto protoreflect.FileDescriptor
 
 const file_video_proto_rawDesc = "" +
 	"\n" +
-	"\vvideo.proto\x12\x05video\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf2\x04\n" +
+	"\vvideo.proto\x12\x05video\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa9\x05\n" +
 	"\x05Video\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x129\n" +
 	"\n" +
@@ -936,37 +944,41 @@ const file_video_proto_rawDesc = "" +
 	"\auser_id\x18\x05 \x01(\rR\x06userId\x12\x1b\n" +
 	"\tvideo_url\x18\x06 \x01(\tR\bvideoUrl\x12#\n" +
 	"\rthumbnail_url\x18\a \x01(\tR\fthumbnailUrl\x12\x18\n" +
-	"\acaption\x18\b \x01(\tR\acaption\x12\x1a\n" +
-	"\bduration\x18\t \x01(\x05R\bduration\x12\x1e\n" +
-	"\bsound_id\x18\n" +
-	" \x01(\rH\x00R\asoundId\x88\x01\x01\x12\x18\n" +
-	"\aprivacy\x18\v \x01(\tR\aprivacy\x12\x1f\n" +
-	"\vviews_count\x18\f \x01(\rR\n" +
+	"\acaption\x18\b \x01(\tR\acaption\x12%\n" +
+	"\vdescription\x18\t \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1a\n" +
+	"\bduration\x18\n" +
+	" \x01(\x05R\bduration\x12\x1e\n" +
+	"\bsound_id\x18\v \x01(\rH\x01R\asoundId\x88\x01\x01\x12\x18\n" +
+	"\aprivacy\x18\f \x01(\tR\aprivacy\x12\x1f\n" +
+	"\vviews_count\x18\r \x01(\rR\n" +
 	"viewsCount\x12\x1f\n" +
-	"\vlikes_count\x18\r \x01(\rR\n" +
+	"\vlikes_count\x18\x0e \x01(\rR\n" +
 	"likesCount\x12%\n" +
-	"\x0ecomments_count\x18\x0e \x01(\rR\rcommentsCount\x12%\n" +
-	"\x0eallow_comments\x18\x0f \x01(\bR\rallowComments\x12\x1d\n" +
+	"\x0ecomments_count\x18\x0f \x01(\rR\rcommentsCount\x12%\n" +
+	"\x0eallow_comments\x18\x10 \x01(\bR\rallowComments\x12\x1d\n" +
 	"\n" +
-	"allow_duet\x18\x10 \x01(\bR\tallowDuet\x12!\n" +
-	"\fallow_stitch\x18\x11 \x01(\bR\vallowStitchB\v\n" +
-	"\t_sound_id\"\x97\x03\n" +
+	"allow_duet\x18\x11 \x01(\bR\tallowDuet\x12!\n" +
+	"\fallow_stitch\x18\x12 \x01(\bR\vallowStitchB\x0e\n" +
+	"\f_descriptionB\v\n" +
+	"\t_sound_id\"\xce\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1b\n" +
 	"\tvideo_url\x18\x02 \x01(\tR\bvideoUrl\x12#\n" +
 	"\rthumbnail_url\x18\x03 \x01(\tR\fthumbnailUrl\x12\x18\n" +
-	"\acaption\x18\x04 \x01(\tR\acaption\x12\x1a\n" +
-	"\bduration\x18\x05 \x01(\x05R\bduration\x12\x1e\n" +
-	"\bsound_id\x18\x06 \x01(\rH\x00R\asoundId\x88\x01\x01\x12\x18\n" +
-	"\aprivacy\x18\a \x01(\tR\aprivacy\x12%\n" +
-	"\x0eallow_comments\x18\b \x01(\bR\rallowComments\x12\x1d\n" +
+	"\acaption\x18\x04 \x01(\tR\acaption\x12%\n" +
+	"\vdescription\x18\x05 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1a\n" +
+	"\bduration\x18\x06 \x01(\x05R\bduration\x12\x1e\n" +
+	"\bsound_id\x18\a \x01(\rH\x01R\asoundId\x88\x01\x01\x12\x18\n" +
+	"\aprivacy\x18\b \x01(\tR\aprivacy\x12%\n" +
+	"\x0eallow_comments\x18\t \x01(\bR\rallowComments\x12\x1d\n" +
 	"\n" +
-	"allow_duet\x18\t \x01(\bR\tallowDuet\x12!\n" +
-	"\fallow_stitch\x18\n" +
-	" \x01(\bR\vallowStitch\x12\x1d\n" +
+	"allow_duet\x18\n" +
+	" \x01(\bR\tallowDuet\x12!\n" +
+	"\fallow_stitch\x18\v \x01(\bR\vallowStitch\x12\x1d\n" +
 	"\n" +
-	"video_data\x18\v \x01(\fR\tvideoData\x12!\n" +
-	"\fcontent_type\x18\f \x01(\tR\vcontentTypeB\v\n" +
+	"video_data\x18\f \x01(\fR\tvideoData\x12!\n" +
+	"\fcontent_type\x18\r \x01(\tR\vcontentTypeB\x0e\n" +
+	"\f_descriptionB\v\n" +
 	"\t_sound_id\"9\n" +
 	"\x13CreateVideoResponse\x12\"\n" +
 	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"!\n" +
@@ -996,12 +1008,11 @@ const file_video_proto_rawDesc = "" +
 	"\x12DeleteVideoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"/\n" +
 	"\x13DeleteVideoResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"p\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"V\n" +
 	"\x11ListVideosRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x18\n" +
-	"\aprivacy\x18\x04 \x01(\tR\aprivacy\"P\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"P\n" +
 	"\x12ListVideosResponse\x12$\n" +
 	"\x06videos\x18\x01 \x03(\v2\f.video.VideoR\x06videos\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"\xd1\x01\n" +

@@ -27,7 +27,7 @@ proto:
 	protoc \
 		-I=proto \
 		--plugin=protoc-gen-ts_proto=D:/!_TPA/Web/tpa_web/frontend/node_modules/.bin/protoc-gen-ts_proto.cmd \
-		--ts_proto_out=frontend/src/grpc/gen \
+		--ts_proto_out=frontend/src/api/gen \
 		--ts_proto_opt=outputClientImpl=grpc-web,esModuleInterop=true,forceLong=string,useOptionals=messages,outputRpcImpl=true \
 		proto/*.proto
 

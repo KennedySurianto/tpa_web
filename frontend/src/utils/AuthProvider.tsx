@@ -7,7 +7,7 @@ import {
     UserInfo,
     GrpcWebImpl,
     AuthServiceClientImpl,
-} from "../grpc/gen/auth";
+} from "../api/gen/auth";
 import { BrowserHeaders } from "browser-headers";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {

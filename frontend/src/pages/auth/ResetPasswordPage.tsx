@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthServiceClientImpl, GrpcWebImpl, ResetPasswordRequest } from "../../grpc/gen/auth";
+import { AuthServiceClientImpl, GrpcWebImpl, ResetPasswordRequest } from "../../api/gen/auth";
 import { BrowserHeaders } from "browser-headers";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {

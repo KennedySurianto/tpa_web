@@ -37,6 +37,7 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 			return nil, fmt.Errorf("failed to upload video to MinIO: %w", err)
 		}
 
+		fmt.Println("[VIDEO_SERVICE_IMPL] Video uploaded successfully, URL:", uploadedURL)
 		videoURL = uploadedURL
 	} else {
 		// fallback if no file is provided
@@ -48,6 +49,7 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		VideoURL:      videoURL,
 		ThumbnailURL:  req.ThumbnailUrl,
 		Caption:       req.Caption,
+		Description:   stringPtrToString(req.Description),
 		Duration:      int(req.Duration),
 		SoundID:       uint32PtrToUintPtr(req.SoundId),
 		Privacy:       req.Privacy,
@@ -103,7 +105,7 @@ func (s *VideoServiceImpl) DeleteVideo(id uint) error {
 }
 
 func (s *VideoServiceImpl) ListVideos(req *pb.ListVideosRequest) ([]model.Video, int64, error) {
-	return s.videoRepo.ListVideos(uint(req.UserId), req.Privacy, int(req.Page), int(req.Limit))
+	return s.videoRepo.ListVideos(uint(req.UserId), int(req.Page), int(req.Limit))
 }
 
 func (s *VideoServiceImpl) UpdateMetrics(req *pb.UpdateMetricsRequest) (*model.Video, error) {
@@ -122,4 +124,12 @@ func uint32PtrToUintPtr(u *uint32) *uint {
 	}
 	val := uint(*u)
 	return &val
+}
+
+// stringPtrToString safely dereferences a *string, returning an empty string if nil.
+func stringPtrToString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

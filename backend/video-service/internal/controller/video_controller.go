@@ -53,24 +53,12 @@ func (s *VideoController) modelToProto(video *model.Video) *pb.Video {
 }
 
 func (s *VideoController) CreateVideo(ctx context.Context, req *pb.CreateVideoRequest) (*pb.CreateVideoResponse, error) {
-	createReq := &pb.CreateVideoRequest{
-		UserId:        req.UserId,
-		VideoUrl:      req.VideoUrl,
-		ThumbnailUrl:  req.ThumbnailUrl,
-		Caption:       req.Caption,
-		Duration:      req.Duration,
-		Privacy:       req.Privacy,
-		AllowComments: req.AllowComments,
-		AllowDuet:     req.AllowDuet,
-		AllowStitch:   req.AllowStitch,
-	}
-
 	if req.SoundId != nil {
 		sid := uint32(*req.SoundId)
-		createReq.SoundId = &sid
+		req.SoundId = &sid
 	}
 
-	video, err := s.videoService.CreateVideo(createReq)
+	video, err := s.videoService.CreateVideo(req)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +124,6 @@ func (s *VideoController) ListVideos(ctx context.Context, req *pb.ListVideosRequ
 		UserId:  req.UserId,
 		Page:    req.Page,
 		Limit:   req.Limit,
-		Privacy: req.Privacy,
 	}
 
 	if req.Page <= 0 {

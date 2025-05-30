@@ -12,6 +12,7 @@ type Video struct {
 	VideoURL     string `gorm:"not null" json:"video_url"`
 	ThumbnailURL string `json:"thumbnail_url"`
 	Caption      string `gorm:"type:text" json:"caption"`
+	Description  string `gorm:"type:text" json:"description"`
 	Duration     int    `json:"duration"` // in seconds
 
 	// Optional associations

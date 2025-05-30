@@ -18,21 +18,22 @@ message Video {
   string video_url = 6;
   string thumbnail_url = 7;
   string caption = 8;
-  int32 duration = 9;
+  optional string description = 9;
+  int32 duration = 10;
   
   // Optional associations
-  optional uint32 sound_id = 10;
-  string privacy = 11;
+  optional uint32 sound_id = 11;
+  string privacy = 12;
   
   // Cached metrics
-  uint32 views_count = 12;
-  uint32 likes_count = 13;
-  uint32 comments_count = 14;
+  uint32 views_count = 13;
+  uint32 likes_count = 14;
+  uint32 comments_count = 15;
   
   // Feature flags
-  bool allow_comments = 15;
-  bool allow_duet = 16;
-  bool allow_stitch = 17;
+  bool allow_comments = 16;
+  bool allow_duet = 17;
+  bool allow_stitch = 18;
 }
 
 // Request/Response messages
@@ -41,15 +42,16 @@ message CreateVideoRequest {
   string video_url = 2;
   string thumbnail_url = 3;
   string caption = 4;
-  int32 duration = 5;
-  optional uint32 sound_id = 6;
-  string privacy = 7;
-  bool allow_comments = 8;
-  bool allow_duet = 9;
-  bool allow_stitch = 10;
+  optional string description = 5;
+  int32 duration = 6;
+  optional uint32 sound_id = 7;
+  string privacy = 8;
+  bool allow_comments = 9;
+  bool allow_duet = 10;
+  bool allow_stitch = 11;
 
-  bytes video_data = 11;         // Raw binary video data
-  string content_type = 12;      // e.g. "video/mp4"
+  bytes video_data = 12;         // Raw binary video data
+  string content_type = 13;      // e.g. "video/mp4"
 }
 
 message CreateVideoResponse {
@@ -90,7 +92,6 @@ message ListVideosRequest {
   uint32 user_id = 1;
   int32 page = 2;
   int32 limit = 3;
-  string privacy = 4; // filter by privacy
 }
 
 message ListVideosResponse {

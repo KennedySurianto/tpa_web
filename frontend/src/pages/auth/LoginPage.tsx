@@ -1,8 +1,8 @@
 // src/pages/LoginPage.tsx
 
 import React, { useState } from "react";
-import { AuthServiceClientImpl, LoginRequest } from "../../grpc/gen/auth";
-import { GrpcWebImpl } from "../../grpc/gen/auth";
+import { AuthServiceClientImpl, LoginRequest } from "../../api/gen/auth";
+import { GrpcWebImpl } from "../../api/gen/auth";
 import { BrowserHeaders } from "browser-headers";
 import { useNavigate, Link } from "react-router-dom";
 

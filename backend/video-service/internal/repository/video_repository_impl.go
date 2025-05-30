@@ -36,14 +36,11 @@ func (r *VideoRepositoryImpl) DeleteVideo(id uint) error {
 	return r.db.Delete(&model.Video{}, id).Error
 }
 
-func (r *VideoRepositoryImpl) ListVideos(userID uint, privacy string, page, limit int) ([]model.Video, int64, error) {
+func (r *VideoRepositoryImpl) ListVideos(userID uint, page, limit int) ([]model.Video, int64, error) {
 	var videos []model.Video
 	var count int64
 
 	query := r.db.Model(&model.Video{}).Where("user_id = ?", userID)
-	if privacy != "" {
-		query = query.Where("privacy = ?", privacy)
-	}
 
 	err := query.Count(&count).Offset((page - 1) * limit).Limit(limit).Find(&videos).Error
 	return videos, count, err
