@@ -105,10 +105,12 @@ services:
       - 50053:50053
     depends_on:
       - video-db
+      - minio
       - user-service
     environment:
       DATABASE_URL: postgres://postgres:postgres@video-db:5432/video_service_db
       MINIO_ENDPOINT: minio:9000
+      MINIO_PUBLIC_URL: localhost:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: videos

@@ -58,7 +58,6 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		AllowStitch:   req.AllowStitch,
 	}
 
-	fmt.Println("[VIDEO_SERVICE_IMPL] Creating video with details:", video)
 	if err := s.videoRepo.CreateVideo(video); err != nil {
 		return nil, err
 	}

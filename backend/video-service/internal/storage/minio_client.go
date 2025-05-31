@@ -60,6 +60,8 @@ func (m *MinIOClient) UploadVideo(ctx context.Context, filename string, data []b
 		return "", err
 	}
 
+	publicURL := os.Getenv("MINIO_PUBLIC_URL")
+
 	fmt.Println("[MINIO_CLIENT] Video uploaded successfully with filename:", filename)
-	return fmt.Sprintf("http://%s/%s/%s", m.Client.EndpointURL().Host, m.Bucket, filename), nil
+	return fmt.Sprintf("http://%s/%s/%s", publicURL, m.Bucket, filename), nil
 }
