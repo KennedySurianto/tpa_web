@@ -54,6 +54,7 @@ func (c *ActivityController) GetComments(ctx context.Context, req *pb.GetComment
             CreatedAt: comment.CreatedAt.Format(time.RFC3339),
             UpdatedAt: comment.UpdatedAt.Format(time.RFC3339),
             User: &pb.User{
+				Id:         user.Id,
                 Username:   user.Username,
                 ProfileUrl: user.AvatarUrl,
             },

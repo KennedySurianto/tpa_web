@@ -164,6 +164,8 @@ services:
       SMTP_PASS: dwjb nfyf usuq qhuz
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
+      USER_SERVICE_HOST: user-service
+      USER_SERVICE_PORT: 50051
     networks:
       - app-network
     healthcheck:
@@ -194,6 +196,8 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: videos
+      USER_SERVICE_HOST: user-service
+      USER_SERVICE_PORT: 50051
     networks:
       - app-network
     healthcheck:
@@ -219,6 +223,8 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:postgres@activity-db:5432/activity_service_db
+      USER_SERVICE_HOST: user-service
+      USER_SERVICE_PORT: 50051
     networks:
       - app-network
     healthcheck:

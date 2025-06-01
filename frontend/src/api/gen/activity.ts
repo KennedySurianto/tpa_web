@@ -11,7 +11,6 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "activity";
 
-/** User info included with the comment */
 export interface User {
   id: string;
   username: string;

@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Add this import for navigation
 import CommentBar from "../components/CommentBar";
 import { useVideos } from "../../../hooks/useVideos";
 
 const VideoFeed: React.FC = () => {
     const { videos, loading } = useVideos(); // or pass page/limit dynamically
+    const navigate = useNavigate(); // Add navigation hook
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(true);
@@ -35,6 +37,11 @@ const VideoFeed: React.FC = () => {
     const handleSave = (videoId: number) => {
         console.log(`Saved video ${videoId}`);
         // TODO: add save logic here
+    };
+
+    // Handle user profile navigation
+    const handleUserClick = (userId: number | string) => {
+        navigate(`/user/${userId}`);
     };
 
     // Update volume for all videos
@@ -93,7 +100,7 @@ const VideoFeed: React.FC = () => {
                 container.removeEventListener('scroll', handleScroll);
             }
         };
-    }, [videos, selectedVideoId]);
+    }, [videos, selectedVideoId, navigate]);
 
     // Play first video on mount and set it as selected
     useEffect(() => {
@@ -142,8 +149,6 @@ const VideoFeed: React.FC = () => {
                             flexDirection: 'column',
                             position: 'relative',
                             backgroundColor: '#000',
-                            // Add visual indicator for selected video
-                            border: selectedVideoId === video.id ? '2px solid rgba(255, 255, 255, 0.3)' : 'none',
                         }}
                     >
                         {/* Video Container */}
@@ -244,95 +249,158 @@ const VideoFeed: React.FC = () => {
                                 {showVolumeControl && (
                                     <div
                                         style={{
-                                            background: 'rgba(0, 0, 0, 0.7)',
-                                            padding: '1rem 0.5rem',
-                                            borderRadius: '8px',
+                                            background: 'rgba(0, 0, 0, 0.8)',
+                                            padding: '1.5rem 0.75rem',
+                                            borderRadius: '12px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
-                                            gap: '0.5rem',
-                                            minHeight: '120px',
+                                            gap: '0.75rem',
+                                            minHeight: '200px',
+                                            backdropFilter: 'blur(4px)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
                                         }}
                                     >
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="1"
-                                            step="0.1"
-                                            value={volume}
-                                            onChange={(e) => {
-                                                const newVolume = parseFloat(e.target.value);
-                                                setVolume(newVolume);
-                                                if (newVolume > 0 && isMuted) {
-                                                    setIsMuted(false);
-                                                }
-                                            }}
-                                            style={{
-                                                writingMode: 'vertical-lr',
-                                                width: '100px',
-                                                height: '20px',
-                                                transform: 'rotate(180deg)',
-                                                cursor: 'pointer',
-                                            }}
-                                        />
                                         <span style={{
                                             color: 'white',
-                                            fontSize: '0.8rem',
-                                            textAlign: 'center'
+                                            fontSize: '0.75rem',
+                                            fontWeight: '500',
+                                            textAlign: 'center',
+                                            marginBottom: '0.25rem'
                                         }}>
                                             {Math.round(volume * 100)}%
                                         </span>
+                                        
+                                        {/* Custom Vertical Slider Container */}
+                                        <div style={{
+                                            position: 'relative',
+                                            width: '6px',
+                                            height: '120px',
+                                            background: 'rgba(255, 255, 255, 0.2)',
+                                            borderRadius: '3px',
+                                            cursor: 'pointer',
+                                        }}>
+                                            {/* Volume Fill */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: `${volume * 100}%`,
+                                                background: 'linear-gradient(to top, #ffffff 0%, #e0e0e0 100%)',
+                                                borderRadius: '3px',
+                                                transition: 'height 0.1s ease',
+                                            }} />
+                                            
+                                            {/* Volume Handle */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                left: '50%',
+                                                bottom: `${volume * 100}%`,
+                                                transform: 'translate(-50%, 50%)',
+                                                width: '14px',
+                                                height: '14px',
+                                                background: 'white',
+                                                borderRadius: '50%',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.1s ease',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translate(-50%, 50%) scale(1.2)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translate(-50%, 50%) scale(1)';
+                                            }}
+                                            />
+                                            
+                                            {/* Invisible input for interaction */}
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="1"
+                                                step="0.01"
+                                                value={volume}
+                                                onChange={(e) => {
+                                                    const newVolume = parseFloat(e.target.value);
+                                                    setVolume(newVolume);
+                                                    if (newVolume > 0 && isMuted) {
+                                                        setIsMuted(false);
+                                                    }
+                                                }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: '50%',
+                                                    transform: 'translateX(-50%) rotate(-90deg)',
+                                                    transformOrigin: 'center',
+                                                    width: '120px',
+                                                    height: '20px',
+                                                    opacity: 0,
+                                                    cursor: 'pointer',
+                                                    zIndex: 10,
+                                                }}
+                                            />
+                                        </div>
+                                        
+                                        {/* Volume Level Indicators */}
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '2px',
+                                            alignItems: 'center',
+                                        }}>
+                                            {[100, 75, 50, 25, 0].map((level) => (
+                                                <div
+                                                    key={level}
+                                                    style={{
+                                                        width: '3px',
+                                                        height: '2px',
+                                                        background: Math.round(volume * 100) >= level 
+                                                            ? 'rgba(255, 255, 255, 0.8)' 
+                                                            : 'rgba(255, 255, 255, 0.3)',
+                                                        borderRadius: '1px',
+                                                        transition: 'background 0.2s ease',
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                                 
                                 {/* Volume/Mute Button */}
                                 <button
                                     style={{
-                                        background: 'rgba(0, 0, 0, 0.5)',
-                                        border: 'none',
+                                        background: 'rgba(0, 0, 0, 0.6)',
                                         borderRadius: '50%',
-                                        width: '45px',
-                                        height: '45px',
-                                        fontSize: '18px',
+                                        width: '48px',
+                                        height: '48px',
+                                        fontSize: '20px',
                                         color: 'white',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        transition: 'background 0.3s ease',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(4px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
                                     }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setIsMuted(!isMuted);
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.7)';
+                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
+                                        e.currentTarget.style.transform = 'scale(1.1)';
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)';
+                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
+                                        e.currentTarget.style.transform = 'scale(1)';
                                     }}
                                 >
                                     {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
                                 </button>
                             </div>
-
-                            {/* Selected Video Indicator */}
-                            {selectedVideoId === video.id && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '1rem',
-                                    left: '1rem',
-                                    background: 'rgba(255, 255, 255, 0.2)',
-                                    color: 'white',
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '20px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 'bold',
-                                    backdropFilter: 'blur(10px)',
-                                }}>
-                                    Now Playing
-                                </div>
-                            )}
                         </div>
 
                         {/* Video Info Overlay */}
@@ -345,90 +413,137 @@ const VideoFeed: React.FC = () => {
                             padding: '2rem 1rem 1rem',
                             color: 'white',
                         }}>
+                            {/* User Profile Section */}
                             <div style={{
-                                maxWidth: '600px',
-                                margin: '0 auto',
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginBottom: '1rem',
+                                gap: '0.75rem',
                             }}>
-                                <p style={{
+                                {/* Profile Picture */}
+                                <div
+                                    onClick={() => video.user?.id && handleUserClick(video.user.id)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    {video.user?.profileUrl ? (
+                                        <img
+                                            src={video.user.profileUrl}
+                                            alt={`${video.user.username || 'User'}'s profile`}
+                                            style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                border: '2px solid rgba(255, 255, 255, 0.2)',
+                                            }}
+                                            onError={(e) => {
+                                                // If image fails to load, replace with emoji
+                                                e.currentTarget.style.display = 'none';
+                                                const emojiDiv = document.createElement('div');
+                                                emojiDiv.innerHTML = '👤';
+                                                emojiDiv.style.cssText = `
+                                                    width: 40px;
+                                                    height: 40px;
+                                                    border-radius: 50%;
+                                                    background: rgba(255, 255, 255, 0.1);
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    font-size: 20px;
+                                                    border: 2px solid rgba(255, 255, 255, 0.2);
+                                                `;
+                                                e.currentTarget.parentNode?.replaceChild(emojiDiv, e.currentTarget);
+                                            }}
+                                        />
+                                    ) : (
+                                        <div style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '50%',
+                                            background: 'rgba(255, 255, 255, 0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '20px',
+                                            border: '2px solid rgba(255, 255, 255, 0.2)',
+                                        }}>
+                                            👤
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Username */}
+                                <div
+                                    onClick={() => video.user?.id && handleUserClick(video.user.id)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '600',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        transition: 'color 0.2s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.color = '#ffffff80';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                >
+                                    @{video.user?.username || 'anonymous'}
+                                </div>
+                            </div>
+
+                            {/* Video Caption */}
+                            {video.caption && (
+                                <div style={{
                                     fontSize: '1rem',
-                                    lineHeight: '1.5',
-                                    marginBottom: '1rem',
+                                    lineHeight: '1.4',
+                                    marginBottom: '0.75rem',
+                                    fontWeight: '500',
                                     color: 'white',
                                 }}>
+                                    {video.caption}
+                                </div>
+                            )}
+
+                            {/* Video Description */}
+                            {video.description && (
+                                <div style={{
+                                    fontSize: '0.9rem',
+                                    lineHeight: '1.4',
+                                    marginBottom: '1.5rem',
+                                    color: 'rgba(255, 255, 255, 0.85)',
+                                    maxHeight: '3em',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                }}>
                                     {video.description}
-                                </p>
-                                
-                                {/* Action Buttons */}
+                                </div>
+                            )}
+                            
+                            {/* Action Buttons */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '0.5rem',
+                            }}>
                                 <div style={{
                                     display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
+                                    gap: '1rem',
                                     flexWrap: 'wrap',
-                                    gap: '0.5rem',
                                 }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        gap: '1rem',
-                                        flexWrap: 'wrap',
-                                    }}>
-                                        <button 
-                                            className="btn btn-link"
-                                            onClick={() => handleLike(video.id)}
-                                            style={{ 
-                                                fontSize: '0.9rem',
-                                                color: 'white',
-                                                textDecoration: 'none',
-                                                padding: '0.5rem',
-                                                border: 'none',
-                                                background: 'none',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.3rem',
-                                            }}
-                                        >
-                                            👍 Like
-                                        </button>
-                                        <button 
-                                            className="btn btn-link" 
-                                            onClick={() => handleComment(video.id)}
-                                            style={{ 
-                                                fontSize: '0.9rem',
-                                                color: 'white',
-                                                textDecoration: 'none',
-                                                padding: '0.5rem',
-                                                border: 'none',
-                                                background: 'none',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.3rem',
-                                            }}
-                                        >
-                                            💬 Comment
-                                        </button>
-                                        <button 
-                                            className="btn btn-link" 
-                                            onClick={() => handleShare(video.id)}
-                                            style={{ 
-                                                fontSize: '0.9rem',
-                                                color: 'white',
-                                                textDecoration: 'none',
-                                                padding: '0.5rem',
-                                                border: 'none',
-                                                background: 'none',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.3rem',
-                                            }}
-                                        >
-                                            📤 Share
-                                        </button>
-                                    </div>
                                     <button 
-                                        className="btn btn-link" 
-                                        onClick={() => handleSave(video.id)}
+                                        className="btn btn-link"
+                                        onClick={() => handleLike(video.id)}
                                         style={{ 
                                             fontSize: '0.9rem',
                                             color: 'white',
@@ -442,9 +557,63 @@ const VideoFeed: React.FC = () => {
                                             gap: '0.3rem',
                                         }}
                                     >
-                                        📌 Save
+                                        👍 Like
+                                    </button>
+                                    <button 
+                                        className="btn btn-link" 
+                                        onClick={() => handleComment(video.id)}
+                                        style={{ 
+                                            fontSize: '0.9rem',
+                                            color: 'white',
+                                            textDecoration: 'none',
+                                            padding: '0.5rem',
+                                            border: 'none',
+                                            background: 'none',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                        }}
+                                    >
+                                        💬 Comment
+                                    </button>
+                                    <button 
+                                        className="btn btn-link" 
+                                        onClick={() => handleShare(video.id)}
+                                        style={{ 
+                                            fontSize: '0.9rem',
+                                            color: 'white',
+                                            textDecoration: 'none',
+                                            padding: '0.5rem',
+                                            border: 'none',
+                                            background: 'none',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                        }}
+                                    >
+                                        📤 Share
                                     </button>
                                 </div>
+                                <button 
+                                    className="btn btn-link" 
+                                    onClick={() => handleSave(video.id)}
+                                    style={{ 
+                                        fontSize: '0.9rem',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        padding: '0.5rem',
+                                        border: 'none',
+                                        background: 'none',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                    }}
+                                >
+                                    📌 Save
+                                </button>
                             </div>
                         </div>
 

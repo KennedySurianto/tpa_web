@@ -12,6 +12,12 @@ import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "video";
 
+export interface User {
+  id: string;
+  username: string;
+  profileUrl: string;
+}
+
 /** Video message definition */
 export interface Video {
   id: number;
@@ -38,6 +44,7 @@ export interface Video {
   allowComments: boolean;
   allowDuet: boolean;
   allowStitch: boolean;
+  user?: User | undefined;
 }
 
 /** Request/Response messages */
@@ -132,6 +139,98 @@ export interface GetRecommendedVideosResponse {
   videos: Video[];
 }
 
+function createBaseUser(): User {
+  return { id: "0", username: "", profileUrl: "" };
+}
+
+export const User: MessageFns<User> = {
+  encode(message: User, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "0") {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.username !== "") {
+      writer.uint32(18).string(message.username);
+    }
+    if (message.profileUrl !== "") {
+      writer.uint32(26).string(message.profileUrl);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): User {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUser();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.profileUrl = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): User {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      profileUrl: isSet(object.profileUrl) ? globalThis.String(object.profileUrl) : "",
+    };
+  },
+
+  toJSON(message: User): unknown {
+    const obj: any = {};
+    if (message.id !== "0") {
+      obj.id = message.id;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.profileUrl !== "") {
+      obj.profileUrl = message.profileUrl;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<User>, I>>(base?: I): User {
+    return User.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
+    const message = createBaseUser();
+    message.id = object.id ?? "0";
+    message.username = object.username ?? "";
+    message.profileUrl = object.profileUrl ?? "";
+    return message;
+  },
+};
+
 function createBaseVideo(): Video {
   return {
     id: 0,
@@ -152,6 +251,7 @@ function createBaseVideo(): Video {
     allowComments: false,
     allowDuet: false,
     allowStitch: false,
+    user: undefined,
   };
 }
 
@@ -210,6 +310,9 @@ export const Video: MessageFns<Video> = {
     }
     if (message.allowStitch !== false) {
       writer.uint32(144).bool(message.allowStitch);
+    }
+    if (message.user !== undefined) {
+      User.encode(message.user, writer.uint32(154).fork()).join();
     }
     return writer;
   },
@@ -365,6 +468,14 @@ export const Video: MessageFns<Video> = {
           message.allowStitch = reader.bool();
           continue;
         }
+        case 19: {
+          if (tag !== 154) {
+            break;
+          }
+
+          message.user = User.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -394,6 +505,7 @@ export const Video: MessageFns<Video> = {
       allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
       allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
+      user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
     };
   },
 
@@ -453,6 +565,9 @@ export const Video: MessageFns<Video> = {
     if (message.allowStitch !== false) {
       obj.allowStitch = message.allowStitch;
     }
+    if (message.user !== undefined) {
+      obj.user = User.toJSON(message.user);
+    }
     return obj;
   },
 
@@ -479,6 +594,7 @@ export const Video: MessageFns<Video> = {
     message.allowComments = object.allowComments ?? false;
     message.allowDuet = object.allowDuet ?? false;
     message.allowStitch = object.allowStitch ?? false;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     return message;
   },
 };

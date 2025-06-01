@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
@@ -16,6 +17,7 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -40,7 +42,7 @@ func main() {
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
 	videoService := service.NewVideoService(videoRepo, minioClient)
-	videoController := controller.NewVideoController(videoService)
+	videoController := controller.NewVideoController(videoService, getUserClient())
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
@@ -77,4 +79,29 @@ func waitForShutdown() {
 
 	sig := <-sigCh
 	log.Printf("Received signal %s, shutting down...\n", sig)
+}
+
+func getUserClient() userpb.UserServiceClient {
+	// Initialize services
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+    userServicePort := os.Getenv("USER_SERVICE_PORT")
+    
+    if userServiceHost == "" {
+        userServiceHost = "user-service" // Docker service name
+    }
+
+    if userServicePort == "" {
+        userServicePort = "50051"
+    }
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", userServiceHost, userServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to user service: %v", err)
+    }
+    
+	return userpb.NewUserServiceClient(conn) 
 }

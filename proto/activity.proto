@@ -4,7 +4,6 @@ package activity;
 
 option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activity";
 
-// User info included with the comment
 message User {
     uint64 id = 1;
     string username = 2;

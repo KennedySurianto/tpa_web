@@ -2,9 +2,11 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
@@ -13,11 +15,13 @@ import (
 type VideoController struct {
 	pb.UnimplementedVideoServiceServer
 	videoService service.VideoService
+	userClient userpb.UserServiceClient
 }
 
-func NewVideoController(videoService service.VideoService) *VideoController {
+func NewVideoController(videoService service.VideoService, userClient userpb.UserServiceClient) *VideoController {
 	return &VideoController{
 		videoService: videoService,
+		userClient:   userClient,
 	}
 }
 
@@ -194,6 +198,19 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			sid := uint32(*v.SoundID)
 			soundId = &sid
 		}
+
+		user, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(v.UserID)})
+        if err != nil {
+            // Handle error, maybe skip user or fill with default data
+            // For now, let's just log and continue with empty user
+            fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
+			user = &userpb.User{
+				Id:        0,
+				Username:  "Unknown",
+				AvatarUrl: "",
+			}
+        }
+
 		response.Videos = append(response.Videos, &pb.Video{
 			Id:           uint32(v.ID),
 			CreatedAt:    timestamppb.New(v.CreatedAt),
@@ -217,6 +234,12 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			AllowComments: v.AllowComments,
 			AllowDuet:     v.AllowDuet,
 			AllowStitch:   v.AllowStitch,
+
+			User: &pb.User{
+				Id:        uint64(user.Id),
+				Username:  user.Username,
+				ProfileUrl: user.AvatarUrl,
+			},
 		})
 	}
 	return &response, nil
