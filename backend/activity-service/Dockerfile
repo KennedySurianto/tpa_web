@@ -4,16 +4,16 @@ FROM golang:1.24.3-alpine AS builder
 WORKDIR /app
 
 # Copy go.mod and go.sum
-COPY auth-service/go.mod auth-service/go.sum ./auth-service/
+COPY activity-service/go.mod activity-service/go.sum ./activity-service/
 
 # Copy shared package
 COPY shared ./shared
 
 # Copy the rest of the service code
-COPY auth-service ./auth-service
+COPY activity-service ./activity-service
 
 # Set working directory to service
-WORKDIR /app/auth-service
+WORKDIR /app/activity-service
 
 # Install git for Go module fetching
 RUN apk add --no-cache git
@@ -34,8 +34,8 @@ FROM gcr.io/distroless/base-debian11
 WORKDIR /app
 
 # Copy the binary and health probe
-COPY --from=builder /app/auth-service/app .
+COPY --from=builder /app/activity-service/app .
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 
-EXPOSE 50052
+EXPOSE 50054
 ENTRYPOINT ["/app/app"]

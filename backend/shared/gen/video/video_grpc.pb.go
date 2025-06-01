@@ -19,12 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VideoService_CreateVideo_FullMethodName   = "/video.VideoService/CreateVideo"
-	VideoService_GetVideo_FullMethodName      = "/video.VideoService/GetVideo"
-	VideoService_UpdateVideo_FullMethodName   = "/video.VideoService/UpdateVideo"
-	VideoService_DeleteVideo_FullMethodName   = "/video.VideoService/DeleteVideo"
-	VideoService_ListVideos_FullMethodName    = "/video.VideoService/ListVideos"
-	VideoService_UpdateMetrics_FullMethodName = "/video.VideoService/UpdateMetrics"
+	VideoService_CreateVideo_FullMethodName          = "/video.VideoService/CreateVideo"
+	VideoService_GetVideo_FullMethodName             = "/video.VideoService/GetVideo"
+	VideoService_UpdateVideo_FullMethodName          = "/video.VideoService/UpdateVideo"
+	VideoService_DeleteVideo_FullMethodName          = "/video.VideoService/DeleteVideo"
+	VideoService_ListVideos_FullMethodName           = "/video.VideoService/ListVideos"
+	VideoService_UpdateMetrics_FullMethodName        = "/video.VideoService/UpdateMetrics"
+	VideoService_GetRecommendedVideos_FullMethodName = "/video.VideoService/GetRecommendedVideos"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -39,6 +40,7 @@ type VideoServiceClient interface {
 	DeleteVideo(ctx context.Context, in *DeleteVideoRequest, opts ...grpc.CallOption) (*DeleteVideoResponse, error)
 	ListVideos(ctx context.Context, in *ListVideosRequest, opts ...grpc.CallOption) (*ListVideosResponse, error)
 	UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error)
+	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error)
 }
 
 type videoServiceClient struct {
@@ -109,6 +111,16 @@ func (c *videoServiceClient) UpdateMetrics(ctx context.Context, in *UpdateMetric
 	return out, nil
 }
 
+func (c *videoServiceClient) GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRecommendedVideosResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetRecommendedVideos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -121,6 +133,7 @@ type VideoServiceServer interface {
 	DeleteVideo(context.Context, *DeleteVideoRequest) (*DeleteVideoResponse, error)
 	ListVideos(context.Context, *ListVideosRequest) (*ListVideosResponse, error)
 	UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error)
+	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -148,6 +161,9 @@ func (UnimplementedVideoServiceServer) ListVideos(context.Context, *ListVideosRe
 }
 func (UnimplementedVideoServiceServer) UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetrics not implemented")
+}
+func (UnimplementedVideoServiceServer) GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendedVideos not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -278,6 +294,24 @@ func _VideoService_UpdateMetrics_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetRecommendedVideos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRecommendedVideosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetRecommendedVideos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetRecommendedVideos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetRecommendedVideos(ctx, req.(*GetRecommendedVideosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -308,6 +342,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMetrics",
 			Handler:    _VideoService_UpdateMetrics_Handler,
+		},
+		{
+			MethodName: "GetRecommendedVideos",
+			Handler:    _VideoService_GetRecommendedVideos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

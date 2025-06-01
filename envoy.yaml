@@ -45,16 +45,28 @@ static_resources:
                           route:
                             cluster: video-service
 
+                        # Route activity-service gRPC calls
+                        - match:
+                            prefix: "/activity.ActivityService/"
+                          route:
+                            cluster: activity-service
+
+                        - match:
+                            prefix: "/activity.CommentsService/"
+                          route:
+                            cluster: activity-service
+
                 http_filters:
-                  - name: envoy.filters.http.grpc_web
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
                   - name: envoy.filters.http.cors
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
 
   clusters:
     # User Service cluster
@@ -104,6 +116,22 @@ static_resources:
                     socket_address:
                       address: video-service
                       port_value: 50053
+    
+    # Activity Service cluster
+    - name: activity-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}  # Enable HTTP/2 for gRPC
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: activity-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: activity-service
+                      port_value: 50054
 
 admin:
   access_log_path: "/tmp/admin_access.log"

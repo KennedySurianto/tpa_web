@@ -5,22 +5,15 @@ import {
     RefreshTokenRequest,
     AuthResponse,
     UserInfo,
-    GrpcWebImpl,
-    AuthServiceClientImpl,
+    LogoutRequest,
 } from "../api/gen/auth";
-import { BrowserHeaders } from "browser-headers";
-
-const transport = new GrpcWebImpl("http://localhost:8080", {
-    transport: undefined,
-    metadata: new BrowserHeaders(),
-});
-
-const authClient = new AuthServiceClientImpl(transport);
+import { authClient } from "../api/grpc/authClient";
 
 interface AuthContextType {
     user: UserInfo | null;
     isAuthenticated: boolean;
     loading: boolean;
+    login: (response: AuthResponse) => void;
     logout: () => void;
 }
 
@@ -30,6 +23,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<UserInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    const login = (response: AuthResponse) => {
+        localStorage.setItem("access_token", response.accessToken);
+        localStorage.setItem("refresh_token", response.refreshToken);
+        setUser(response.user || null);
+    };
 
     const validateToken = async () => {
         const token = localStorage.getItem("access_token");
@@ -87,11 +86,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        setUser(null);
-        navigate("/login");
+    const logout = async () => {
+        try {
+            const req: LogoutRequest = {
+                refreshToken: localStorage.getItem("refresh_token") || "",
+                logoutAllDevices: true,
+            };
+            
+            await authClient.Logout(req);
+
+            // Clear tokens
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+
+            // Clear user state and redirect
+            setUser(null);
+            navigate("/login");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            alert("Logout failed: " + error);
+        }
     };
 
     useEffect(() => {
@@ -99,7 +113,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const valid = await validateToken();
             if (!valid) {
                 const refreshed = await refreshToken();
-                if (!refreshed) logout();
+                if (!refreshed) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
+                    setUser(null);
+                }
             }
             setLoading(false);
         };
@@ -108,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

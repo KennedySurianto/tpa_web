@@ -1,12 +1,13 @@
 // src/pages/LandingPage.tsx
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const OnBoardingPage: React.FC = () => {
+  const navigate = useNavigate();
+  
   const handleContinueAsGuest = () => {
-    // Implement guest login logic here
-    console.log("Continue as guest clicked");
+    navigate("/home");
   };
 
   return (

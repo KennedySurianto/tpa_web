@@ -14,6 +14,8 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/repository"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/service"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -27,20 +29,25 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// Create a new gRPC server
-	server := grpc.NewServer()
-
 	// Set up the dependencies using dependency injection
 	userDB := database.ConnectDatabase()
 	userRepo := repository.NewUserRepository(userDB)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
+	
+	// Create a new gRPC server
+	server := grpc.NewServer()
 
 	// Register the service with the server
 	pb.RegisterUserServiceServer(server, userController)
 
 	// Register reflection service for grpcurl
 	reflection.Register(server)
+
+	// Create and register a gRPC health server
+	healthServer := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(server, healthServer)
+	healthServer.SetServingStatus("user.UserService", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	// Start the server in a goroutine
 	go func() {

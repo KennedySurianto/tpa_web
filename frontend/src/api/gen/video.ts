@@ -115,6 +115,23 @@ export interface UpdateMetricsResponse {
   video?: Video | undefined;
 }
 
+export interface GetRecommendedVideosRequest {
+  /** Optional: anonymous users can pass an empty string */
+  userId: string;
+  /** Max number of videos to return */
+  limit: number;
+  /** For pagination (e.g., infinite scroll) */
+  lastVideoId: string;
+  /** Optional: to support anonymous personalization */
+  deviceId: string;
+  /** Optional: user or device language */
+  language: string;
+}
+
+export interface GetRecommendedVideosResponse {
+  videos: Video[];
+}
+
 function createBaseVideo(): Video {
   return {
     id: 0,
@@ -1578,6 +1595,188 @@ export const UpdateMetricsResponse: MessageFns<UpdateMetricsResponse> = {
   },
 };
 
+function createBaseGetRecommendedVideosRequest(): GetRecommendedVideosRequest {
+  return { userId: "", limit: 0, lastVideoId: "", deviceId: "", language: "" };
+}
+
+export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest> = {
+  encode(message: GetRecommendedVideosRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    if (message.limit !== 0) {
+      writer.uint32(16).int32(message.limit);
+    }
+    if (message.lastVideoId !== "") {
+      writer.uint32(26).string(message.lastVideoId);
+    }
+    if (message.deviceId !== "") {
+      writer.uint32(34).string(message.deviceId);
+    }
+    if (message.language !== "") {
+      writer.uint32(42).string(message.language);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetRecommendedVideosRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetRecommendedVideosRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.lastVideoId = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.deviceId = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.language = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetRecommendedVideosRequest {
+    return {
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
+      lastVideoId: isSet(object.lastVideoId) ? globalThis.String(object.lastVideoId) : "",
+      deviceId: isSet(object.deviceId) ? globalThis.String(object.deviceId) : "",
+      language: isSet(object.language) ? globalThis.String(object.language) : "",
+    };
+  },
+
+  toJSON(message: GetRecommendedVideosRequest): unknown {
+    const obj: any = {};
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    if (message.limit !== 0) {
+      obj.limit = Math.round(message.limit);
+    }
+    if (message.lastVideoId !== "") {
+      obj.lastVideoId = message.lastVideoId;
+    }
+    if (message.deviceId !== "") {
+      obj.deviceId = message.deviceId;
+    }
+    if (message.language !== "") {
+      obj.language = message.language;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(base?: I): GetRecommendedVideosRequest {
+    return GetRecommendedVideosRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(object: I): GetRecommendedVideosRequest {
+    const message = createBaseGetRecommendedVideosRequest();
+    message.userId = object.userId ?? "";
+    message.limit = object.limit ?? 0;
+    message.lastVideoId = object.lastVideoId ?? "";
+    message.deviceId = object.deviceId ?? "";
+    message.language = object.language ?? "";
+    return message;
+  },
+};
+
+function createBaseGetRecommendedVideosResponse(): GetRecommendedVideosResponse {
+  return { videos: [] };
+}
+
+export const GetRecommendedVideosResponse: MessageFns<GetRecommendedVideosResponse> = {
+  encode(message: GetRecommendedVideosResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.videos) {
+      Video.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetRecommendedVideosResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetRecommendedVideosResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.videos.push(Video.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetRecommendedVideosResponse {
+    return { videos: globalThis.Array.isArray(object?.videos) ? object.videos.map((e: any) => Video.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: GetRecommendedVideosResponse): unknown {
+    const obj: any = {};
+    if (message.videos?.length) {
+      obj.videos = message.videos.map((e) => Video.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetRecommendedVideosResponse>, I>>(base?: I): GetRecommendedVideosResponse {
+    return GetRecommendedVideosResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetRecommendedVideosResponse>, I>>(object: I): GetRecommendedVideosResponse {
+    const message = createBaseGetRecommendedVideosResponse();
+    message.videos = object.videos?.map((e) => Video.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** Video service definition */
 export interface VideoService {
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse>;
@@ -1586,6 +1785,10 @@ export interface VideoService {
   DeleteVideo(request: DeepPartial<DeleteVideoRequest>, metadata?: grpc.Metadata): Promise<DeleteVideoResponse>;
   ListVideos(request: DeepPartial<ListVideosRequest>, metadata?: grpc.Metadata): Promise<ListVideosResponse>;
   UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse>;
+  GetRecommendedVideos(
+    request: DeepPartial<GetRecommendedVideosRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetRecommendedVideosResponse>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -1599,6 +1802,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.DeleteVideo = this.DeleteVideo.bind(this);
     this.ListVideos = this.ListVideos.bind(this);
     this.UpdateMetrics = this.UpdateMetrics.bind(this);
+    this.GetRecommendedVideos = this.GetRecommendedVideos.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -1623,6 +1827,17 @@ export class VideoServiceClientImpl implements VideoService {
 
   UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse> {
     return this.rpc.unary(VideoServiceUpdateMetricsDesc, UpdateMetricsRequest.fromPartial(request), metadata);
+  }
+
+  GetRecommendedVideos(
+    request: DeepPartial<GetRecommendedVideosRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetRecommendedVideosResponse> {
+    return this.rpc.unary(
+      VideoServiceGetRecommendedVideosDesc,
+      GetRecommendedVideosRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -1756,6 +1971,29 @@ export const VideoServiceUpdateMetricsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = UpdateMetricsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const VideoServiceGetRecommendedVideosDesc: UnaryMethodDefinitionish = {
+  methodName: "GetRecommendedVideos",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetRecommendedVideosRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetRecommendedVideosResponse.decode(data);
       return {
         ...value,
         toObject() {

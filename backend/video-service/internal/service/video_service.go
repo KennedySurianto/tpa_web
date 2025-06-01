@@ -12,4 +12,5 @@ type VideoService interface {
 	DeleteVideo(id uint) error
 	ListVideos(req *pb.ListVideosRequest) ([]model.Video, int64, error)
 	UpdateMetrics(req *pb.UpdateMetricsRequest) (*model.Video, error)
+	GetRecommendedVideos(userID, lastVideoID, deviceID, language string, limit int32) ([]*model.Video, error)
 }

@@ -110,6 +110,18 @@ message UpdateMetricsResponse {
   Video video = 1;
 }
 
+message GetRecommendedVideosRequest {
+  string user_id = 1;              // Optional: anonymous users can pass an empty string
+  int32 limit = 2;                 // Max number of videos to return
+  string last_video_id = 3;        // For pagination (e.g., infinite scroll)
+  string device_id = 4;            // Optional: to support anonymous personalization
+  string language = 5;             // Optional: user or device language
+}
+
+message GetRecommendedVideosResponse {
+  repeated Video videos = 1;
+}
+
 // Video service definition
 service VideoService {
   rpc CreateVideo(CreateVideoRequest) returns (CreateVideoResponse);
@@ -118,4 +130,5 @@ service VideoService {
   rpc DeleteVideo(DeleteVideoRequest) returns (DeleteVideoResponse);
   rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
   rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
+  rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetRecommendedVideosResponse);
 }

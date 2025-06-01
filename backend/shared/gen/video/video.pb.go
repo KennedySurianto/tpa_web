@@ -928,6 +928,126 @@ func (x *UpdateMetricsResponse) GetVideo() *Video {
 	return nil
 }
 
+type GetRecommendedVideosRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                  // Optional: anonymous users can pass an empty string
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`                                 // Max number of videos to return
+	LastVideoId   string                 `protobuf:"bytes,3,opt,name=last_video_id,json=lastVideoId,proto3" json:"last_video_id,omitempty"` // For pagination (e.g., infinite scroll)
+	DeviceId      string                 `protobuf:"bytes,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`            // Optional: to support anonymous personalization
+	Language      string                 `protobuf:"bytes,5,opt,name=language,proto3" json:"language,omitempty"`                            // Optional: user or device language
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRecommendedVideosRequest) Reset() {
+	*x = GetRecommendedVideosRequest{}
+	mi := &file_video_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRecommendedVideosRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRecommendedVideosRequest) ProtoMessage() {}
+
+func (x *GetRecommendedVideosRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_video_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRecommendedVideosRequest.ProtoReflect.Descriptor instead.
+func (*GetRecommendedVideosRequest) Descriptor() ([]byte, []int) {
+	return file_video_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetRecommendedVideosRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetRecommendedVideosRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetRecommendedVideosRequest) GetLastVideoId() string {
+	if x != nil {
+		return x.LastVideoId
+	}
+	return ""
+}
+
+func (x *GetRecommendedVideosRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *GetRecommendedVideosRequest) GetLanguage() string {
+	if x != nil {
+		return x.Language
+	}
+	return ""
+}
+
+type GetRecommendedVideosResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Videos        []*Video               `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRecommendedVideosResponse) Reset() {
+	*x = GetRecommendedVideosResponse{}
+	mi := &file_video_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRecommendedVideosResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRecommendedVideosResponse) ProtoMessage() {}
+
+func (x *GetRecommendedVideosResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_video_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRecommendedVideosResponse.ProtoReflect.Descriptor instead.
+func (*GetRecommendedVideosResponse) Descriptor() ([]byte, []int) {
+	return file_video_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetRecommendedVideosResponse) GetVideos() []*Video {
+	if x != nil {
+		return x.Videos
+	}
+	return nil
+}
+
 var File_video_proto protoreflect.FileDescriptor
 
 const file_video_proto_rawDesc = "" +
@@ -1027,7 +1147,15 @@ const file_video_proto_rawDesc = "" +
 	"\f_likes_countB\x11\n" +
 	"\x0f_comments_count\";\n" +
 	"\x15UpdateMetricsResponse\x12\"\n" +
-	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video2\xac\x03\n" +
+	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xa9\x01\n" +
+	"\x1bGetRecommendedVideosRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\"\n" +
+	"\rlast_video_id\x18\x03 \x01(\tR\vlastVideoId\x12\x1b\n" +
+	"\tdevice_id\x18\x04 \x01(\tR\bdeviceId\x12\x1a\n" +
+	"\blanguage\x18\x05 \x01(\tR\blanguage\"D\n" +
+	"\x1cGetRecommendedVideosResponse\x12$\n" +
+	"\x06videos\x18\x01 \x03(\v2\f.video.VideoR\x06videos2\x8d\x04\n" +
 	"\fVideoService\x12D\n" +
 	"\vCreateVideo\x12\x19.video.CreateVideoRequest\x1a\x1a.video.CreateVideoResponse\x12;\n" +
 	"\bGetVideo\x12\x16.video.GetVideoRequest\x1a\x17.video.GetVideoResponse\x12D\n" +
@@ -1035,7 +1163,8 @@ const file_video_proto_rawDesc = "" +
 	"\vDeleteVideo\x12\x19.video.DeleteVideoRequest\x1a\x1a.video.DeleteVideoResponse\x12A\n" +
 	"\n" +
 	"ListVideos\x12\x18.video.ListVideosRequest\x1a\x19.video.ListVideosResponse\x12J\n" +
-	"\rUpdateMetrics\x12\x1b.video.UpdateMetricsRequest\x1a\x1c.video.UpdateMetricsResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
+	"\rUpdateMetrics\x12\x1b.video.UpdateMetricsRequest\x1a\x1c.video.UpdateMetricsResponse\x12_\n" +
+	"\x14GetRecommendedVideos\x12\".video.GetRecommendedVideosRequest\x1a#.video.GetRecommendedVideosResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
 
 var (
 	file_video_proto_rawDescOnce sync.Once
@@ -1049,49 +1178,54 @@ func file_video_proto_rawDescGZIP() []byte {
 	return file_video_proto_rawDescData
 }
 
-var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_video_proto_goTypes = []any{
-	(*Video)(nil),                 // 0: video.Video
-	(*CreateVideoRequest)(nil),    // 1: video.CreateVideoRequest
-	(*CreateVideoResponse)(nil),   // 2: video.CreateVideoResponse
-	(*GetVideoRequest)(nil),       // 3: video.GetVideoRequest
-	(*GetVideoResponse)(nil),      // 4: video.GetVideoResponse
-	(*UpdateVideoRequest)(nil),    // 5: video.UpdateVideoRequest
-	(*UpdateVideoResponse)(nil),   // 6: video.UpdateVideoResponse
-	(*DeleteVideoRequest)(nil),    // 7: video.DeleteVideoRequest
-	(*DeleteVideoResponse)(nil),   // 8: video.DeleteVideoResponse
-	(*ListVideosRequest)(nil),     // 9: video.ListVideosRequest
-	(*ListVideosResponse)(nil),    // 10: video.ListVideosResponse
-	(*UpdateMetricsRequest)(nil),  // 11: video.UpdateMetricsRequest
-	(*UpdateMetricsResponse)(nil), // 12: video.UpdateMetricsResponse
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
+	(*Video)(nil),                        // 0: video.Video
+	(*CreateVideoRequest)(nil),           // 1: video.CreateVideoRequest
+	(*CreateVideoResponse)(nil),          // 2: video.CreateVideoResponse
+	(*GetVideoRequest)(nil),              // 3: video.GetVideoRequest
+	(*GetVideoResponse)(nil),             // 4: video.GetVideoResponse
+	(*UpdateVideoRequest)(nil),           // 5: video.UpdateVideoRequest
+	(*UpdateVideoResponse)(nil),          // 6: video.UpdateVideoResponse
+	(*DeleteVideoRequest)(nil),           // 7: video.DeleteVideoRequest
+	(*DeleteVideoResponse)(nil),          // 8: video.DeleteVideoResponse
+	(*ListVideosRequest)(nil),            // 9: video.ListVideosRequest
+	(*ListVideosResponse)(nil),           // 10: video.ListVideosResponse
+	(*UpdateMetricsRequest)(nil),         // 11: video.UpdateMetricsRequest
+	(*UpdateMetricsResponse)(nil),        // 12: video.UpdateMetricsResponse
+	(*GetRecommendedVideosRequest)(nil),  // 13: video.GetRecommendedVideosRequest
+	(*GetRecommendedVideosResponse)(nil), // 14: video.GetRecommendedVideosResponse
+	(*timestamppb.Timestamp)(nil),        // 15: google.protobuf.Timestamp
 }
 var file_video_proto_depIdxs = []int32{
-	13, // 0: video.Video.created_at:type_name -> google.protobuf.Timestamp
-	13, // 1: video.Video.updated_at:type_name -> google.protobuf.Timestamp
-	13, // 2: video.Video.deleted_at:type_name -> google.protobuf.Timestamp
+	15, // 0: video.Video.created_at:type_name -> google.protobuf.Timestamp
+	15, // 1: video.Video.updated_at:type_name -> google.protobuf.Timestamp
+	15, // 2: video.Video.deleted_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: video.CreateVideoResponse.video:type_name -> video.Video
 	0,  // 4: video.GetVideoResponse.video:type_name -> video.Video
 	0,  // 5: video.UpdateVideoResponse.video:type_name -> video.Video
 	0,  // 6: video.ListVideosResponse.videos:type_name -> video.Video
 	0,  // 7: video.UpdateMetricsResponse.video:type_name -> video.Video
-	1,  // 8: video.VideoService.CreateVideo:input_type -> video.CreateVideoRequest
-	3,  // 9: video.VideoService.GetVideo:input_type -> video.GetVideoRequest
-	5,  // 10: video.VideoService.UpdateVideo:input_type -> video.UpdateVideoRequest
-	7,  // 11: video.VideoService.DeleteVideo:input_type -> video.DeleteVideoRequest
-	9,  // 12: video.VideoService.ListVideos:input_type -> video.ListVideosRequest
-	11, // 13: video.VideoService.UpdateMetrics:input_type -> video.UpdateMetricsRequest
-	2,  // 14: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
-	4,  // 15: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
-	6,  // 16: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
-	8,  // 17: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
-	10, // 18: video.VideoService.ListVideos:output_type -> video.ListVideosResponse
-	12, // 19: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	0,  // 8: video.GetRecommendedVideosResponse.videos:type_name -> video.Video
+	1,  // 9: video.VideoService.CreateVideo:input_type -> video.CreateVideoRequest
+	3,  // 10: video.VideoService.GetVideo:input_type -> video.GetVideoRequest
+	5,  // 11: video.VideoService.UpdateVideo:input_type -> video.UpdateVideoRequest
+	7,  // 12: video.VideoService.DeleteVideo:input_type -> video.DeleteVideoRequest
+	9,  // 13: video.VideoService.ListVideos:input_type -> video.ListVideosRequest
+	11, // 14: video.VideoService.UpdateMetrics:input_type -> video.UpdateMetricsRequest
+	13, // 15: video.VideoService.GetRecommendedVideos:input_type -> video.GetRecommendedVideosRequest
+	2,  // 16: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
+	4,  // 17: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
+	6,  // 18: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
+	8,  // 19: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
+	10, // 20: video.VideoService.ListVideos:output_type -> video.ListVideosResponse
+	12, // 21: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
+	14, // 22: video.VideoService.GetRecommendedVideos:output_type -> video.GetRecommendedVideosResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_video_proto_init() }
@@ -1109,7 +1243,7 @@ func file_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_video_proto_rawDesc), len(file_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

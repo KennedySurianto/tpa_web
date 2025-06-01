@@ -1,14 +1,41 @@
 import React, { useEffect, useRef, useState } from "react";
-// import CommentSidebar from "../components/CommentBar";
+import CommentBar from "../components/CommentBar";
 import { useVideos } from "../../../hooks/useVideos";
 
 const VideoFeed: React.FC = () => {
-    const { videos, loading } = useVideos(1, 10); // or pass page/limit dynamically
+    const { videos, loading } = useVideos(); // or pass page/limit dynamically
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(true);
     const [showVolumeControl, setShowVolumeControl] = useState(false);
-    // const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+    const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+    const [showComments, setShowComments] = useState<boolean>(false);
+
+    // Handler
+    const handleLike = (videoId: number) => {
+        console.log(`Liked video ${videoId}`);
+        // TODO: add like logic here
+    };
+
+    const handleComment = (videoId: number) => {
+        setSelectedVideoId(videoId);  // show comments sidebar for this video
+        setShowComments(true);
+    };
+
+    const handleCloseComments = () => {
+        setShowComments(false);
+        setSelectedVideoId(null); // Optional: clear the selected video
+    };
+
+    const handleShare = (videoId: number) => {
+        console.log(`Share video ${videoId}`);
+        // TODO: add share logic here (e.g., open share dialog)
+    };
+
+    const handleSave = (videoId: number) => {
+        console.log(`Saved video ${videoId}`);
+        // TODO: add save logic here
+    };
 
     // Update volume for all videos
     useEffect(() => {
@@ -20,7 +47,7 @@ const VideoFeed: React.FC = () => {
         });
     }, [volume, isMuted]);
 
-    // Handle video playback based on scroll position
+    // Handle video playback and selection based on scroll position
     useEffect(() => {
         const handleScroll = () => {
             const container = document.querySelector('.video-feed-container');
@@ -28,8 +55,9 @@ const VideoFeed: React.FC = () => {
 
             const containerRect = container.getBoundingClientRect();
             const containerHeight = containerRect.height;
+            let currentVideoId: number | null = null;
 
-            videoRefs.current.forEach((video) => {
+            videoRefs.current.forEach((video, index) => {
                 if (!video) return;
 
                 const videoRect = video.getBoundingClientRect();
@@ -39,11 +67,18 @@ const VideoFeed: React.FC = () => {
                 if (isVideoInView) {
                     // Play video when in view
                     video.play().catch(console.error);
+                    // Set this as the current video
+                    currentVideoId = videos[index]?.id || null;
                 } else {
                     // Pause video when out of view
                     video.pause();
                 }
             });
+
+            // Update selectedVideoId only if it has changed
+            if (currentVideoId !== null && currentVideoId !== selectedVideoId) {
+                setSelectedVideoId(currentVideoId);
+            }
         };
 
         const container = document.querySelector('.video-feed-container');
@@ -58,12 +93,13 @@ const VideoFeed: React.FC = () => {
                 container.removeEventListener('scroll', handleScroll);
             }
         };
-    }, [videos]);
+    }, [videos, selectedVideoId]);
 
-    // Play first video on mount
+    // Play first video on mount and set it as selected
     useEffect(() => {
-        if (videoRefs.current[0]) {
+        if (videoRefs.current[0] && videos.length > 0) {
             videoRefs.current[0].play().catch(console.error);
+            setSelectedVideoId(videos[0].id);
         }
     }, [videos]);
 
@@ -106,6 +142,8 @@ const VideoFeed: React.FC = () => {
                             flexDirection: 'column',
                             position: 'relative',
                             backgroundColor: '#000',
+                            // Add visual indicator for selected video
+                            border: selectedVideoId === video.id ? '2px solid rgba(255, 255, 255, 0.3)' : 'none',
                         }}
                     >
                         {/* Video Container */}
@@ -277,6 +315,24 @@ const VideoFeed: React.FC = () => {
                                     {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
                                 </button>
                             </div>
+
+                            {/* Selected Video Indicator */}
+                            {selectedVideoId === video.id && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '1rem',
+                                    left: '1rem',
+                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '20px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    backdropFilter: 'blur(10px)',
+                                }}>
+                                    Now Playing
+                                </div>
+                            )}
                         </div>
 
                         {/* Video Info Overlay */}
@@ -316,7 +372,8 @@ const VideoFeed: React.FC = () => {
                                         flexWrap: 'wrap',
                                     }}>
                                         <button 
-                                            className="btn btn-link" 
+                                            className="btn btn-link"
+                                            onClick={() => handleLike(video.id)}
                                             style={{ 
                                                 fontSize: '0.9rem',
                                                 color: 'white',
@@ -334,6 +391,7 @@ const VideoFeed: React.FC = () => {
                                         </button>
                                         <button 
                                             className="btn btn-link" 
+                                            onClick={() => handleComment(video.id)}
                                             style={{ 
                                                 fontSize: '0.9rem',
                                                 color: 'white',
@@ -351,6 +409,7 @@ const VideoFeed: React.FC = () => {
                                         </button>
                                         <button 
                                             className="btn btn-link" 
+                                            onClick={() => handleShare(video.id)}
                                             style={{ 
                                                 fontSize: '0.9rem',
                                                 color: 'white',
@@ -369,6 +428,7 @@ const VideoFeed: React.FC = () => {
                                     </div>
                                     <button 
                                         className="btn btn-link" 
+                                        onClick={() => handleSave(video.id)}
                                         style={{ 
                                             fontSize: '0.9rem',
                                             color: 'white',
@@ -409,7 +469,12 @@ const VideoFeed: React.FC = () => {
             </div>
 
             {/* Comment Sidebar */}
-            {/* <CommentSidebar /> */}
+            {showComments && selectedVideoId && (
+                <CommentBar 
+                    videoId={selectedVideoId} 
+                    onClose={handleCloseComments}
+                />
+            )}
         </div>
     );
 };

@@ -1,11 +1,12 @@
 package repository
 
 import (
-	// "github.com/KennedySurianto/tpa_web/backend/activity-service/internal/model"
+	"context"
+
+	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/model"
 )
 
 type CommentRepository interface {
-	// CreateComment(comment *model.Comment) error
-	// GetCommentByVideoID(videoId uint) ([]model.Comment, error)
-
+	GetCommentsByVideoID(ctx context.Context, videoID uint) ([]model.Comment, error)
+	CreateComment(ctx context.Context, comment *model.Comment) error
 }

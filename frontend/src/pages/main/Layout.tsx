@@ -1,5 +1,5 @@
 import React from "react";
-import Sidebar from "./components/NavigationBar";
+import NavigationBar from "./components/NavigationBar";
 import { Outlet } from "react-router-dom";
 
 const Layout: React.FC = () => {
@@ -13,7 +13,7 @@ const Layout: React.FC = () => {
             }}>
             
             {/* Sidebar Component - Takes up its own space */}
-            <Sidebar />
+            <NavigationBar />
             
             {/* Main content area - Fills remaining space */}
             <div className="flex-grow-1 d-flex flex-column"

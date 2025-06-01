@@ -16,6 +16,8 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -43,6 +45,11 @@ func main() {
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
 	reflection.Register(grpcServer)
+
+	// Create and register a gRPC health server
+	healthServer := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+	healthServer.SetServingStatus("video.VideoService", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	// Run gRPC server
 	go func() {

@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"gorm.io/gorm"
@@ -61,4 +63,29 @@ func (r *VideoRepositoryImpl) UpdateMetrics(id uint, views, likes, comments *uin
 		return nil, err
 	}
 	return r.GetVideoByID(id)
+}
+
+func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID, language string, limit int32) ([]*model.Video, error) {
+	var videos []*model.Video
+
+	query := r.db.WithContext(context.Background()).
+		Model(&model.Video{}).
+		Where("privacy = ?", "public"). // Only show public videos
+		Where("deleted_at IS NULL").     // Exclude soft-deleted
+		Order("created_at DESC").
+		Limit(int(limit))
+
+	// Optional: pagination
+	if lastVideoID != "" {
+		var lastVideo model.Video
+		if err := r.db.First(&lastVideo, "id = ?", lastVideoID).Error; err == nil {
+			query = query.Where("created_at < ?", lastVideo.CreatedAt)
+		}
+	}
+
+	if err := query.Find(&videos).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch recommended videos: %w", err)
+	}
+
+	return videos, nil
 }

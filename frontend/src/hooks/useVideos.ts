@@ -1,37 +1,43 @@
 import { useEffect, useState } from "react";
 import { videoClient } from "../api/grpc/videoClient";
-import { ListVideosRequest, Video } from "../api/gen/video";
+import { GetRecommendedVideosRequest, Video } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
-export function useVideos(page: number = 1, limit: number = 10) {
+export function useVideos(
+    limit: number = 10,
+    lastVideoId: string = ""
+) {
     const { user } = useAuth();
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchVideos = async () => {
-            if (!user?.id) {
-                setVideos([]);
-                setLoading(false);
-                return;
-            }
+        // If no user id, pass empty string for anonymous
+        const userId = user?.id ? String(user.id) : "";
 
-            const request: ListVideosRequest = {
-                page,
-                limit,
-                userId: Number(user.id),
-            };
-
-            const response = await videoClient.ListVideos(request);
-            setVideos(response.videos);
-            setLoading(false);
+        const request: GetRecommendedVideosRequest = {
+            userId: userId,
+            limit,
+            lastVideoId: lastVideoId,
+            deviceId: "",  // replace this with actual device ID
+            language: navigator.language || "",  // get from user preferences
         };
 
-        fetchVideos().catch((err) => {
-            console.error("Failed to fetch videos", err);
+        try {
+            const response = await videoClient.GetRecommendedVideos(request);
+            setVideos(response.videos);
+        } catch (err) {
+            console.error("Failed to fetch recommended videos", err);
+            setVideos([]);
+        } finally {
             setLoading(false);
-        });
-    }, [page, limit, user?.id]); // ✅ Add user?.id to deps
+        }
+        };
+
+        setLoading(true);
+        fetchVideos();
+    }, [limit, lastVideoId, user?.id]);
 
     return { videos, loading };
 }

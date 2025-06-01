@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activity";
+
+// User info included with the comment
+message User {
+    uint64 id = 1;
+    string username = 2;
+    string profile_url = 3;
+}
+
+message Comment {
+    uint64 id = 1;
+    uint64 user_id = 2;
+    uint64 video_id = 3;
+    string content = 4;
+    string created_at = 5;
+    string updated_at = 6;
+    User user = 7;
+}
+
+// Request to get comments for a video
+message GetCommentsRequest {
+    uint64 video_id = 1;
+}
+
+// Response with list of comments including user info
+message GetCommentsResponse {
+    repeated Comment comments = 1;
+}
+
+message CreateCommentRequest {
+    string user_id = 1;
+    string video_id = 2;
+    string content = 3;
+}
+
+message CreateCommentResponse {
+    Comment comment = 1;
+}
+
+// Service definition
+service CommentsService {
+    rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
+    rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
+}

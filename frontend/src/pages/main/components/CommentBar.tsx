@@ -1,111 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useComments } from '../../../hooks/useComments';
+import { Comment } from '../../../api/gen/activity';
+import { createComment } from '../../../services/commentApi';
 
-// interface CommentSidebarProps {
-//   videoId: number;
-// }
+interface Props {
+  videoId: number;
+  onClose?: () => void;
+}
 
-const CommentSidebar: React.FC = () => {
+const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
+  const { comments: initialComments, loading, error } = useComments(videoId);
 
-
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      user: 'Jin',
-      avatar: '👤',
-      text: 'anime name: clannad',
-      time: '2-18',
-      likes: 71,
-      replies: 25,
-      isLiked: false
-    },
-    {
-      id: 2,
-      user: 'EL',
-      avatar: '👤',
-      text: 'anime apa ni vibes mcnya sama kaya okazaki tomoya dari clannad jir',
-      time: '3-2',
-      likes: 0,
-      replies: 2,
-      isLiked: false
-    },
-    {
-      id: 3,
-      user: 'Septi',
-      avatar: '👤',
-      text: 'kayak gua bgt lagi 😭',
-      time: '2-17',
-      likes: 80,
-      replies: 11,
-      isLiked: false
-    },
-    {
-      id: 4,
-      user: 'OKINAWA-<3',
-      avatar: '👤',
-      text: 'anime name bro',
-      time: '2-17',
-      likes: 23,
-      replies: 3,
-      isLiked: false
-    },
-    {
-      id: 5,
-      user: 'Kenshiro',
-      avatar: '👤',
-      text: 'anime apa ni',
-      time: '2-19',
-      likes: 0,
-      replies: 4,
-      isLiked: false
-    },
-    {
-      id: 6,
-      user: 'YUU',
-      avatar: '👤',
-      text: 'Bangun, sekolah, pulang, tidur gitu aja terus siklus nya😭',
-      time: '2-19',
-      likes: 8,
-      replies: 6,
-      isLiked: false
-    }
-  ]);
-
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
+  const [likedComments, setLikedComments] = useState<Record<number, boolean>>({});
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Reset and update comments when videoId changes or when new comments are fetched
+  useEffect(() => {
+    if (initialComments.length > 0) {
+      setComments(
+        initialComments.map((c) => ({
+          ...c,
+          id: typeof c.id === 'number' ? String(c.id) : c.id,
+          userId: typeof c.userId === 'number' ? String(c.userId) : c.userId,
+          videoId: typeof c.videoId === 'number' ? String(c.videoId) : c.videoId,
+        }))
+      );
+    } else {
+      // Clear comments if no comments for this video
+      setComments([]);
+    }
+  }, [initialComments, videoId]);
+
+  // Reset UI state when videoId changes
+  useEffect(() => {
+    setShowReplies({});
+    setLikedComments({});
+    setNewComment('');
+  }, [videoId]);
 
   const handleLike = (commentId: number) => {
-    setComments(comments.map(comment => 
-      comment.id === commentId 
-        ? { 
-            ...comment, 
-            isLiked: !comment.isLiked,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
-          }
-        : comment
-    ));
+    setLikedComments(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
   };
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const newCommentObj = {
-        id: comments.length + 1,
-        user: 'You',
-        avatar: '👤',
-        text: newComment,
-        time: 'now',
-        likes: 0,
-        replies: 0,
-        isLiked: false
-      };
-      setComments([...comments, newCommentObj]);
-      setNewComment('');
+  const handleAddComment = async () => {
+
+    try {
+      setErrorMessage(''); // Clear previous errors
+
+      const response = await createComment(videoId, newComment);
+
+      if (response?.comment) {
+        const savedComment = {
+          ...response.comment,
+          id: String(response.comment.id),
+          userId: String(response.comment.userId),
+          videoId: String(response.comment.videoId),
+        };
+
+        setComments(prev => [...prev, savedComment]);
+        setNewComment('');
+      } else {
+        setErrorMessage('Something went wrong. Please try again.');
+        console.error('CreateComment returned no comment.');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to post comment. Please check your connection.');
+      console.error('CreateComment error:', error);
     }
   };
 
   const toggleReplies = (commentId: number) => {
     setShowReplies(prev => ({
       ...prev,
-      [commentId]: !prev[commentId]
+      [commentId]: !prev[commentId],
     }));
   };
 
@@ -117,229 +90,286 @@ const CommentSidebar: React.FC = () => {
       borderLeft: '1px solid #2f2f2f',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     }}>
       {/* Header */}
-      <div className="d-flex align-center justify-between p-3" style={{
+      <div style={{
         borderBottom: '1px solid #2f2f2f',
-        color: 'white'
+        color: 'white',
+        padding: '12px 16px',
+        flexShrink: 0,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: '16px',
+        fontWeight: 600,
+        backgroundColor: '#161823',
       }}>
-        <div className="d-flex align-center">
-          <span style={{ fontSize: '16px', fontWeight: '600' }}>Comments (311)</span>
+        <span>Comments ({comments.length})</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ 
+            fontSize: '12px', 
+            color: '#8a8a8a',
+            backgroundColor: '#2f2f2f',
+            padding: '2px 8px',
+            borderRadius: '10px',
+          }}>
+            Video #{videoId}
+          </span>
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#8a8a8a',
+              fontSize: '18px',
+              cursor: 'pointer',
+              padding: '4px',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.color = 'white')}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.color = '#8a8a8a'}
+          >
+            ✕
+          </button>
         </div>
-        <button style={{
-          background: 'none',
-          border: 'none',
-          color: '#8a8a8a',
-          fontSize: '18px',
-          cursor: 'pointer',
-          padding: '4px'
-        }}>
-          ✕
-        </button>
       </div>
 
-      {/* Comments List */}
-      <div className="flex-grow-1" style={{
-        overflowY: 'auto',
-        padding: '12px'
+      {/* Comments List - Scrollable Container */}
+      <div style={{
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0, // Important for flex child to be scrollable
       }}>
-        {comments.map((comment) => (
-          <div key={comment.id} className="mb-3">
-            <div className="d-flex" style={{ gap: '10px' }}>
-              {/* Avatar */}
+        <div style={{
+          flexGrow: 1,
+          overflowY: 'auto',
+          padding: '12px',
+        }}>
+          {loading ? (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '200px',
+              gap: '8px'
+            }}>
               <div style={{
-                width: '32px',
-                height: '32px',
+                width: '24px',
+                height: '24px',
+                border: '2px solid #2f2f2f',
+                borderTop: '2px solid #ff0050',
                 borderRadius: '50%',
-                backgroundColor: '#8a8a8a',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px',
-                flexShrink: '0'
-              }}>
-                {comment.avatar}
-              </div>
-
-              {/* Comment Content */}
-              <div className="flex-grow-1">
-                <div className="d-flex align-center justify-between mb-1">
-                  <span style={{
-                    color: 'white',
-                    fontSize: '14px',
-                    fontWeight: '600'
-                  }}>
-                    {comment.user}
-                  </span>
-                  <button style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#8a8a8a',
+                animation: 'spin 1s linear infinite',
+              }}></div>
+              <p style={{ color: '#8a8a8a', textAlign: 'center', margin: 0 }}>Loading comments...</p>
+            </div>
+          ) : error ? (
+            <div style={{ 
+              textAlign: 'center',
+              padding: '20px',
+              color: '#ff4d4f'
+            }}>
+              <p>Error loading comments</p>
+              <p style={{ fontSize: '12px', color: '#8a8a8a' }}>Please try again later</p>
+            </div>
+          ) : comments.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center',
+              padding: '40px 20px',
+              color: '#8a8a8a'
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
+              <p style={{ margin: 0, fontSize: '14px' }}>Be the first to comment!</p>
+              <p style={{ margin: '4px 0 0 0', fontSize: '12px' }}>Share your thoughts about this video</p>
+            </div>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#8a8a8a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     fontSize: '16px',
-                    cursor: 'pointer',
-                    padding: '2px'
+                    flexShrink: 0,
                   }}>
-                    ⋯
-                  </button>
-                </div>
+                    {comment.user?.profileUrl ? (
+                      <img
+                        src={comment.user.profileUrl}
+                        alt={comment.user.username || 'User Avatar'}
+                        style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+                      />
+                    ) : (
+                      <span style={{ color: 'white' }}>
+                        👤
+                      </span>
+                    )}
+                  </div>
 
-                <p style={{
-                  color: 'white',
-                  fontSize: '14px',
-                  margin: '0 0 8px 0',
-                  lineHeight: '1.4'
-                }}>
-                  {comment.text}
-                </p>
-
-                <div className="d-flex align-center" style={{ gap: '16px' }}>
-                  <span style={{
-                    color: '#8a8a8a',
-                    fontSize: '12px'
-                  }}>
-                    {comment.time}
-                  </span>
-
-                  <button 
-                    onClick={() => handleLike(comment.id)}
-                    className="d-flex align-center"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: comment.isLiked ? '#ff0050' : '#8a8a8a',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      gap: '4px',
-                      padding: '2px'
-                    }}
-                  >
-                    ♥ {comment.likes}
-                  </button>
-
-                  {comment.replies > 0 && (
-                    <button 
-                      onClick={() => toggleReplies(comment.id)}
-                      style={{
+                  <div style={{ flexGrow: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
+                      <span style={{
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                      }}>
+                        {comment.user?.username ? comment.user.username : 'user' + comment.userId}
+                      </span>
+                      <button style={{
                         background: 'none',
                         border: 'none',
                         color: '#8a8a8a',
-                        fontSize: '12px',
+                        fontSize: '16px',
                         cursor: 'pointer',
-                        padding: '2px'
-                      }}
-                    >
-                      Reply
-                    </button>
-                  )}
+                        padding: '2px',
+                      }}>
+                        ⋯
+                      </button>
+                    </div>
+
+                    <p style={{
+                      color: 'white',
+                      fontSize: '14px',
+                      margin: '0 0 8px 0',
+                      lineHeight: 1.4,
+                    }}>
+                      {comment.content}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <span style={{ color: '#8a8a8a', fontSize: '12px' }}>
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </span>
+
+                      <button
+                        onClick={() => handleLike(Number(comment.id))}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: likedComments[Number(comment.id)] ? '#ff0050' : '#8a8a8a',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          transition: 'color 0.2s ease',
+                        }}
+                      >
+                        ♥ {likedComments[Number(comment.id)] ? 1 : 0}
+                      </button>
+
+                      <button
+                        onClick={() => toggleReplies(Number(comment.id))}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#8a8a8a',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          transition: 'color 0.2s ease',
+                        }}
+                      >
+                        Reply
+                      </button>
+                    </div>
+
+                    {showReplies[Number(comment.id)] && (
+                      <div style={{ 
+                        color: '#8a8a8a', 
+                        fontSize: '12px', 
+                        marginTop: '8px',
+                        padding: '8px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '8px',
+                      }}>
+                        (Replies not yet implemented)
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                {comment.replies > 0 && (
-                  <button 
-                    onClick={() => toggleReplies(comment.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#8a8a8a',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      padding: '4px 0',
-                      textDecoration: 'underline'
-                    }}
-                  >
-                    View {comment.replies} replies {showReplies[comment.id] ? '▲' : '▼'}
-                  </button>
-                )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            ))
+          )}
+        </div>
 
-      {/* Comment Input */}
-      <div className="p-3" style={{
-        borderTop: '1px solid #2f2f2f',
-        backgroundColor: '#161823'
-      }}>
-        <div className="d-flex align-center" style={{ gap: '8px' }}>
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add comment..."
-            onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-            style={{
-              flex: '1',
-              backgroundColor: '#2f2f2f',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '10px 16px',
-              color: 'white',
-              fontSize: '14px',
-              outline: 'none'
-            }}
-          />
-          <button style={{
-            background: 'none',
-            border: 'none',
-            color: '#8a8a8a',
-            fontSize: '16px',
-            cursor: 'pointer',
-            padding: '6px'
-          }}>
-            😊
-          </button>
-          <button 
-            onClick={handleAddComment}
-            disabled={!newComment.trim()}
-            style={{
-              background: newComment.trim() ? '#ff0050' : '#2f2f2f',
-              border: 'none',
-              borderRadius: '4px',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: newComment.trim() ? 'pointer' : 'not-allowed',
-              padding: '8px 12px'
-            }}
-          >
-            Post
-          </button>
+        {/* Input Box - Now at bottom of comments container */}
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: '#161823',
+          borderTop: '1px solid #2f2f2f',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add comment..."
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddComment();
+                }
+              }}
+              style={{
+                flex: 1,
+                resize: 'none',
+                borderRadius: '20px',
+                border: 'none',
+                padding: '10px 16px',
+                fontSize: '14px',
+                color: 'white',
+                backgroundColor: '#2f2f2f',
+                outline: 'none',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                maxHeight: '80px',
+                overflowY: 'auto',
+              }}
+            />
+            <button
+              onClick={handleAddComment}
+              disabled={!newComment.trim()}
+              style={{
+                background: newComment.trim() ? '#ff0050' : '#2f2f2f',
+                border: 'none',
+                borderRadius: '4px',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: newComment.trim() ? 'pointer' : 'not-allowed',
+                padding: '8px 12px',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              Post
+            </button>
+          </div>
+          {errorMessage && (
+            <div style={{ color: '#ff4d4f', fontSize: '12px', paddingLeft: '4px' }}>
+              {errorMessage}
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Add CSS for spinner animation */}
       <style>{`
-        /* Custom scrollbar for comment area */
-        div::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        div::-webkit-scrollbar-track {
-          background: #161823;
-        }
-        
-        div::-webkit-scrollbar-thumb {
-          background: #2f2f2f;
-          border-radius: 3px;
-        }
-        
-        div::-webkit-scrollbar-thumb:hover {
-          background: #404040;
-        }
-
-        /* Responsive behavior */
-        @media (max-width: 768px) {
-          .comment-sidebar {
-            width: 100vw !important;
-            position: fixed !important;
-            top: 0 !important;
-            right: 0 !important;
-            z-index: 1000 !important;
-          }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
   );
 };
 
-export default CommentSidebar;
+export default CommentBar;

@@ -5,6 +5,7 @@ import { AuthServiceClientImpl, LoginRequest } from "../../api/gen/auth";
 import { GrpcWebImpl } from "../../api/gen/auth";
 import { BrowserHeaders } from "browser-headers";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../utils/AuthProvider";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
   transport: undefined,
@@ -14,6 +15,7 @@ const transport = new GrpcWebImpl("http://localhost:8080", {
 const authClient = new AuthServiceClientImpl(transport);
 
 const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -51,9 +53,7 @@ const LoginPage: React.FC = () => {
       if (response.success) {
         console.log("Login successful:", response);
 
-        // Save tokens (e.g., in localStorage or secure cookie)
-        localStorage.setItem("access_token", response.accessToken);
-        localStorage.setItem("refresh_token", response.refreshToken);
+        login(response);
 
         // Navigate to home page
         navigate("/home");

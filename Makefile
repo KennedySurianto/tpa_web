@@ -22,6 +22,12 @@ proto:
 		--grpc-gateway_out=backend/shared/gen/video --grpc-gateway_opt=paths=source_relative \
 		proto/video.proto
 
+	protoc -Iproto \
+		--go_out=backend/shared/gen/activity --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/activity --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/activity --grpc-gateway_opt=paths=source_relative \
+		proto/activity.proto
+
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
 	protoc \

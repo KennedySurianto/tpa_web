@@ -174,3 +174,50 @@ func (s *VideoController) UpdateMetrics(ctx context.Context, req *pb.UpdateMetri
 		Video: s.modelToProto(video),
 	}, nil
 }
+
+func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.GetRecommendedVideosRequest) (*pb.GetRecommendedVideosResponse, error) {
+	videos, err := vc.videoService.GetRecommendedVideos(
+		req.GetUserId(),
+		req.GetLastVideoId(),
+		req.GetDeviceId(),
+		req.GetLanguage(),
+		req.GetLimit(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var response pb.GetRecommendedVideosResponse
+	for _, v := range videos {
+		var soundId *uint32
+		if v.SoundID != nil {
+			sid := uint32(*v.SoundID)
+			soundId = &sid
+		}
+		response.Videos = append(response.Videos, &pb.Video{
+			Id:           uint32(v.ID),
+			CreatedAt:    timestamppb.New(v.CreatedAt),
+			UpdatedAt:    timestamppb.New(v.UpdatedAt),
+			DeletedAt:    timestamppb.New(v.DeletedAt.Time),
+
+			UserId:       uint32(v.UserID),
+			VideoUrl:     v.VideoURL,
+			ThumbnailUrl: v.ThumbnailURL,
+			Caption:      v.Caption,
+			Description:  &v.Description,
+			Duration:     int32(v.Duration),
+
+			SoundId:      soundId,
+			Privacy:      v.Privacy,
+
+			ViewsCount:    uint32(v.ViewsCount),
+			LikesCount:    uint32(v.LikesCount),
+			CommentsCount: uint32(v.CommentsCount),
+
+			AllowComments: v.AllowComments,
+			AllowDuet:     v.AllowDuet,
+			AllowStitch:   v.AllowStitch,
+		})
+	}
+	return &response, nil
+}
