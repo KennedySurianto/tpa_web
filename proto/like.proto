@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/like;like";
+
+service LikeService {
+    rpc Like(LikeRequest) returns (LikeResponse);
+    rpc Unlike(UnlikeRequest) returns (UnlikeResponse);
+    rpc IsLiked(IsLikedRequest) returns (IsLikedResponse);
+}
+
+message LikeRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message LikeResponse {}
+
+message UnlikeRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message UnlikeResponse {}
+
+message IsLikedRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message IsLikedResponse {
+    bool liked = 1;
+}

@@ -41,7 +41,7 @@ message CreateCommentResponse {
 }
 
 // Service definition
-service CommentsService {
+service CommentService {
     rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
     rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
 }

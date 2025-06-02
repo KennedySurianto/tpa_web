@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch;watch";
+
+service WatchService {
+    rpc Watch(WatchRequest) returns (WatchResponse);
+    rpc Unwatch(UnwatchRequest) returns (UnwatchResponse);
+    rpc IsWatched(IsWatchedRequest) returns (IsWatchedResponse);
+}
+
+message WatchRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message WatchResponse {}
+
+message UnwatchRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message UnwatchResponse {}
+
+message IsWatchedRequest {
+    uint32 user_id = 1;
+    uint32 video_id = 2;
+}
+
+message IsWatchedResponse {
+    bool watched = 1;
+}

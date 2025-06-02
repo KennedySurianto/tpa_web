@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import {
     GetCommentsRequest,
     Comment,
-} from '../api/gen/activity';
-import { activityClient } from '../api/grpc/activityClient';
+} from '../api/gen/comment';
+import { commentClient } from '../api/grpc/commentClient';
 
 export const useComments = (videoId: number) => {
     const [comments, setComments] = useState<Comment[]>([]);
@@ -14,14 +14,14 @@ export const useComments = (videoId: number) => {
         setLoading(true);
         setError(null);
         try {
-        const request: GetCommentsRequest = { videoId: videoId.toString() };
-        const response = await activityClient.GetComments(request);
-        setComments(response.comments);
+            const request: GetCommentsRequest = { videoId: videoId.toString() };
+            const response = await commentClient.GetComments(request);
+            setComments(response.comments);
         } catch (err: any) {
-        console.error('Failed to fetch comments:', err);
-        setError(err?.message || 'Unknown error');
+            console.error('Failed to fetch comments:', err);
+            setError(err?.message || 'Unknown error');
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     }, [videoId]);
 

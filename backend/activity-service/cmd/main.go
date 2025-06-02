@@ -12,7 +12,9 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/repository"
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
-	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/activity"
+	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
+	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
+	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,25 +24,38 @@ import (
 )
 
 func main() {
-	port := getEnv("PORT", "50054") // Use a different port for activity-service
-
-	// Listen on the specified port
+	port := getEnv("PORT", "50054")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// Create gRPC server
-	grpcServer := grpc.NewServer()
-
-	// Dependency injection
+	// Database connection
 	db := database.ConnectDatabase()
+	
+	// Repositories
 	commentRepo := repository.NewCommentRepository(db)
+	likeRepo := repository.NewLikeRepository(db)
+	watchRepo := repository.NewWatchRepository(db)
+	
+	// Services
 	commentSvc := service.NewCommentService(commentRepo)
-	activityCtrl := controller.NewActivityController(commentSvc, getUserClient())
+	likeSvc := service.NewLikeService(likeRepo)
+	watchSvc := service.NewWatchService(watchRepo)
+	
+	// Clients
+	userClient := getUserClient()
 
+	// Controllers
+	commentCtrl := controller.NewActivityController(commentSvc, userClient)
+	likeCtrl := controller.NewLikeController(likeSvc)
+	watchCtrl := controller.NewWatchController(watchSvc)
+	
 	// Register gRPC server
-	pb.RegisterCommentsServiceServer(grpcServer, activityCtrl)
+	grpcServer := grpc.NewServer()
+	commentpb.RegisterCommentServiceServer(grpcServer, commentCtrl)
+	likepb.RegisterLikeServiceServer(grpcServer, likeCtrl)
+	watchpb.RegisterWatchServiceServer(grpcServer, watchCtrl)
 
 	// Enable reflection (useful for debugging tools like grpcurl)
 	reflection.Register(grpcServer)
@@ -48,7 +63,7 @@ func main() {
 	// Create and register a gRPC health server
 	healthServer := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
-	healthServer.SetServingStatus("user.UserService", grpc_health_v1.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus("activity.ActivityService", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	// Start serving in a goroutine
 	go func() {

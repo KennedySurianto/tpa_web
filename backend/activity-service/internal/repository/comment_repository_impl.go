@@ -7,20 +7,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type commentRepository struct {
+type CommentRepositoryImpl struct {
 	db *gorm.DB
 }
 
 func NewCommentRepository(db *gorm.DB) CommentRepository {
-	return &commentRepository{db: db}
+	return &CommentRepositoryImpl{db: db}
 }
 
-func (r *commentRepository) GetCommentsByVideoID(ctx context.Context, videoID uint) ([]model.Comment, error) {
+func (r *CommentRepositoryImpl) GetCommentsByVideoID(ctx context.Context, videoID uint) ([]model.Comment, error) {
 	var comments []model.Comment
 	err := r.db.WithContext(ctx).Where("video_id = ?", videoID).Order("created_at DESC").Find(&comments).Error
 	return comments, err
 }
 
-func (r *commentRepository) CreateComment(ctx context.Context, comment *model.Comment) error {
+func (r *CommentRepositoryImpl) CreateComment(ctx context.Context, comment *model.Comment) error {
     return r.db.WithContext(ctx).Create(comment).Error
 }

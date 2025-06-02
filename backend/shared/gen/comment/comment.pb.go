@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.0
-// source: activity.proto
+// source: comment.proto
 
 package activity
 
@@ -32,7 +32,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_activity_proto_msgTypes[0]
+	mi := &file_comment_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[0]
+	mi := &file_comment_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{0}
+	return file_comment_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *User) GetId() uint64 {
@@ -96,7 +96,7 @@ type Comment struct {
 
 func (x *Comment) Reset() {
 	*x = Comment{}
-	mi := &file_activity_proto_msgTypes[1]
+	mi := &file_comment_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -108,7 +108,7 @@ func (x *Comment) String() string {
 func (*Comment) ProtoMessage() {}
 
 func (x *Comment) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[1]
+	mi := &file_comment_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -121,7 +121,7 @@ func (x *Comment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Comment.ProtoReflect.Descriptor instead.
 func (*Comment) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{1}
+	return file_comment_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Comment) GetId() uint64 {
@@ -183,7 +183,7 @@ type GetCommentsRequest struct {
 
 func (x *GetCommentsRequest) Reset() {
 	*x = GetCommentsRequest{}
-	mi := &file_activity_proto_msgTypes[2]
+	mi := &file_comment_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -195,7 +195,7 @@ func (x *GetCommentsRequest) String() string {
 func (*GetCommentsRequest) ProtoMessage() {}
 
 func (x *GetCommentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[2]
+	mi := &file_comment_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,7 +208,7 @@ func (x *GetCommentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommentsRequest.ProtoReflect.Descriptor instead.
 func (*GetCommentsRequest) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{2}
+	return file_comment_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetCommentsRequest) GetVideoId() uint64 {
@@ -228,7 +228,7 @@ type GetCommentsResponse struct {
 
 func (x *GetCommentsResponse) Reset() {
 	*x = GetCommentsResponse{}
-	mi := &file_activity_proto_msgTypes[3]
+	mi := &file_comment_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -240,7 +240,7 @@ func (x *GetCommentsResponse) String() string {
 func (*GetCommentsResponse) ProtoMessage() {}
 
 func (x *GetCommentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[3]
+	mi := &file_comment_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -253,7 +253,7 @@ func (x *GetCommentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommentsResponse.ProtoReflect.Descriptor instead.
 func (*GetCommentsResponse) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{3}
+	return file_comment_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetCommentsResponse) GetComments() []*Comment {
@@ -274,7 +274,7 @@ type CreateCommentRequest struct {
 
 func (x *CreateCommentRequest) Reset() {
 	*x = CreateCommentRequest{}
-	mi := &file_activity_proto_msgTypes[4]
+	mi := &file_comment_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +286,7 @@ func (x *CreateCommentRequest) String() string {
 func (*CreateCommentRequest) ProtoMessage() {}
 
 func (x *CreateCommentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[4]
+	mi := &file_comment_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +299,7 @@ func (x *CreateCommentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommentRequest.ProtoReflect.Descriptor instead.
 func (*CreateCommentRequest) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{4}
+	return file_comment_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateCommentRequest) GetUserId() string {
@@ -332,7 +332,7 @@ type CreateCommentResponse struct {
 
 func (x *CreateCommentResponse) Reset() {
 	*x = CreateCommentResponse{}
-	mi := &file_activity_proto_msgTypes[5]
+	mi := &file_comment_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -344,7 +344,7 @@ func (x *CreateCommentResponse) String() string {
 func (*CreateCommentResponse) ProtoMessage() {}
 
 func (x *CreateCommentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_activity_proto_msgTypes[5]
+	mi := &file_comment_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -357,7 +357,7 @@ func (x *CreateCommentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommentResponse.ProtoReflect.Descriptor instead.
 func (*CreateCommentResponse) Descriptor() ([]byte, []int) {
-	return file_activity_proto_rawDescGZIP(), []int{5}
+	return file_comment_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateCommentResponse) GetComment() *Comment {
@@ -367,11 +367,11 @@ func (x *CreateCommentResponse) GetComment() *Comment {
 	return nil
 }
 
-var File_activity_proto protoreflect.FileDescriptor
+var File_comment_proto protoreflect.FileDescriptor
 
-const file_activity_proto_rawDesc = "" +
+const file_comment_proto_rawDesc = "" +
 	"\n" +
-	"\x0eactivity.proto\x12\bactivity\"S\n" +
+	"\rcomment.proto\x12\bactivity\"S\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1f\n" +
@@ -396,25 +396,25 @@ const file_activity_proto_rawDesc = "" +
 	"\bvideo_id\x18\x02 \x01(\tR\avideoId\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\"D\n" +
 	"\x15CreateCommentResponse\x12+\n" +
-	"\acomment\x18\x01 \x01(\v2\x11.activity.CommentR\acomment2\xaf\x01\n" +
-	"\x0fCommentsService\x12J\n" +
+	"\acomment\x18\x01 \x01(\v2\x11.activity.CommentR\acomment2\xae\x01\n" +
+	"\x0eCommentService\x12J\n" +
 	"\vGetComments\x12\x1c.activity.GetCommentsRequest\x1a\x1d.activity.GetCommentsResponse\x12P\n" +
 	"\rCreateComment\x12\x1e.activity.CreateCommentRequest\x1a\x1f.activity.CreateCommentResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activityb\x06proto3"
 
 var (
-	file_activity_proto_rawDescOnce sync.Once
-	file_activity_proto_rawDescData []byte
+	file_comment_proto_rawDescOnce sync.Once
+	file_comment_proto_rawDescData []byte
 )
 
-func file_activity_proto_rawDescGZIP() []byte {
-	file_activity_proto_rawDescOnce.Do(func() {
-		file_activity_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_activity_proto_rawDesc), len(file_activity_proto_rawDesc)))
+func file_comment_proto_rawDescGZIP() []byte {
+	file_comment_proto_rawDescOnce.Do(func() {
+		file_comment_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_comment_proto_rawDesc), len(file_comment_proto_rawDesc)))
 	})
-	return file_activity_proto_rawDescData
+	return file_comment_proto_rawDescData
 }
 
-var file_activity_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_activity_proto_goTypes = []any{
+var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_comment_proto_goTypes = []any{
 	(*User)(nil),                  // 0: activity.User
 	(*Comment)(nil),               // 1: activity.Comment
 	(*GetCommentsRequest)(nil),    // 2: activity.GetCommentsRequest
@@ -422,14 +422,14 @@ var file_activity_proto_goTypes = []any{
 	(*CreateCommentRequest)(nil),  // 4: activity.CreateCommentRequest
 	(*CreateCommentResponse)(nil), // 5: activity.CreateCommentResponse
 }
-var file_activity_proto_depIdxs = []int32{
+var file_comment_proto_depIdxs = []int32{
 	0, // 0: activity.Comment.user:type_name -> activity.User
 	1, // 1: activity.GetCommentsResponse.comments:type_name -> activity.Comment
 	1, // 2: activity.CreateCommentResponse.comment:type_name -> activity.Comment
-	2, // 3: activity.CommentsService.GetComments:input_type -> activity.GetCommentsRequest
-	4, // 4: activity.CommentsService.CreateComment:input_type -> activity.CreateCommentRequest
-	3, // 5: activity.CommentsService.GetComments:output_type -> activity.GetCommentsResponse
-	5, // 6: activity.CommentsService.CreateComment:output_type -> activity.CreateCommentResponse
+	2, // 3: activity.CommentService.GetComments:input_type -> activity.GetCommentsRequest
+	4, // 4: activity.CommentService.CreateComment:input_type -> activity.CreateCommentRequest
+	3, // 5: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
+	5, // 6: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
 	5, // [5:7] is the sub-list for method output_type
 	3, // [3:5] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -437,26 +437,26 @@ var file_activity_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_activity_proto_init() }
-func file_activity_proto_init() {
-	if File_activity_proto != nil {
+func init() { file_comment_proto_init() }
+func file_comment_proto_init() {
+	if File_comment_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_activity_proto_rawDesc), len(file_activity_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comment_proto_rawDesc), len(file_comment_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_activity_proto_goTypes,
-		DependencyIndexes: file_activity_proto_depIdxs,
-		MessageInfos:      file_activity_proto_msgTypes,
+		GoTypes:           file_comment_proto_goTypes,
+		DependencyIndexes: file_comment_proto_depIdxs,
+		MessageInfos:      file_comment_proto_msgTypes,
 	}.Build()
-	File_activity_proto = out.File
-	file_activity_proto_goTypes = nil
-	file_activity_proto_depIdxs = nil
+	File_comment_proto = out.File
+	file_comment_proto_goTypes = nil
+	file_comment_proto_depIdxs = nil
 }

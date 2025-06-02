@@ -7,24 +7,24 @@ import (
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
-	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/activity"
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 )
 
-type ActivityController struct {
-	pb.UnimplementedCommentsServiceServer
+type CommentController struct {
+	pb.UnimplementedCommentServiceServer
 	svc service.CommentService
 	userClient userpb.UserServiceClient
 }
 
-func NewActivityController(svc service.CommentService, userClient userpb.UserServiceClient) *ActivityController {
-	return &ActivityController{
+func NewActivityController(svc service.CommentService, userClient userpb.UserServiceClient) *CommentController {
+	return &CommentController{
 		svc: svc,
 		userClient: userClient,
 	}
 }
 
-func (c *ActivityController) GetComments(ctx context.Context, req *pb.GetCommentsRequest) (*pb.GetCommentsResponse, error) {
+func (c *CommentController) GetComments(ctx context.Context, req *pb.GetCommentsRequest) (*pb.GetCommentsResponse, error) {
     comments, err := c.svc.GetComments(ctx, uint(req.VideoId))
     if err != nil {
         return nil, err
@@ -64,7 +64,7 @@ func (c *ActivityController) GetComments(ctx context.Context, req *pb.GetComment
     return &pb.GetCommentsResponse{Comments: pbComments}, nil
 }
 
-func (h *ActivityController) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+func (h *CommentController) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	userId, err := strconv.ParseUint(req.UserId, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user id: %v", err)

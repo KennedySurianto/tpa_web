@@ -47,12 +47,17 @@ static_resources:
 
                         # Route activity-service gRPC calls
                         - match:
-                            prefix: "/activity.ActivityService/"
+                            prefix: "/activity.CommentService/"
                           route:
                             cluster: activity-service
 
                         - match:
-                            prefix: "/activity.CommentsService/"
+                            prefix: "/activity.LikeService/"
+                          route:
+                            cluster: activity-service
+
+                        - match:
+                            prefix: "/activity.WatchService/"
                           route:
                             cluster: activity-service
 

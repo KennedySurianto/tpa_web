@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.7.0
 //   protoc               v6.31.0
-// source: activity.proto
+// source: comment.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
@@ -566,12 +566,12 @@ export const CreateCommentResponse: MessageFns<CreateCommentResponse> = {
 };
 
 /** Service definition */
-export interface CommentsService {
+export interface CommentService {
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse>;
   CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse>;
 }
 
-export class CommentsServiceClientImpl implements CommentsService {
+export class CommentServiceClientImpl implements CommentService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
@@ -581,19 +581,19 @@ export class CommentsServiceClientImpl implements CommentsService {
   }
 
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse> {
-    return this.rpc.unary(CommentsServiceGetCommentsDesc, GetCommentsRequest.fromPartial(request), metadata);
+    return this.rpc.unary(CommentServiceGetCommentsDesc, GetCommentsRequest.fromPartial(request), metadata);
   }
 
   CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse> {
-    return this.rpc.unary(CommentsServiceCreateCommentDesc, CreateCommentRequest.fromPartial(request), metadata);
+    return this.rpc.unary(CommentServiceCreateCommentDesc, CreateCommentRequest.fromPartial(request), metadata);
   }
 }
 
-export const CommentsServiceDesc = { serviceName: "activity.CommentsService" };
+export const CommentServiceDesc = { serviceName: "activity.CommentService" };
 
-export const CommentsServiceGetCommentsDesc: UnaryMethodDefinitionish = {
+export const CommentServiceGetCommentsDesc: UnaryMethodDefinitionish = {
   methodName: "GetComments",
-  service: CommentsServiceDesc,
+  service: CommentServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -614,9 +614,9 @@ export const CommentsServiceGetCommentsDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const CommentsServiceCreateCommentDesc: UnaryMethodDefinitionish = {
+export const CommentServiceCreateCommentDesc: UnaryMethodDefinitionish = {
   methodName: "CreateComment",
-  service: CommentsServiceDesc,
+  service: CommentServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {

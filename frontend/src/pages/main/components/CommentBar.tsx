@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useComments } from '../../../hooks/useComments';
-import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../../api/gen/activity';
+import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../../api/gen/comment';
 import { useAuth } from '../../../utils/AuthProvider';
-import { activityClient } from '../../../api/grpc/activityClient';
+import { commentClient } from '../../../api/grpc/commentClient';
 
 interface Props {
   videoId: number;
@@ -69,7 +69,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
           videoId: videoId.toString(),
           content: newComment,
       };
-      const response: CreateCommentResponse = await activityClient.CreateComment(request);
+      const response: CreateCommentResponse = await commentClient.CreateComment(request);
       
       console.log('response:', response);
 

@@ -23,10 +23,22 @@ proto:
 		proto/video.proto
 
 	protoc -Iproto \
-		--go_out=backend/shared/gen/activity --go_opt=paths=source_relative \
-		--go-grpc_out=backend/shared/gen/activity --go-grpc_opt=paths=source_relative \
-		--grpc-gateway_out=backend/shared/gen/activity --grpc-gateway_opt=paths=source_relative \
-		proto/activity.proto
+		--go_out=backend/shared/gen/comment --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/comment --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/comment --grpc-gateway_opt=paths=source_relative \
+		proto/comment.proto
+	
+	protoc -Iproto \
+		--go_out=backend/shared/gen/like --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/like --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/like --grpc-gateway_opt=paths=source_relative \
+		proto/like.proto
+
+	protoc -Iproto \
+		--go_out=backend/shared/gen/watch --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/watch --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/watch --grpc-gateway_opt=paths=source_relative \
+		proto/watch.proto
 
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."

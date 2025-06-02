@@ -1,4 +1,4 @@
-import { GrpcWebImpl, CommentsServiceClientImpl } from "../gen/activity";
+import { GrpcWebImpl, LikeServiceClientImpl } from "../gen/like";
 import { BrowserHeaders } from "browser-headers";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
@@ -6,4 +6,4 @@ const transport = new GrpcWebImpl("http://localhost:8080", {
     metadata: new BrowserHeaders(),
 });
 
-export const activityClient = new CommentsServiceClientImpl(transport);
+export const likeClient = new LikeServiceClientImpl(transport);
