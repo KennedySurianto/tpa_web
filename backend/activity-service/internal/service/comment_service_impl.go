@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/repository"
@@ -26,9 +27,11 @@ func (s *commentService) CreateComment(ctx context.Context, userID, videoID uint
         Content:   content,
     }
 
+    fmt.Println("[COMMENT SERVICE_IMPL] Creating comment:", comment)
     if err := s.repo.CreateComment(ctx, comment); err != nil {
         return nil, err
     }
+    fmt.Println("[COMMENT SERVICE_IMPL] Created comment:", comment)
 
     return comment, nil
 }

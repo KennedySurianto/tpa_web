@@ -17,7 +17,7 @@ func NewCommentRepository(db *gorm.DB) CommentRepository {
 
 func (r *commentRepository) GetCommentsByVideoID(ctx context.Context, videoID uint) ([]model.Comment, error) {
 	var comments []model.Comment
-	err := r.db.WithContext(ctx).Where("video_id = ?", videoID).Order("created_at ASC").Find(&comments).Error
+	err := r.db.WithContext(ctx).Where("video_id = ?", videoID).Order("created_at DESC").Find(&comments).Error
 	return comments, err
 }
 

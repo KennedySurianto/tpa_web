@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useComments } from '../../../hooks/useComments';
-import { Comment } from '../../../api/gen/activity';
-import { createComment } from '../../../services/commentApi';
+import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../../api/gen/activity';
+import { useAuth } from '../../../utils/AuthProvider';
+import { activityClient } from '../../../api/grpc/activityClient';
 
 interface Props {
   videoId: number;
@@ -9,7 +10,8 @@ interface Props {
 }
 
 const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
-  const { comments: initialComments, loading, error } = useComments(videoId);
+  const user = useAuth().user;
+  const { comments: initialComments, loading, error, refetch } = useComments(videoId);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -49,25 +51,31 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   };
 
   const handleAddComment = async () => {
-
     try {
-      setErrorMessage(''); // Clear previous errors
+      setErrorMessage('');
 
-      const response = await createComment(videoId, newComment);
+      if (!newComment.trim()) {
+          setErrorMessage('Comment cannot be empty.');
+          return;
+      }
+
+      if (!user) {
+          setErrorMessage('User is not authenticated.');
+          return;
+      }
+
+      const request: CreateCommentRequest = {
+          userId: user.id,
+          videoId: videoId.toString(),
+          content: newComment,
+      };
+      const response: CreateCommentResponse = await activityClient.CreateComment(request);
+      
+      console.log('response:', response);
 
       if (response?.comment) {
-        const savedComment = {
-          ...response.comment,
-          id: String(response.comment.id),
-          userId: String(response.comment.userId),
-          videoId: String(response.comment.videoId),
-        };
-
-        setComments(prev => [...prev, savedComment]);
+        await refetch();
         setNewComment('');
-      } else {
-        setErrorMessage('Something went wrong. Please try again.');
-        console.error('CreateComment returned no comment.');
       }
     } catch (error) {
       setErrorMessage('Failed to post comment. Please check your connection.');

@@ -73,10 +73,12 @@ func (h *ActivityController) CreateComment(ctx context.Context, req *pb.CreateCo
 	if err != nil {
 		return nil, fmt.Errorf("invalid video id: %v", err)
 	}
+	fmt.Println("[ACTIVITY_CONTROLLER] CreateComment called with userId:", userId, "videoId:", videoId, "content:", req.Content)
 	comment, err := h.svc.CreateComment(ctx, userId, videoId, req.Content)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("[ACTIVITY_CONTROLLER] Comment created:", comment)
 
 	return &pb.CreateCommentResponse{
 		Comment: &pb.Comment{
