@@ -238,11 +238,14 @@ services:
     container_name: frontend
     build: ./frontend
     ports:
-      - 3000:80
+      - 3000:3000
     networks:
       - app-network
+    volumes:
+    - ./frontend:/app           # Mount local code into container
+    - /app/node_modules         # Prevent overwriting node_modules
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -107,15 +107,6 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
       }}>
         <span>Comments ({comments.length})</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ 
-            fontSize: '12px', 
-            color: '#8a8a8a',
-            backgroundColor: '#2f2f2f',
-            padding: '2px 8px',
-            borderRadius: '10px',
-          }}>
-            Video #{videoId}
-          </span>
           <button 
             onClick={onClose}
             style={{
