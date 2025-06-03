@@ -12,6 +12,27 @@ body {
   line-height: 1.6;
 }
 
+/* WebKit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 2px;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.7) transparent;
+}
+
 /* =============================================================================
    CONTAINER SYSTEM
    ============================================================================= */
