@@ -8,6 +8,7 @@ import (
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
+	"github.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 )
 
@@ -15,12 +16,14 @@ type CommentController struct {
 	pb.UnimplementedCommentServiceServer
 	svc service.CommentService
 	userClient userpb.UserServiceClient
+	likeCommentController LikeCommentController
 }
 
-func NewActivityController(svc service.CommentService, userClient userpb.UserServiceClient) *CommentController {
+func NewCommentController(svc service.CommentService, userClient userpb.UserServiceClient, likeCommentController LikeCommentController) *CommentController {
 	return &CommentController{
 		svc: svc,
 		userClient: userClient,
+		likeCommentController: likeCommentController,
 	}
 }
 
@@ -58,6 +61,26 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
                 Username:   user.Username,
                 ProfileUrl: user.AvatarUrl,
             },
+			IsLiked: func() bool {
+				if req.UserId == 0 {
+					return false
+				}
+				resp, err := c.likeCommentController.IsCommentLiked(ctx, &like_comment.IsCommentLikedRequest{
+					UserId:   uint32(req.UserId),
+					CommentId: uint32(comment.ID),
+				})
+				if err != nil || resp == nil {
+					return false
+				}
+				return resp.Liked
+			}(),
+			LikeCount: func() uint64 {
+				resp, err := c.likeCommentController.GetLikeCount(ctx, &like_comment.GetLikeCountRequest{CommentId: uint32(comment.ID)})
+				if err != nil || resp == nil {
+					return 0
+				}
+				return resp.Count
+			}(),
         })
     }
 
@@ -73,12 +96,12 @@ func (h *CommentController) CreateComment(ctx context.Context, req *pb.CreateCom
 	if err != nil {
 		return nil, fmt.Errorf("invalid video id: %v", err)
 	}
-	fmt.Println("[ACTIVITY_CONTROLLER] CreateComment called with userId:", userId, "videoId:", videoId, "content:", req.Content)
+	fmt.Println("[COMMENT_CONTROLLER] CreateComment called with userId:", userId, "videoId:", videoId, "content:", req.Content)
 	comment, err := h.svc.CreateComment(ctx, userId, videoId, req.Content)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("[ACTIVITY_CONTROLLER] Comment created:", comment)
+	fmt.Println("[COMMENT_CONTROLLER] Comment created:", comment)
 
 	return &pb.CreateCommentResponse{
 		Comment: &pb.Comment{

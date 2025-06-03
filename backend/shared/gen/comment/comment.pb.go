@@ -90,6 +90,8 @@ type Comment struct {
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	User          *User                  `protobuf:"bytes,7,opt,name=user,proto3" json:"user,omitempty"`
+	LikeCount     uint64                 `protobuf:"varint,8,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	IsLiked       bool                   `protobuf:"varint,9,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,10 +175,25 @@ func (x *Comment) GetUser() *User {
 	return nil
 }
 
+func (x *Comment) GetLikeCount() uint64 {
+	if x != nil {
+		return x.LikeCount
+	}
+	return 0
+}
+
+func (x *Comment) GetIsLiked() bool {
+	if x != nil {
+		return x.IsLiked
+	}
+	return false
+}
+
 // Request to get comments for a video
 type GetCommentsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VideoId       uint64                 `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -214,6 +231,13 @@ func (*GetCommentsRequest) Descriptor() ([]byte, []int) {
 func (x *GetCommentsRequest) GetVideoId() uint64 {
 	if x != nil {
 		return x.VideoId
+	}
+	return 0
+}
+
+func (x *GetCommentsRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -376,7 +400,7 @@ const file_comment_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1f\n" +
 	"\vprofile_url\x18\x03 \x01(\tR\n" +
-	"profileUrl\"\xc9\x01\n" +
+	"profileUrl\"\x83\x02\n" +
 	"\aComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x19\n" +
@@ -386,9 +410,13 @@ const file_comment_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\"\n" +
-	"\x04user\x18\a \x01(\v2\x0e.activity.UserR\x04user\"/\n" +
+	"\x04user\x18\a \x01(\v2\x0e.activity.UserR\x04user\x12\x1d\n" +
+	"\n" +
+	"like_count\x18\b \x01(\x04R\tlikeCount\x12\x19\n" +
+	"\bis_liked\x18\t \x01(\bR\aisLiked\"H\n" +
 	"\x12GetCommentsRequest\x12\x19\n" +
-	"\bvideo_id\x18\x01 \x01(\x04R\avideoId\"D\n" +
+	"\bvideo_id\x18\x01 \x01(\x04R\avideoId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\"D\n" +
 	"\x13GetCommentsResponse\x12-\n" +
 	"\bcomments\x18\x01 \x03(\v2\x11.activity.CommentR\bcomments\"d\n" +
 	"\x14CreateCommentRequest\x12\x17\n" +

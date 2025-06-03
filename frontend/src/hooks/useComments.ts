@@ -5,7 +5,7 @@ import {
 } from '../api/gen/comment';
 import { commentClient } from '../api/grpc/commentClient';
 
-export const useComments = (videoId: number) => {
+export const useComments = (userId: number, videoId: number) => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,10 @@ export const useComments = (videoId: number) => {
         setLoading(true);
         setError(null);
         try {
-            const request: GetCommentsRequest = { videoId: videoId.toString() };
+            const request: GetCommentsRequest = { 
+                userId: userId.toString(),
+                videoId: videoId.toString()
+            };
             const response = await commentClient.GetComments(request);
             setComments(response.comments);
         } catch (err: any) {

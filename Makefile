@@ -40,6 +40,12 @@ proto:
 		--grpc-gateway_out=backend/shared/gen/watch --grpc-gateway_opt=paths=source_relative \
 		proto/watch.proto
 
+	protoc -Iproto \
+		--go_out=backend/shared/gen/like_comment --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/like_comment --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/like_comment --grpc-gateway_opt=paths=source_relative \
+		proto/like_comment.proto
+
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
 	protoc \

@@ -18,11 +18,15 @@ message Comment {
     string created_at = 5;
     string updated_at = 6;
     User user = 7;
+
+    uint64 like_count = 8;
+    bool is_liked = 9;
 }
 
 // Request to get comments for a video
 message GetCommentsRequest {
     uint64 video_id = 1;
+    uint64 user_id = 2;
 }
 
 // Response with list of comments including user info

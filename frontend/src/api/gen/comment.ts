@@ -25,11 +25,14 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
   user?: User | undefined;
+  likeCount: string;
+  isLiked: boolean;
 }
 
 /** Request to get comments for a video */
 export interface GetCommentsRequest {
   videoId: string;
+  userId: string;
 }
 
 /** Response with list of comments including user info */
@@ -140,7 +143,17 @@ export const User: MessageFns<User> = {
 };
 
 function createBaseComment(): Comment {
-  return { id: "0", userId: "0", videoId: "0", content: "", createdAt: "", updatedAt: "", user: undefined };
+  return {
+    id: "0",
+    userId: "0",
+    videoId: "0",
+    content: "",
+    createdAt: "",
+    updatedAt: "",
+    user: undefined,
+    likeCount: "0",
+    isLiked: false,
+  };
 }
 
 export const Comment: MessageFns<Comment> = {
@@ -165,6 +178,12 @@ export const Comment: MessageFns<Comment> = {
     }
     if (message.user !== undefined) {
       User.encode(message.user, writer.uint32(58).fork()).join();
+    }
+    if (message.likeCount !== "0") {
+      writer.uint32(64).uint64(message.likeCount);
+    }
+    if (message.isLiked !== false) {
+      writer.uint32(72).bool(message.isLiked);
     }
     return writer;
   },
@@ -232,6 +251,22 @@ export const Comment: MessageFns<Comment> = {
           message.user = User.decode(reader, reader.uint32());
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.likeCount = reader.uint64().toString();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.isLiked = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -250,6 +285,8 @@ export const Comment: MessageFns<Comment> = {
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
       user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
+      likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
+      isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
     };
   },
 
@@ -276,6 +313,12 @@ export const Comment: MessageFns<Comment> = {
     if (message.user !== undefined) {
       obj.user = User.toJSON(message.user);
     }
+    if (message.likeCount !== "0") {
+      obj.likeCount = message.likeCount;
+    }
+    if (message.isLiked !== false) {
+      obj.isLiked = message.isLiked;
+    }
     return obj;
   },
 
@@ -291,18 +334,23 @@ export const Comment: MessageFns<Comment> = {
     message.createdAt = object.createdAt ?? "";
     message.updatedAt = object.updatedAt ?? "";
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.likeCount = object.likeCount ?? "0";
+    message.isLiked = object.isLiked ?? false;
     return message;
   },
 };
 
 function createBaseGetCommentsRequest(): GetCommentsRequest {
-  return { videoId: "0" };
+  return { videoId: "0", userId: "0" };
 }
 
 export const GetCommentsRequest: MessageFns<GetCommentsRequest> = {
   encode(message: GetCommentsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.videoId !== "0") {
       writer.uint32(8).uint64(message.videoId);
+    }
+    if (message.userId !== "0") {
+      writer.uint32(16).uint64(message.userId);
     }
     return writer;
   },
@@ -322,6 +370,14 @@ export const GetCommentsRequest: MessageFns<GetCommentsRequest> = {
           message.videoId = reader.uint64().toString();
           continue;
         }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.userId = reader.uint64().toString();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -332,13 +388,19 @@ export const GetCommentsRequest: MessageFns<GetCommentsRequest> = {
   },
 
   fromJSON(object: any): GetCommentsRequest {
-    return { videoId: isSet(object.videoId) ? globalThis.String(object.videoId) : "0" };
+    return {
+      videoId: isSet(object.videoId) ? globalThis.String(object.videoId) : "0",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
+    };
   },
 
   toJSON(message: GetCommentsRequest): unknown {
     const obj: any = {};
     if (message.videoId !== "0") {
       obj.videoId = message.videoId;
+    }
+    if (message.userId !== "0") {
+      obj.userId = message.userId;
     }
     return obj;
   },
@@ -349,6 +411,7 @@ export const GetCommentsRequest: MessageFns<GetCommentsRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetCommentsRequest>, I>>(object: I): GetCommentsRequest {
     const message = createBaseGetCommentsRequest();
     message.videoId = object.videoId ?? "0";
+    message.userId = object.userId ?? "0";
     return message;
   },
 };

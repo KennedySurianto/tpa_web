@@ -23,6 +23,9 @@ func ConnectDatabase() *gorm.DB {
 
     err = db.AutoMigrate(
         &model.Comment{},
+        &model.LikeComment{},
+        &model.Like{},
+        &model.Watch{},
     )
     if err != nil {
         panic(err)

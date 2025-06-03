@@ -3,6 +3,8 @@ import { useComments } from '../../../hooks/useComments';
 import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../../api/gen/comment';
 import { useAuth } from '../../../utils/AuthProvider';
 import { commentClient } from '../../../api/grpc/commentClient';
+import type { LikeCommentRequest, UnlikeCommentRequest } from '../../../api/gen/like_comment';
+import { likeCommentClient } from '../../../api/grpc/likeCommentClient';
 
 interface Props {
   videoId: number;
@@ -11,12 +13,11 @@ interface Props {
 
 const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   const user = useAuth().user;
-  const { comments: initialComments, loading, error, refetch } = useComments(videoId);
+  const { comments: initialComments, loading, error, refetch } = useComments(user ? Number(user.id) : 0, videoId);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
-  const [likedComments, setLikedComments] = useState<Record<number, boolean>>({});
   const [errorMessage, setErrorMessage] = useState('');
 
   // Reset and update comments when videoId changes or when new comments are fetched
@@ -39,15 +40,63 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   // Reset UI state when videoId changes
   useEffect(() => {
     setShowReplies({});
-    setLikedComments({});
     setNewComment('');
   }, [videoId]);
 
-  const handleLike = (commentId: number) => {
-    setLikedComments(prev => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
+  const handleLike = async (commentId: number) => {
+    try {
+      setErrorMessage('');
+
+      if (!user) {
+        setErrorMessage('User is not authenticated.');
+        return;
+      }
+
+      const req: LikeCommentRequest = {
+        commentId,
+        userId: Number(user.id),
+      };
+
+      const response = await likeCommentClient.LikeComment(req);
+
+      if (response) {
+        await refetch();
+      } else {
+        setErrorMessage('Failed to like comment.');
+      }
+
+    } catch (error: any) {
+      console.error('Error liking comment:', error);
+      setErrorMessage(error?.message || 'An unexpected error occurred.');
+    }
+  };
+
+  const handleUnlike = async (commentId: number) => {
+    try {
+      setErrorMessage('');
+
+      if (!user) {
+        setErrorMessage('User is not authenticated.');
+        return;
+      }
+
+      const req: UnlikeCommentRequest = {
+        commentId,
+        userId: Number(user.id),
+      };
+
+      const response = await likeCommentClient.UnlikeComment(req);
+
+      if (response) {
+        await refetch();
+      } else {
+        setErrorMessage('Failed to unlike comment.');
+      }
+
+    } catch (error: any) {
+      console.error('Error unliking comment:', error);
+      setErrorMessage(error?.message || 'An unexpected error occurred.');
+    }
   };
 
   const handleAddComment = async () => {
@@ -55,19 +104,19 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
       setErrorMessage('');
 
       if (!newComment.trim()) {
-          setErrorMessage('Comment cannot be empty.');
-          return;
+        setErrorMessage('Comment cannot be empty.');
+        return;
       }
 
       if (!user) {
-          setErrorMessage('User is not authenticated.');
-          return;
+        setErrorMessage('User is not authenticated.');
+        return;
       }
 
       const request: CreateCommentRequest = {
-          userId: user.id,
-          videoId: videoId.toString(),
-          content: newComment,
+        userId: user.id,
+        videoId: videoId.toString(),
+        content: newComment,
       };
       const response: CreateCommentResponse = await commentClient.CreateComment(request);
       
@@ -239,7 +288,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
                       margin: '0 0 8px 0',
                       lineHeight: 1.4,
                     }}>
-                      {comment.content}
+                      {comment.content} {comment.isLiked}
                     </p>
 
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -248,18 +297,18 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
                       </span>
 
                       <button
-                        onClick={() => handleLike(Number(comment.id))}
+                        onClick={() => !comment.isLiked ? handleLike(Number(comment.id)) : handleUnlike(Number(comment.id))}
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: likedComments[Number(comment.id)] ? '#ff0050' : '#8a8a8a',
+                          color: comment.isLiked ? '#ff0050' : '#8a8a8a',
                           fontSize: '12px',
                           cursor: 'pointer',
                           padding: '2px',
                           transition: 'color 0.2s ease',
                         }}
                       >
-                        ♥ {likedComments[Number(comment.id)] ? 1 : 0}
+                        ♥ {comment.likeCount}
                       </button>
 
                       <button

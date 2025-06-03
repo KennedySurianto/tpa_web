@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment;like_comment";
+
+service LikeCommentService {
+    rpc LikeComment(LikeCommentRequest) returns (LikeCommentResponse);
+    rpc UnlikeComment(UnlikeCommentRequest) returns (UnlikeCommentResponse);
+    rpc IsCommentLiked(IsCommentLikedRequest) returns (IsCommentLikedResponse);
+}
+
+message LikeCommentRequest {
+    uint32 user_id = 1;
+    uint32 comment_id = 2;
+}
+
+message LikeCommentResponse {}
+
+message UnlikeCommentRequest {
+    uint32 user_id = 1;
+    uint32 comment_id = 2;
+}
+
+message UnlikeCommentResponse {}
+
+message IsCommentLikedRequest {
+    uint32 user_id = 1;
+    uint32 comment_id = 2;
+}
+
+message IsCommentLikedResponse {
+    bool liked = 1;
+}
+
+message GetLikeCountRequest {
+    uint32 comment_id = 1;
+}
+
+message GetLikeCountResponse {
+    uint64 count = 1;
+}
