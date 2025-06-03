@@ -166,6 +166,11 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   return (
     <div style={{
       width: '350px',
+      wordWrap: 'break-word',
+      wordBreak: 'break-word',
+      whiteSpace: 'pre-wrap',
+      overflowWrap: 'break-word',
+      overflowX: 'hidden',
       height: '100vh',
       backgroundColor: '#161823',
       borderLeft: '1px solid #2f2f2f',
