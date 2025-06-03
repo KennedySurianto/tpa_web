@@ -17,6 +17,48 @@ const VideoFeed: React.FC = () => {
     const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
     const [showComments, setShowComments] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [currentVideoTime, setCurrentVideoTime] = useState(0);
+    const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
+
+    const formatTime = (timeInSeconds: number): string => {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newTime = parseFloat(e.target.value);
+        setCurrentVideoTime(newTime);
+        
+        // Fix: Use data-id instead of id, and convert selectedVideoId to string for comparison
+        const activeVideo = videoRefs.current.find(video => 
+            video && video.dataset.id === String(selectedVideoId)
+        );
+        
+        if (activeVideo) {
+            activeVideo.currentTime = newTime;
+        }
+    };
+
+    useEffect(() => {
+        const activeVideo = videoRefs.current.find(
+            video => video && parseInt(video.dataset.id || "") === selectedVideoId
+        );
+
+        if (!activeVideo) return;
+
+        const updateTime = () => {
+            setCurrentVideoTime(activeVideo.currentTime);
+            setCurrentVideoDuration(activeVideo.duration || 0);
+        };
+
+        activeVideo.addEventListener('timeupdate', updateTime);
+
+        return () => {
+            activeVideo.removeEventListener('timeupdate', updateTime);
+        };
+    }, [selectedVideoId]);
+
 
     const handleLike = async (videoId: number) => {
         console.log(`Liked video ${videoId}`);
@@ -79,8 +121,12 @@ const VideoFeed: React.FC = () => {
     }
 
     const handleComment = (videoId: number) => {
-        setSelectedVideoId(videoId);  // show comments sidebar for this video
-        setShowComments(true);
+        if (selectedVideoId === videoId && showComments) {
+            setShowComments(false);
+        } else {
+            setSelectedVideoId(videoId);
+            setShowComments(true);
+        }
     };
 
     const handleCloseComments = () => {
@@ -131,13 +177,11 @@ const VideoFeed: React.FC = () => {
                 const isVideoInView = videoCenter >= 0 && videoCenter <= containerHeight;
 
                 if (isVideoInView) {
-                    // Play video when in view
                     video.play().catch(console.error);
-                    // Set this as the current video
                     currentVideoId = videos[index]?.id || null;
                 } else {
-                    // Pause video when out of view
                     video.pause();
+                    video.currentTime = 0;
                 }
             });
 
@@ -226,6 +270,7 @@ const VideoFeed: React.FC = () => {
                                         el.muted = isMuted;
                                     }
                                 }}
+                                data-id={video.id}
                                 src={video.videoUrl}
                                 loop
                                 muted={isMuted}
@@ -304,6 +349,39 @@ const VideoFeed: React.FC = () => {
                                 onMouseEnter={() => setShowVolumeControl(true)}
                                 onMouseLeave={() => setShowVolumeControl(false)}
                             >
+                                {/* Volume/Mute Button */}
+                                <button
+                                    style={{
+                                        background: 'rgba(0, 0, 0, 0.6)',
+                                        borderRadius: '50%',
+                                        width: '48px',
+                                        height: '48px',
+                                        fontSize: '20px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(4px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsMuted(!isMuted);
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
+                                        e.currentTarget.style.transform = 'scale(1.1)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                    }}
+                                >
+                                    {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+                                </button>
+
                                 {/* Volume Slider */}
                                 {showVolumeControl && (
                                     <div
@@ -426,39 +504,6 @@ const VideoFeed: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-                                
-                                {/* Volume/Mute Button */}
-                                <button
-                                    style={{
-                                        background: 'rgba(0, 0, 0, 0.6)',
-                                        borderRadius: '50%',
-                                        width: '48px',
-                                        height: '48px',
-                                        fontSize: '20px',
-                                        color: 'white',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        transition: 'all 0.3s ease',
-                                        backdropFilter: 'blur(4px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsMuted(!isMuted);
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
-                                        e.currentTarget.style.transform = 'scale(1.1)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                    }}
-                                >
-                                    {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
-                                </button>
                             </div>
                         </div>
 
@@ -586,6 +631,21 @@ const VideoFeed: React.FC = () => {
                                     {video.description}
                                 </div>
                             )}
+
+                            <div className="d-flex align-center w-100 gap-2">
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={currentVideoDuration}
+                                    value={currentVideoTime}
+                                    step={0.1}
+                                    onChange={handleSeek}
+                                    className="flex-grow-1"
+                                />
+                                <span className="whitespace-nowrap text-sm">
+                                    {formatTime(currentVideoTime)} / {formatTime(currentVideoDuration)}
+                                </span>
+                            </div>
                             
                             {/* Action Buttons */}
                             <div style={{
@@ -678,6 +738,9 @@ const VideoFeed: React.FC = () => {
                                         📤 Share
                                     </button>
                                 </div>
+                                <span style={{color: 'red'}}>
+                                    {errorMessage}
+                                </span>
                                 <button 
                                     className="btn btn-link" 
                                     onClick={() => handleSave(video.id)}

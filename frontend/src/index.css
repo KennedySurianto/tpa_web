@@ -389,3 +389,16 @@ body {
   color: #007BFF;
   text-decoration-color: #007BFF;
 }
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
