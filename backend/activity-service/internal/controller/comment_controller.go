@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
@@ -51,16 +50,82 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
 
         pbComments = append(pbComments, &pb.Comment{
             Id:        uint64(comment.ID),
-            UserId:    uint64(comment.UserID),
-            VideoId:   uint64(comment.VideoID),
-            Content:   comment.Content,
             CreatedAt: comment.CreatedAt.Format(time.RFC3339),
             UpdatedAt: comment.UpdatedAt.Format(time.RFC3339),
-            User: &pb.User{
+            
+			UserId:    uint64(comment.UserID),
+            VideoId:   uint64(comment.VideoID),
+            Content:   comment.Content,
+
+			User: &pb.User{
 				Id:         user.Id,
                 Username:   user.Username,
                 ProfileUrl: user.AvatarUrl,
             },
+			Replies: func() []*pb.Comment {
+				replies, err := c.svc.GetReplies(ctx, comment.ID)
+				if err != nil || replies == nil {
+					return nil
+				}
+				var pbReplies []*pb.Comment
+				for _, reply := range replies {
+					// Get user info for the reply
+					replyUser, err := c.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(reply.UserID)})
+					if err != nil {
+						fmt.Printf("Error fetching user %d for reply: %v\n", reply.UserID, err)
+						replyUser = &userpb.User{
+							Id:        0,
+							Username:  "Unknown",
+							AvatarUrl: "",
+						}
+					}
+
+					// Get IsLiked status
+					isLiked := false
+					if req.UserId != 0 {
+						resp, err := c.likeCommentController.IsCommentLiked(ctx, &like_comment.IsCommentLikedRequest{
+							UserId:   uint32(req.UserId),
+							CommentId: uint32(reply.ID),
+						})
+						if err == nil && resp != nil {
+							isLiked = resp.Liked
+						}
+					}
+
+					// Get LikeCount
+					likeCount := uint64(0)
+					likeResp, err := c.likeCommentController.GetLikeCount(ctx, &like_comment.GetLikeCountRequest{
+						CommentId: uint32(reply.ID),
+					})
+					if err == nil && likeResp != nil {
+						likeCount = likeResp.Count
+					}
+
+					pbReplies = append(pbReplies, &pb.Comment{
+						Id:        uint64(reply.ID),
+						CreatedAt: reply.CreatedAt.Format(time.RFC3339),
+						UpdatedAt: reply.UpdatedAt.Format(time.RFC3339),
+						UserId:    uint64(reply.UserID),
+						VideoId:   uint64(reply.VideoID),
+						Content:   reply.Content,
+						ReplyToId: func() uint64 {
+							if reply.ReplyToID != nil {
+								return uint64(*reply.ReplyToID)
+							}
+							return 0
+						}(),
+						User: &pb.User{
+							Id:         replyUser.Id,
+							Username:   replyUser.Username,
+							ProfileUrl: replyUser.AvatarUrl,
+						},
+						IsLiked:   isLiked,
+						LikeCount: likeCount,
+					})
+				}
+				return pbReplies
+			}(),
+			
 			IsLiked: func() bool {
 				if req.UserId == 0 {
 					return false
@@ -88,16 +153,11 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
 }
 
 func (h *CommentController) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
-	userId, err := strconv.ParseUint(req.UserId, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid user id: %v", err)
-	}
-	videoId, err := strconv.ParseUint(req.VideoId, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid video id: %v", err)
-	}
+	userId := uint64(req.UserId)
+	videoId := uint64(req.VideoId)
+	replyToId := uint64(req.ReplyToId)
 	fmt.Println("[COMMENT_CONTROLLER] CreateComment called with userId:", userId, "videoId:", videoId, "content:", req.Content)
-	comment, err := h.svc.CreateComment(ctx, userId, videoId, req.Content)
+	comment, err := h.svc.CreateComment(ctx, userId, videoId, replyToId, req.Content)
 	if err != nil {
 		return nil, err
 	}

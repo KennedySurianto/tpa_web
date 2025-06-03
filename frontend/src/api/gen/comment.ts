@@ -17,16 +17,22 @@ export interface User {
   profileUrl: string;
 }
 
+export interface Reply {
+}
+
 export interface Comment {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   userId: string;
   videoId: string;
   content: string;
-  createdAt: string;
-  updatedAt: string;
+  replyToId: string;
   user?: User | undefined;
+  replyTo?: Comment | undefined;
   likeCount: string;
   isLiked: boolean;
+  replies: Comment[];
 }
 
 /** Request to get comments for a video */
@@ -41,9 +47,10 @@ export interface GetCommentsResponse {
 }
 
 export interface CreateCommentRequest {
-  userId: string;
-  videoId: string;
+  userId: number;
+  videoId: number;
   content: string;
+  replyToId: number;
 }
 
 export interface CreateCommentResponse {
@@ -142,17 +149,63 @@ export const User: MessageFns<User> = {
   },
 };
 
+function createBaseReply(): Reply {
+  return {};
+}
+
+export const Reply: MessageFns<Reply> = {
+  encode(_: Reply, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Reply {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReply();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Reply {
+    return {};
+  },
+
+  toJSON(_: Reply): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Reply>, I>>(base?: I): Reply {
+    return Reply.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Reply>, I>>(_: I): Reply {
+    const message = createBaseReply();
+    return message;
+  },
+};
+
 function createBaseComment(): Comment {
   return {
     id: "0",
+    createdAt: "",
+    updatedAt: "",
     userId: "0",
     videoId: "0",
     content: "",
-    createdAt: "",
-    updatedAt: "",
+    replyToId: "0",
     user: undefined,
+    replyTo: undefined,
     likeCount: "0",
     isLiked: false,
+    replies: [],
   };
 }
 
@@ -161,29 +214,38 @@ export const Comment: MessageFns<Comment> = {
     if (message.id !== "0") {
       writer.uint32(8).uint64(message.id);
     }
-    if (message.userId !== "0") {
-      writer.uint32(16).uint64(message.userId);
-    }
-    if (message.videoId !== "0") {
-      writer.uint32(24).uint64(message.videoId);
-    }
-    if (message.content !== "") {
-      writer.uint32(34).string(message.content);
-    }
     if (message.createdAt !== "") {
-      writer.uint32(42).string(message.createdAt);
+      writer.uint32(18).string(message.createdAt);
     }
     if (message.updatedAt !== "") {
-      writer.uint32(50).string(message.updatedAt);
+      writer.uint32(26).string(message.updatedAt);
+    }
+    if (message.userId !== "0") {
+      writer.uint32(32).uint64(message.userId);
+    }
+    if (message.videoId !== "0") {
+      writer.uint32(40).uint64(message.videoId);
+    }
+    if (message.content !== "") {
+      writer.uint32(50).string(message.content);
+    }
+    if (message.replyToId !== "0") {
+      writer.uint32(56).uint64(message.replyToId);
     }
     if (message.user !== undefined) {
-      User.encode(message.user, writer.uint32(58).fork()).join();
+      User.encode(message.user, writer.uint32(66).fork()).join();
+    }
+    if (message.replyTo !== undefined) {
+      Comment.encode(message.replyTo, writer.uint32(74).fork()).join();
     }
     if (message.likeCount !== "0") {
-      writer.uint32(64).uint64(message.likeCount);
+      writer.uint32(80).uint64(message.likeCount);
     }
     if (message.isLiked !== false) {
-      writer.uint32(72).bool(message.isLiked);
+      writer.uint32(88).bool(message.isLiked);
+    }
+    for (const v of message.replies) {
+      Comment.encode(v!, writer.uint32(98).fork()).join();
     }
     return writer;
   },
@@ -204,35 +266,35 @@ export const Comment: MessageFns<Comment> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
             break;
           }
 
           message.userId = reader.uint64().toString();
           continue;
         }
-        case 3: {
-          if (tag !== 24) {
+        case 5: {
+          if (tag !== 40) {
             break;
           }
 
           message.videoId = reader.uint64().toString();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.content = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.createdAt = reader.string();
           continue;
         }
         case 6: {
@@ -240,31 +302,55 @@ export const Comment: MessageFns<Comment> = {
             break;
           }
 
-          message.updatedAt = reader.string();
+          message.content = reader.string();
           continue;
         }
         case 7: {
-          if (tag !== 58) {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.replyToId = reader.uint64().toString();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
             break;
           }
 
           message.user = User.decode(reader, reader.uint32());
           continue;
         }
-        case 8: {
-          if (tag !== 64) {
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.replyTo = Comment.decode(reader, reader.uint32());
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
             break;
           }
 
           message.likeCount = reader.uint64().toString();
           continue;
         }
-        case 9: {
-          if (tag !== 72) {
+        case 11: {
+          if (tag !== 88) {
             break;
           }
 
           message.isLiked = reader.bool();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.replies.push(Comment.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -279,14 +365,17 @@ export const Comment: MessageFns<Comment> = {
   fromJSON(object: any): Comment {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "0",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
       videoId: isSet(object.videoId) ? globalThis.String(object.videoId) : "0",
       content: isSet(object.content) ? globalThis.String(object.content) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
-      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+      replyToId: isSet(object.replyToId) ? globalThis.String(object.replyToId) : "0",
       user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
+      replyTo: isSet(object.replyTo) ? Comment.fromJSON(object.replyTo) : undefined,
       likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
       isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
+      replies: globalThis.Array.isArray(object?.replies) ? object.replies.map((e: any) => Comment.fromJSON(e)) : [],
     };
   },
 
@@ -294,6 +383,12 @@ export const Comment: MessageFns<Comment> = {
     const obj: any = {};
     if (message.id !== "0") {
       obj.id = message.id;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
     }
     if (message.userId !== "0") {
       obj.userId = message.userId;
@@ -304,20 +399,23 @@ export const Comment: MessageFns<Comment> = {
     if (message.content !== "") {
       obj.content = message.content;
     }
-    if (message.createdAt !== "") {
-      obj.createdAt = message.createdAt;
-    }
-    if (message.updatedAt !== "") {
-      obj.updatedAt = message.updatedAt;
+    if (message.replyToId !== "0") {
+      obj.replyToId = message.replyToId;
     }
     if (message.user !== undefined) {
       obj.user = User.toJSON(message.user);
+    }
+    if (message.replyTo !== undefined) {
+      obj.replyTo = Comment.toJSON(message.replyTo);
     }
     if (message.likeCount !== "0") {
       obj.likeCount = message.likeCount;
     }
     if (message.isLiked !== false) {
       obj.isLiked = message.isLiked;
+    }
+    if (message.replies?.length) {
+      obj.replies = message.replies.map((e) => Comment.toJSON(e));
     }
     return obj;
   },
@@ -328,14 +426,19 @@ export const Comment: MessageFns<Comment> = {
   fromPartial<I extends Exact<DeepPartial<Comment>, I>>(object: I): Comment {
     const message = createBaseComment();
     message.id = object.id ?? "0";
+    message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
     message.userId = object.userId ?? "0";
     message.videoId = object.videoId ?? "0";
     message.content = object.content ?? "";
-    message.createdAt = object.createdAt ?? "";
-    message.updatedAt = object.updatedAt ?? "";
+    message.replyToId = object.replyToId ?? "0";
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.replyTo = (object.replyTo !== undefined && object.replyTo !== null)
+      ? Comment.fromPartial(object.replyTo)
+      : undefined;
     message.likeCount = object.likeCount ?? "0";
     message.isLiked = object.isLiked ?? false;
+    message.replies = object.replies?.map((e) => Comment.fromPartial(e)) || [];
     return message;
   },
 };
@@ -477,19 +580,22 @@ export const GetCommentsResponse: MessageFns<GetCommentsResponse> = {
 };
 
 function createBaseCreateCommentRequest(): CreateCommentRequest {
-  return { userId: "", videoId: "", content: "" };
+  return { userId: 0, videoId: 0, content: "", replyToId: 0 };
 }
 
 export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
   encode(message: CreateCommentRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.userId !== 0) {
+      writer.uint32(8).uint32(message.userId);
     }
-    if (message.videoId !== "") {
-      writer.uint32(18).string(message.videoId);
+    if (message.videoId !== 0) {
+      writer.uint32(16).uint32(message.videoId);
     }
     if (message.content !== "") {
       writer.uint32(26).string(message.content);
+    }
+    if (message.replyToId !== 0) {
+      writer.uint32(32).uint32(message.replyToId);
     }
     return writer;
   },
@@ -502,19 +608,19 @@ export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.userId = reader.string();
+          message.userId = reader.uint32();
           continue;
         }
         case 2: {
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.videoId = reader.string();
+          message.videoId = reader.uint32();
           continue;
         }
         case 3: {
@@ -523,6 +629,14 @@ export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
           }
 
           message.content = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.replyToId = reader.uint32();
           continue;
         }
       }
@@ -536,22 +650,26 @@ export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
 
   fromJSON(object: any): CreateCommentRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
-      videoId: isSet(object.videoId) ? globalThis.String(object.videoId) : "",
+      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
+      videoId: isSet(object.videoId) ? globalThis.Number(object.videoId) : 0,
       content: isSet(object.content) ? globalThis.String(object.content) : "",
+      replyToId: isSet(object.replyToId) ? globalThis.Number(object.replyToId) : 0,
     };
   },
 
   toJSON(message: CreateCommentRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
     }
-    if (message.videoId !== "") {
-      obj.videoId = message.videoId;
+    if (message.videoId !== 0) {
+      obj.videoId = Math.round(message.videoId);
     }
     if (message.content !== "") {
       obj.content = message.content;
+    }
+    if (message.replyToId !== 0) {
+      obj.replyToId = Math.round(message.replyToId);
     }
     return obj;
   },
@@ -561,9 +679,10 @@ export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateCommentRequest>, I>>(object: I): CreateCommentRequest {
     const message = createBaseCreateCommentRequest();
-    message.userId = object.userId ?? "";
-    message.videoId = object.videoId ?? "";
+    message.userId = object.userId ?? 0;
+    message.videoId = object.videoId ?? 0;
     message.content = object.content ?? "";
+    message.replyToId = object.replyToId ?? 0;
     return message;
   },
 };

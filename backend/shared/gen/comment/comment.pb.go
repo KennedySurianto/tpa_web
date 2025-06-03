@@ -81,24 +81,63 @@ func (x *User) GetProfileUrl() string {
 	return ""
 }
 
+type Reply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Reply) Reset() {
+	*x = Reply{}
+	mi := &file_comment_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Reply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Reply) ProtoMessage() {}
+
+func (x *Reply) ProtoReflect() protoreflect.Message {
+	mi := &file_comment_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Reply.ProtoReflect.Descriptor instead.
+func (*Reply) Descriptor() ([]byte, []int) {
+	return file_comment_proto_rawDescGZIP(), []int{1}
+}
+
 type Comment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	VideoId       uint64                 `protobuf:"varint,3,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
-	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	User          *User                  `protobuf:"bytes,7,opt,name=user,proto3" json:"user,omitempty"`
-	LikeCount     uint64                 `protobuf:"varint,8,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
-	IsLiked       bool                   `protobuf:"varint,9,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UserId        uint64                 `protobuf:"varint,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId       uint64                 `protobuf:"varint,5,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	Content       string                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
+	ReplyToId     uint64                 `protobuf:"varint,7,opt,name=reply_to_id,json=replyToId,proto3" json:"reply_to_id,omitempty"`
+	User          *User                  `protobuf:"bytes,8,opt,name=user,proto3" json:"user,omitempty"`
+	ReplyTo       *Comment               `protobuf:"bytes,9,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
+	LikeCount     uint64                 `protobuf:"varint,10,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	IsLiked       bool                   `protobuf:"varint,11,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
+	Replies       []*Comment             `protobuf:"bytes,12,rep,name=replies,proto3" json:"replies,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Comment) Reset() {
 	*x = Comment{}
-	mi := &file_comment_proto_msgTypes[1]
+	mi := &file_comment_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -110,7 +149,7 @@ func (x *Comment) String() string {
 func (*Comment) ProtoMessage() {}
 
 func (x *Comment) ProtoReflect() protoreflect.Message {
-	mi := &file_comment_proto_msgTypes[1]
+	mi := &file_comment_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -123,7 +162,7 @@ func (x *Comment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Comment.ProtoReflect.Descriptor instead.
 func (*Comment) Descriptor() ([]byte, []int) {
-	return file_comment_proto_rawDescGZIP(), []int{1}
+	return file_comment_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Comment) GetId() uint64 {
@@ -131,6 +170,20 @@ func (x *Comment) GetId() uint64 {
 		return x.Id
 	}
 	return 0
+}
+
+func (x *Comment) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Comment) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
 }
 
 func (x *Comment) GetUserId() uint64 {
@@ -154,23 +207,23 @@ func (x *Comment) GetContent() string {
 	return ""
 }
 
-func (x *Comment) GetCreatedAt() string {
+func (x *Comment) GetReplyToId() uint64 {
 	if x != nil {
-		return x.CreatedAt
+		return x.ReplyToId
 	}
-	return ""
-}
-
-func (x *Comment) GetUpdatedAt() string {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return ""
+	return 0
 }
 
 func (x *Comment) GetUser() *User {
 	if x != nil {
 		return x.User
+	}
+	return nil
+}
+
+func (x *Comment) GetReplyTo() *Comment {
+	if x != nil {
+		return x.ReplyTo
 	}
 	return nil
 }
@@ -189,6 +242,13 @@ func (x *Comment) GetIsLiked() bool {
 	return false
 }
 
+func (x *Comment) GetReplies() []*Comment {
+	if x != nil {
+		return x.Replies
+	}
+	return nil
+}
+
 // Request to get comments for a video
 type GetCommentsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -200,7 +260,7 @@ type GetCommentsRequest struct {
 
 func (x *GetCommentsRequest) Reset() {
 	*x = GetCommentsRequest{}
-	mi := &file_comment_proto_msgTypes[2]
+	mi := &file_comment_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -212,7 +272,7 @@ func (x *GetCommentsRequest) String() string {
 func (*GetCommentsRequest) ProtoMessage() {}
 
 func (x *GetCommentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_comment_proto_msgTypes[2]
+	mi := &file_comment_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -225,7 +285,7 @@ func (x *GetCommentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommentsRequest.ProtoReflect.Descriptor instead.
 func (*GetCommentsRequest) Descriptor() ([]byte, []int) {
-	return file_comment_proto_rawDescGZIP(), []int{2}
+	return file_comment_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetCommentsRequest) GetVideoId() uint64 {
@@ -252,7 +312,7 @@ type GetCommentsResponse struct {
 
 func (x *GetCommentsResponse) Reset() {
 	*x = GetCommentsResponse{}
-	mi := &file_comment_proto_msgTypes[3]
+	mi := &file_comment_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +324,7 @@ func (x *GetCommentsResponse) String() string {
 func (*GetCommentsResponse) ProtoMessage() {}
 
 func (x *GetCommentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_comment_proto_msgTypes[3]
+	mi := &file_comment_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +337,7 @@ func (x *GetCommentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommentsResponse.ProtoReflect.Descriptor instead.
 func (*GetCommentsResponse) Descriptor() ([]byte, []int) {
-	return file_comment_proto_rawDescGZIP(), []int{3}
+	return file_comment_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetCommentsResponse) GetComments() []*Comment {
@@ -289,16 +349,17 @@ func (x *GetCommentsResponse) GetComments() []*Comment {
 
 type CreateCommentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	VideoId       string                 `protobuf:"bytes,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId       uint32                 `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	ReplyToId     uint32                 `protobuf:"varint,4,opt,name=reply_to_id,json=replyToId,proto3" json:"reply_to_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateCommentRequest) Reset() {
 	*x = CreateCommentRequest{}
-	mi := &file_comment_proto_msgTypes[4]
+	mi := &file_comment_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +371,7 @@ func (x *CreateCommentRequest) String() string {
 func (*CreateCommentRequest) ProtoMessage() {}
 
 func (x *CreateCommentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_comment_proto_msgTypes[4]
+	mi := &file_comment_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,21 +384,21 @@ func (x *CreateCommentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommentRequest.ProtoReflect.Descriptor instead.
 func (*CreateCommentRequest) Descriptor() ([]byte, []int) {
-	return file_comment_proto_rawDescGZIP(), []int{4}
+	return file_comment_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CreateCommentRequest) GetUserId() string {
+func (x *CreateCommentRequest) GetUserId() uint32 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
-func (x *CreateCommentRequest) GetVideoId() string {
+func (x *CreateCommentRequest) GetVideoId() uint32 {
 	if x != nil {
 		return x.VideoId
 	}
-	return ""
+	return 0
 }
 
 func (x *CreateCommentRequest) GetContent() string {
@@ -345,6 +406,13 @@ func (x *CreateCommentRequest) GetContent() string {
 		return x.Content
 	}
 	return ""
+}
+
+func (x *CreateCommentRequest) GetReplyToId() uint32 {
+	if x != nil {
+		return x.ReplyToId
+	}
+	return 0
 }
 
 type CreateCommentResponse struct {
@@ -356,7 +424,7 @@ type CreateCommentResponse struct {
 
 func (x *CreateCommentResponse) Reset() {
 	*x = CreateCommentResponse{}
-	mi := &file_comment_proto_msgTypes[5]
+	mi := &file_comment_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +436,7 @@ func (x *CreateCommentResponse) String() string {
 func (*CreateCommentResponse) ProtoMessage() {}
 
 func (x *CreateCommentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_comment_proto_msgTypes[5]
+	mi := &file_comment_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,7 +449,7 @@ func (x *CreateCommentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommentResponse.ProtoReflect.Descriptor instead.
 func (*CreateCommentResponse) Descriptor() ([]byte, []int) {
-	return file_comment_proto_rawDescGZIP(), []int{5}
+	return file_comment_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateCommentResponse) GetComment() *Comment {
@@ -400,29 +468,35 @@ const file_comment_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1f\n" +
 	"\vprofile_url\x18\x03 \x01(\tR\n" +
-	"profileUrl\"\x83\x02\n" +
+	"profileUrl\"\a\n" +
+	"\x05Reply\"\xfe\x02\n" +
 	"\aComment\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x19\n" +
-	"\bvideo_id\x18\x03 \x01(\x04R\avideoId\x12\x18\n" +
-	"\acontent\x18\x04 \x01(\tR\acontent\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\"\n" +
-	"\x04user\x18\a \x01(\v2\x0e.activity.UserR\x04user\x12\x1d\n" +
+	"updated_at\x18\x03 \x01(\tR\tupdatedAt\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\x04R\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x05 \x01(\x04R\avideoId\x12\x18\n" +
+	"\acontent\x18\x06 \x01(\tR\acontent\x12\x1e\n" +
+	"\vreply_to_id\x18\a \x01(\x04R\treplyToId\x12\"\n" +
+	"\x04user\x18\b \x01(\v2\x0e.activity.UserR\x04user\x12,\n" +
+	"\breply_to\x18\t \x01(\v2\x11.activity.CommentR\areplyTo\x12\x1d\n" +
 	"\n" +
-	"like_count\x18\b \x01(\x04R\tlikeCount\x12\x19\n" +
-	"\bis_liked\x18\t \x01(\bR\aisLiked\"H\n" +
+	"like_count\x18\n" +
+	" \x01(\x04R\tlikeCount\x12\x19\n" +
+	"\bis_liked\x18\v \x01(\bR\aisLiked\x12+\n" +
+	"\areplies\x18\f \x03(\v2\x11.activity.CommentR\areplies\"H\n" +
 	"\x12GetCommentsRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x04R\avideoId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\"D\n" +
 	"\x13GetCommentsResponse\x12-\n" +
-	"\bcomments\x18\x01 \x03(\v2\x11.activity.CommentR\bcomments\"d\n" +
+	"\bcomments\x18\x01 \x03(\v2\x11.activity.CommentR\bcomments\"\x84\x01\n" +
 	"\x14CreateCommentRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
-	"\bvideo_id\x18\x02 \x01(\tR\avideoId\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\"D\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\rR\avideoId\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1e\n" +
+	"\vreply_to_id\x18\x04 \x01(\rR\treplyToId\"D\n" +
 	"\x15CreateCommentResponse\x12+\n" +
 	"\acomment\x18\x01 \x01(\v2\x11.activity.CommentR\acomment2\xae\x01\n" +
 	"\x0eCommentService\x12J\n" +
@@ -441,28 +515,31 @@ func file_comment_proto_rawDescGZIP() []byte {
 	return file_comment_proto_rawDescData
 }
 
-var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_comment_proto_goTypes = []any{
 	(*User)(nil),                  // 0: activity.User
-	(*Comment)(nil),               // 1: activity.Comment
-	(*GetCommentsRequest)(nil),    // 2: activity.GetCommentsRequest
-	(*GetCommentsResponse)(nil),   // 3: activity.GetCommentsResponse
-	(*CreateCommentRequest)(nil),  // 4: activity.CreateCommentRequest
-	(*CreateCommentResponse)(nil), // 5: activity.CreateCommentResponse
+	(*Reply)(nil),                 // 1: activity.Reply
+	(*Comment)(nil),               // 2: activity.Comment
+	(*GetCommentsRequest)(nil),    // 3: activity.GetCommentsRequest
+	(*GetCommentsResponse)(nil),   // 4: activity.GetCommentsResponse
+	(*CreateCommentRequest)(nil),  // 5: activity.CreateCommentRequest
+	(*CreateCommentResponse)(nil), // 6: activity.CreateCommentResponse
 }
 var file_comment_proto_depIdxs = []int32{
 	0, // 0: activity.Comment.user:type_name -> activity.User
-	1, // 1: activity.GetCommentsResponse.comments:type_name -> activity.Comment
-	1, // 2: activity.CreateCommentResponse.comment:type_name -> activity.Comment
-	2, // 3: activity.CommentService.GetComments:input_type -> activity.GetCommentsRequest
-	4, // 4: activity.CommentService.CreateComment:input_type -> activity.CreateCommentRequest
-	3, // 5: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
-	5, // 6: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 1: activity.Comment.reply_to:type_name -> activity.Comment
+	2, // 2: activity.Comment.replies:type_name -> activity.Comment
+	2, // 3: activity.GetCommentsResponse.comments:type_name -> activity.Comment
+	2, // 4: activity.CreateCommentResponse.comment:type_name -> activity.Comment
+	3, // 5: activity.CommentService.GetComments:input_type -> activity.GetCommentsRequest
+	5, // 6: activity.CommentService.CreateComment:input_type -> activity.CreateCommentRequest
+	4, // 7: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
+	6, // 8: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_comment_proto_init() }
@@ -476,7 +553,7 @@ func file_comment_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comment_proto_rawDesc), len(file_comment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

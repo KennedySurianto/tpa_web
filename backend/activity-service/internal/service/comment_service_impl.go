@@ -20,11 +20,20 @@ func (s *CommentServiceImpl) GetComments(ctx context.Context, videoID uint) ([]m
 	return s.repo.GetCommentsByVideoID(ctx, videoID)
 }
 
-func (s *CommentServiceImpl) CreateComment(ctx context.Context, userID, videoID uint64, content string) (*model.Comment, error) {
-    comment := &model.Comment{
+func (s *CommentServiceImpl) CreateComment(ctx context.Context, userID, videoID, replyToId uint64, content string) (*model.Comment, error) {
+    var comment *model.Comment
+
+    var replyToIDPtr *uint
+    if replyToId != 0 {
+        temp := uint(replyToId)
+        replyToIDPtr = &temp
+    }
+
+    comment = &model.Comment{
         UserID:    uint(userID),
         VideoID:   uint(videoID),
         Content:   content,
+        ReplyToID: replyToIDPtr,
     }
 
     fmt.Println("[COMMENT SERVICE_IMPL] Creating comment:", comment)
@@ -34,4 +43,8 @@ func (s *CommentServiceImpl) CreateComment(ctx context.Context, userID, videoID 
     fmt.Println("[COMMENT SERVICE_IMPL] Created comment:", comment)
 
     return comment, nil
+}
+
+func (s *CommentServiceImpl) GetReplies(ctx context.Context, commentID uint) ([]model.Comment, error) {
+    return s.repo.GetRepliesByCommentID(ctx, commentID)
 }

@@ -10,17 +10,27 @@ message User {
     string profile_url = 3;
 }
 
+message Reply {
+
+}
+
 message Comment {
     uint64 id = 1;
-    uint64 user_id = 2;
-    uint64 video_id = 3;
-    string content = 4;
-    string created_at = 5;
-    string updated_at = 6;
-    User user = 7;
+    string created_at = 2;
+    string updated_at = 3;
+    
+    uint64 user_id = 4;
+    uint64 video_id = 5;
+    string content = 6;
+    uint64 reply_to_id = 7;
 
-    uint64 like_count = 8;
-    bool is_liked = 9;
+    User user = 8;
+    Comment reply_to = 9;
+
+    uint64 like_count = 10;
+    bool is_liked = 11;
+
+    repeated Comment replies = 12;
 }
 
 // Request to get comments for a video
@@ -35,9 +45,10 @@ message GetCommentsResponse {
 }
 
 message CreateCommentRequest {
-    string user_id = 1;
-    string video_id = 2;
+    uint32 user_id = 1;
+    uint32 video_id = 2;
     string content = 3;
+    uint32 reply_to_id = 4;
 }
 
 message CreateCommentResponse {

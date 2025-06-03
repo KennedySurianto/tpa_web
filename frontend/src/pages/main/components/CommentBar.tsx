@@ -19,6 +19,8 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   const [newComment, setNewComment] = useState('');
   const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
   const [errorMessage, setErrorMessage] = useState('');
+  const [replyInputs, setReplyInputs] = useState<{ [key: number]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset and update comments when videoId changes or when new comments are fetched
   useEffect(() => {
@@ -41,6 +43,8 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
   useEffect(() => {
     setShowReplies({});
     setNewComment('');
+    setReplyInputs({});
+    setErrorMessage('');
   }, [videoId]);
 
   const handleLike = async (commentId: number) => {
@@ -99,11 +103,14 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
     }
   };
 
-  const handleAddComment = async () => {
+  const handleAddComment = async (replyToId: number = 0) => {
     try {
       setErrorMessage('');
+      setIsSubmitting(true);
 
-      if (!newComment.trim()) {
+      const content = replyToId === 0 ? newComment : replyInputs[replyToId] || '';
+
+      if (!content.trim()) {
         setErrorMessage('Comment cannot be empty.');
         return;
       }
@@ -114,21 +121,31 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
       }
 
       const request: CreateCommentRequest = {
-        userId: user.id,
-        videoId: videoId.toString(),
-        content: newComment,
+        userId: Number(user.id),
+        videoId: videoId,
+        content: content.trim(),
+        replyToId: replyToId,
       };
+      
       const response: CreateCommentResponse = await commentClient.CreateComment(request);
       
       console.log('response:', response);
 
       if (response?.comment) {
         await refetch();
-        setNewComment('');
+        if (replyToId === 0) {
+          setNewComment('');
+        } else {
+          setReplyInputs(prev => ({ ...prev, [replyToId]: '' }));
+        }
+      } else {
+        setErrorMessage('Failed to post comment. Please try again.');
       }
-    } catch (error) {
-      setErrorMessage('Failed to post comment. Please check your connection.');
+    } catch (error: any) {
       console.error('CreateComment error:', error);
+      setErrorMessage(error?.message || 'Failed to post comment. Please check your connection.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -136,6 +153,13 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
     setShowReplies(prev => ({
       ...prev,
       [commentId]: !prev[commentId],
+    }));
+  };
+
+  const handleReplyInputChange = (commentId: number, value: string) => {
+    setReplyInputs(prev => ({
+      ...prev,
+      [commentId]: value
     }));
   };
 
@@ -288,7 +312,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
                       margin: '0 0 8px 0',
                       lineHeight: 1.4,
                     }}>
-                      {comment.content} {comment.isLiked}
+                      {comment.content}
                     </p>
 
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -323,20 +347,144 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
                           transition: 'color 0.2s ease',
                         }}
                       >
-                        Reply
+                        Reply ({comment.replies?.length || 0})
                       </button>
                     </div>
 
                     {showReplies[Number(comment.id)] && (
-                      <div style={{ 
-                        color: '#8a8a8a', 
-                        fontSize: '12px', 
-                        marginTop: '8px',
-                        padding: '8px',
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '12px',
                         backgroundColor: '#1a1a1a',
-                        borderRadius: '8px',
+                        borderRadius: '8px'
                       }}>
-                        (Replies not yet implemented)
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 ? (
+                          comment.replies.map((reply: Comment) => (
+                            <div key={reply.id} style={{ 
+                              marginBottom: '12px', 
+                              paddingLeft: '12px', 
+                              borderLeft: '2px solid #444',
+                              display: 'flex',
+                              gap: '8px'
+                            }}>
+                              <div style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                backgroundColor: '#666',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                                flexShrink: 0,
+                              }}>
+                                {reply.user?.profileUrl ? (
+                                  <img
+                                    src={reply.user.profileUrl}
+                                    alt={reply.user.username || 'User Avatar'}
+                                    style={{ width: '24px', height: '24px', borderRadius: '50%' }}
+                                  />
+                                ) : (
+                                  <span style={{ color: 'white' }}>👤</span>
+                                )}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ 
+                                  color: '#ccc', 
+                                  fontSize: '13px',
+                                  marginBottom: '4px'
+                                }}>
+                                  <strong style={{ color: 'white' }}>
+                                    {reply.user?.username || 'Unknown'}
+                                  </strong>
+                                  <span style={{ marginLeft: '8px' }}>{reply.content}</span>
+                                </div>
+                                <div style={{ 
+                                  fontSize: '11px', 
+                                  color: '#888',
+                                  display: 'flex',
+                                  gap: '12px',
+                                  alignItems: 'center'
+                                }}>
+                                  <span>{new Date(reply.createdAt).toLocaleDateString()}</span>
+                                  <button
+                                    onClick={() => !reply.isLiked ? handleLike(Number(reply.id)) : handleUnlike(Number(reply.id))}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: reply.isLiked ? '#ff0050' : '#8a8a8a',
+                                      fontSize: '11px',
+                                      cursor: 'pointer',
+                                      padding: '2px',
+                                      transition: 'color 0.2s ease',
+                                    }}
+                                  >
+                                    ♥ {reply.likeCount || 0}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div style={{ 
+                            color: '#888', 
+                            fontSize: '12px',
+                            textAlign: 'center',
+                            padding: '8px'
+                          }}>
+                            No replies yet
+                          </div>
+                        )}
+
+                        {/* Reply input */}
+                        <div style={{ marginTop: '12px' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                            <textarea
+                              placeholder="Write a reply..."
+                              value={replyInputs[Number(comment.id)] || ''}
+                              onChange={(e) => handleReplyInputChange(Number(comment.id), e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleAddComment(Number(comment.id));
+                                }
+                              }}
+                              rows={1}
+                              style={{ 
+                                flex: 1,
+                                resize: 'none',
+                                padding: '8px 12px', 
+                                borderRadius: '16px', 
+                                backgroundColor: '#333', 
+                                color: '#fff', 
+                                border: '1px solid #555',
+                                fontSize: '13px',
+                                outline: 'none',
+                                maxHeight: '60px',
+                                overflowY: 'auto'
+                              }}
+                            />
+                            <button
+                              onClick={() => handleAddComment(Number(comment.id))}
+                              disabled={!replyInputs[Number(comment.id)]?.trim() || isSubmitting}
+                              style={{ 
+                                padding: '8px 16px', 
+                                backgroundColor: replyInputs[Number(comment.id)]?.trim() && !isSubmitting ? '#ff0050' : '#444',
+                                color: '#fff', 
+                                border: 'none', 
+                                borderRadius: '16px', 
+                                cursor: replyInputs[Number(comment.id)]?.trim() && !isSubmitting ? 'pointer' : 'not-allowed',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                transition: 'background 0.2s ease',
+                                flexShrink: 0
+                              }}
+                            >
+                              {isSubmitting ? '...' : 'Reply'}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -384,21 +532,21 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose }) => {
               }}
             />
             <button
-              onClick={handleAddComment}
-              disabled={!newComment.trim()}
+              onClick={() => handleAddComment()}
+              disabled={!newComment.trim() || isSubmitting}
               style={{
-                background: newComment.trim() ? '#ff0050' : '#2f2f2f',
+                background: newComment.trim() && !isSubmitting ? '#ff0050' : '#2f2f2f',
                 border: 'none',
                 borderRadius: '4px',
                 color: 'white',
                 fontSize: '14px',
                 fontWeight: '600',
-                cursor: newComment.trim() ? 'pointer' : 'not-allowed',
+                cursor: newComment.trim() && !isSubmitting ? 'pointer' : 'not-allowed',
                 padding: '8px 12px',
                 transition: 'background 0.2s ease',
               }}
             >
-              Post
+              {isSubmitting ? '...' : 'Post'}
             </button>
           </div>
           {errorMessage && (
