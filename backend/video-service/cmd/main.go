@@ -32,7 +32,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	const maxMsgSize = 1024 * 1024 * 20 // 20 MB
+	const maxMsgSize = 1024 * 1024 * 100 // 100 MB
 	grpcServer := grpc.NewServer(
 		grpc.MaxRecvMsgSize(maxMsgSize),
 		grpc.MaxSendMsgSize(maxMsgSize),

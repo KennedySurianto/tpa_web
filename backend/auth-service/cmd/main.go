@@ -27,11 +27,13 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
     
-	authService := service.NewAuthService(getUserClient())
+	userClient := getUserClient()
+	pasetoMaker := service.NewPasetoMaker()
+	authService := service.NewAuthService(userClient, pasetoMaker)
 	memcacheHost := getEnv("MEMCACHED_HOST", ":11211")
 	memcacheClient := memcache.NewMemcacheClient(memcacheHost)
 	otpService := service.NewOTPService(memcacheClient)
-	authController := controller.NewAuthController(authService, otpService, getUserClient())
+	authController := controller.NewAuthController(authService, otpService, userClient)
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer()

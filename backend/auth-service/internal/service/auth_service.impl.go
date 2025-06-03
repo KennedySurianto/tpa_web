@@ -5,36 +5,26 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthServiceImpl struct {
 	userClient   user.UserServiceClient
-	jwtSecret    []byte
-	tokenStorage map[string]*model.TokenInfo // In production, use Redis or database
+	pasetoMaker  *PasetoMaker
+	tokenStorage map[string]*model.TokenInfo
 }
 
-func NewAuthService(userClient user.UserServiceClient) AuthService {
-	// Get JWT secret from environment variable, fallback to default for development
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Println("Warning: Using default JWT secret. Set JWT_SECRET environment variable for production.")
-		jwtSecret = "your-secret-key"
-	}
-
+func NewAuthService(userClient user.UserServiceClient, pasetoMaker *PasetoMaker) AuthService {
 	return &AuthServiceImpl{
 		userClient:   userClient,
-		jwtSecret:    []byte(jwtSecret),
+		pasetoMaker:  pasetoMaker,
 		tokenStorage: make(map[string]*model.TokenInfo),
 	}
 }
@@ -305,55 +295,19 @@ func (s *AuthServiceImpl) Logout(ctx context.Context, req *auth.LogoutRequest) (
 
 func (s *AuthServiceImpl) ValidateToken(ctx context.Context, req *auth.ValidateTokenRequest) (*auth.ValidateTokenResponse, error) {
 	if req == nil || req.AccessToken == "" {
-		return &auth.ValidateTokenResponse{
-			Valid:   false,
-			Message: "access token is required",
-			}, nil
+		return &auth.ValidateTokenResponse{Valid: false, Message: "access token is required"}, nil
 	}
 
-	token, err := jwt.Parse(req.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return s.jwtSecret, nil
-	})
-
-	if err != nil || !token.Valid {
-		return &auth.ValidateTokenResponse{
-			Valid:   false,
-			Message: "Invalid token",
-		}, nil
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return &auth.ValidateTokenResponse{
-			Valid:   false,
-			Message: "Invalid token claims",
-		}, nil
-	}
-
-	userId, ok := claims["user_id"].(float64)
-	if !ok {
-		return &auth.ValidateTokenResponse{
-			Valid:   false,
-			Message: "Invalid user ID in token",
-		}, nil
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		return &auth.ValidateTokenResponse{
-			Valid:   false,
-			Message: "Invalid email in token",
-		}, nil
+	payload, err := s.pasetoMaker.VerifyToken(req.AccessToken)
+	if err != nil {
+		return &auth.ValidateTokenResponse{Valid: false, Message: "Invalid token"}, nil
 	}
 
 	return &auth.ValidateTokenResponse{
 		Valid:   true,
 		Message: "Token is valid",
-		UserId:  uint64(userId),
-		Email:   email,
+		UserId:  payload.UserID,
+		Email:   payload.Email,
 	}, nil
 }
 
@@ -427,29 +381,19 @@ func (s *AuthServiceImpl) RefreshToken(ctx context.Context, req *auth.RefreshTok
 }
 
 func (s *AuthServiceImpl) generateTokens(userId uint64, email string) (string, string, error) {
-	// Generate access token (expires in 24 hours)
-	accessClaims := jwt.MapClaims{
-		"user_id": userId,
-		"email":   email,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-		"iat":     time.Now().Unix(),
-	}
-
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessTokenString, err := accessToken.SignedString(s.jwtSecret)
+	// Access token: 24 hours
+	accessToken, _, err := s.pasetoMaker.CreateToken(userId, email, 24*time.Hour)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to sign access token: %w", err)
+		return "", "", err
 	}
 
-	// Generate refresh token (random string)
-	refreshTokenBytes := make([]byte, 32)
-	_, err = rand.Read(refreshTokenBytes)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to generate refresh token: %w", err)
+	refreshBytes := make([]byte, 32)
+	if _, err := rand.Read(refreshBytes); err != nil {
+		return "", "", err
 	}
-	refreshTokenString := base64.URLEncoding.EncodeToString(refreshTokenBytes)
+	refreshToken := base64.URLEncoding.EncodeToString(refreshBytes)
 
-	return accessTokenString, refreshTokenString, nil
+	return accessToken, refreshToken, nil
 }
 
 func (s *AuthServiceImpl) storeRefreshToken(token string, userId uint64) {

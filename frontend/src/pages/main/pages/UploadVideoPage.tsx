@@ -7,7 +7,6 @@ import {
 } from "../../../api/gen/video";
 import { BrowserHeaders } from "browser-headers";
 import { useAuth } from "../../../utils/AuthProvider";
-import { compressVideo } from "../../../utils/videoProcessor";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
     transport: undefined,
@@ -36,20 +35,12 @@ const UploadVideoPage: React.FC = () => {
         setLoading(true);
 
         try {
-            // 🔻 Compress video using your utility
-            const compressedData = await compressVideo(file, {
-                crf: 25,
-                maxWidth: 1920,
-                maxHeight: 1080,
-                format: 'mp4',
-            });
-
-            // Calculate duration from video element (still using original file preview)
             let duration = 0;
             if (videoRef.current && videoRef.current.duration) {
                 duration = Math.floor(videoRef.current.duration);
             }
 
+            const videoArrayBuffer = await file.arrayBuffer();
             const request: CreateVideoRequest = {
                 userId: Number(user?.id),
                 caption,
@@ -59,7 +50,7 @@ const UploadVideoPage: React.FC = () => {
                 allowComments,
                 allowDuet,
                 allowStitch,
-                videoData: compressedData,
+                videoData: new Uint8Array(videoArrayBuffer),
                 contentType: 'video/mp4',
                 videoUrl: "", // Will be generated server-side
                 thumbnailUrl,
