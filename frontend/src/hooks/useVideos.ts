@@ -17,11 +17,11 @@ export function useVideos(
         const userId = user?.id ? String(user.id) : "";
 
         const request: GetRecommendedVideosRequest = {
-            userId: userId,
+            userId: Number(userId),
             limit,
-            lastVideoId: lastVideoId,
-            deviceId: "",  // replace this with actual device ID
-            language: navigator.language || "",  // get from user preferences
+            lastVideoId: Number(lastVideoId),
+            deviceId: 0,
+            language: navigator.language || "",
         };
 
         try {
@@ -39,5 +39,5 @@ export function useVideos(
         fetchVideos();
     }, [limit, lastVideoId, user?.id]);
 
-    return { videos, loading };
+    return { videos, setVideos, loading };
 }

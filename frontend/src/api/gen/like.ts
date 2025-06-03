@@ -36,6 +36,14 @@ export interface IsLikedResponse {
   liked: boolean;
 }
 
+export interface GetVideoLikeCountRequest {
+  videoId: number;
+}
+
+export interface GetVideoLikeCountResponse {
+  count: string;
+}
+
 function createBaseLikeRequest(): LikeRequest {
   return { userId: 0, videoId: 0 };
 }
@@ -408,10 +416,130 @@ export const IsLikedResponse: MessageFns<IsLikedResponse> = {
   },
 };
 
+function createBaseGetVideoLikeCountRequest(): GetVideoLikeCountRequest {
+  return { videoId: 0 };
+}
+
+export const GetVideoLikeCountRequest: MessageFns<GetVideoLikeCountRequest> = {
+  encode(message: GetVideoLikeCountRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.videoId !== 0) {
+      writer.uint32(8).uint32(message.videoId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetVideoLikeCountRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetVideoLikeCountRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.videoId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetVideoLikeCountRequest {
+    return { videoId: isSet(object.videoId) ? globalThis.Number(object.videoId) : 0 };
+  },
+
+  toJSON(message: GetVideoLikeCountRequest): unknown {
+    const obj: any = {};
+    if (message.videoId !== 0) {
+      obj.videoId = Math.round(message.videoId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(base?: I): GetVideoLikeCountRequest {
+    return GetVideoLikeCountRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(object: I): GetVideoLikeCountRequest {
+    const message = createBaseGetVideoLikeCountRequest();
+    message.videoId = object.videoId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetVideoLikeCountResponse(): GetVideoLikeCountResponse {
+  return { count: "0" };
+}
+
+export const GetVideoLikeCountResponse: MessageFns<GetVideoLikeCountResponse> = {
+  encode(message: GetVideoLikeCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.count !== "0") {
+      writer.uint32(8).uint64(message.count);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetVideoLikeCountResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetVideoLikeCountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.count = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetVideoLikeCountResponse {
+    return { count: isSet(object.count) ? globalThis.String(object.count) : "0" };
+  },
+
+  toJSON(message: GetVideoLikeCountResponse): unknown {
+    const obj: any = {};
+    if (message.count !== "0") {
+      obj.count = message.count;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(base?: I): GetVideoLikeCountResponse {
+    return GetVideoLikeCountResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(object: I): GetVideoLikeCountResponse {
+    const message = createBaseGetVideoLikeCountResponse();
+    message.count = object.count ?? "0";
+    return message;
+  },
+};
+
 export interface LikeService {
   Like(request: DeepPartial<LikeRequest>, metadata?: grpc.Metadata): Promise<LikeResponse>;
   Unlike(request: DeepPartial<UnlikeRequest>, metadata?: grpc.Metadata): Promise<UnlikeResponse>;
   IsLiked(request: DeepPartial<IsLikedRequest>, metadata?: grpc.Metadata): Promise<IsLikedResponse>;
+  GetVideoLikeCount(
+    request: DeepPartial<GetVideoLikeCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideoLikeCountResponse>;
 }
 
 export class LikeServiceClientImpl implements LikeService {
@@ -422,6 +550,7 @@ export class LikeServiceClientImpl implements LikeService {
     this.Like = this.Like.bind(this);
     this.Unlike = this.Unlike.bind(this);
     this.IsLiked = this.IsLiked.bind(this);
+    this.GetVideoLikeCount = this.GetVideoLikeCount.bind(this);
   }
 
   Like(request: DeepPartial<LikeRequest>, metadata?: grpc.Metadata): Promise<LikeResponse> {
@@ -434,6 +563,13 @@ export class LikeServiceClientImpl implements LikeService {
 
   IsLiked(request: DeepPartial<IsLikedRequest>, metadata?: grpc.Metadata): Promise<IsLikedResponse> {
     return this.rpc.unary(LikeServiceIsLikedDesc, IsLikedRequest.fromPartial(request), metadata);
+  }
+
+  GetVideoLikeCount(
+    request: DeepPartial<GetVideoLikeCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideoLikeCountResponse> {
+    return this.rpc.unary(LikeServiceGetVideoLikeCountDesc, GetVideoLikeCountRequest.fromPartial(request), metadata);
   }
 }
 
@@ -498,6 +634,29 @@ export const LikeServiceIsLikedDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = IsLikedResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LikeServiceGetVideoLikeCountDesc: UnaryMethodDefinitionish = {
+  methodName: "GetVideoLikeCount",
+  service: LikeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetVideoLikeCountRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetVideoLikeCountResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LikeCommentService_LikeComment_FullMethodName    = "/activity.LikeCommentService/LikeComment"
-	LikeCommentService_UnlikeComment_FullMethodName  = "/activity.LikeCommentService/UnlikeComment"
-	LikeCommentService_IsCommentLiked_FullMethodName = "/activity.LikeCommentService/IsCommentLiked"
+	LikeCommentService_LikeComment_FullMethodName         = "/activity.LikeCommentService/LikeComment"
+	LikeCommentService_UnlikeComment_FullMethodName       = "/activity.LikeCommentService/UnlikeComment"
+	LikeCommentService_IsCommentLiked_FullMethodName      = "/activity.LikeCommentService/IsCommentLiked"
+	LikeCommentService_GetCommentLikeCount_FullMethodName = "/activity.LikeCommentService/GetCommentLikeCount"
 )
 
 // LikeCommentServiceClient is the client API for LikeCommentService service.
@@ -31,6 +32,7 @@ type LikeCommentServiceClient interface {
 	LikeComment(ctx context.Context, in *LikeCommentRequest, opts ...grpc.CallOption) (*LikeCommentResponse, error)
 	UnlikeComment(ctx context.Context, in *UnlikeCommentRequest, opts ...grpc.CallOption) (*UnlikeCommentResponse, error)
 	IsCommentLiked(ctx context.Context, in *IsCommentLikedRequest, opts ...grpc.CallOption) (*IsCommentLikedResponse, error)
+	GetCommentLikeCount(ctx context.Context, in *GetLikeCountRequest, opts ...grpc.CallOption) (*GetLikeCountResponse, error)
 }
 
 type likeCommentServiceClient struct {
@@ -71,6 +73,16 @@ func (c *likeCommentServiceClient) IsCommentLiked(ctx context.Context, in *IsCom
 	return out, nil
 }
 
+func (c *likeCommentServiceClient) GetCommentLikeCount(ctx context.Context, in *GetLikeCountRequest, opts ...grpc.CallOption) (*GetLikeCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLikeCountResponse)
+	err := c.cc.Invoke(ctx, LikeCommentService_GetCommentLikeCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LikeCommentServiceServer is the server API for LikeCommentService service.
 // All implementations must embed UnimplementedLikeCommentServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type LikeCommentServiceServer interface {
 	LikeComment(context.Context, *LikeCommentRequest) (*LikeCommentResponse, error)
 	UnlikeComment(context.Context, *UnlikeCommentRequest) (*UnlikeCommentResponse, error)
 	IsCommentLiked(context.Context, *IsCommentLikedRequest) (*IsCommentLikedResponse, error)
+	GetCommentLikeCount(context.Context, *GetLikeCountRequest) (*GetLikeCountResponse, error)
 	mustEmbedUnimplementedLikeCommentServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedLikeCommentServiceServer) UnlikeComment(context.Context, *Unl
 }
 func (UnimplementedLikeCommentServiceServer) IsCommentLiked(context.Context, *IsCommentLikedRequest) (*IsCommentLikedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsCommentLiked not implemented")
+}
+func (UnimplementedLikeCommentServiceServer) GetCommentLikeCount(context.Context, *GetLikeCountRequest) (*GetLikeCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCommentLikeCount not implemented")
 }
 func (UnimplementedLikeCommentServiceServer) mustEmbedUnimplementedLikeCommentServiceServer() {}
 func (UnimplementedLikeCommentServiceServer) testEmbeddedByValue()                            {}
@@ -172,6 +188,24 @@ func _LikeCommentService_IsCommentLiked_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LikeCommentService_GetCommentLikeCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLikeCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LikeCommentServiceServer).GetCommentLikeCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LikeCommentService_GetCommentLikeCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LikeCommentServiceServer).GetCommentLikeCount(ctx, req.(*GetLikeCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LikeCommentService_ServiceDesc is the grpc.ServiceDesc for LikeCommentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var LikeCommentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsCommentLiked",
 			Handler:    _LikeCommentService_IsCommentLiked_Handler,
+		},
+		{
+			MethodName: "GetCommentLikeCount",
+			Handler:    _LikeCommentService_GetCommentLikeCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,9 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import for navigation
 import CommentBar from "../components/CommentBar";
 import { useVideos } from "../../../hooks/useVideos";
+import { likeClient } from "../../../api/grpc/likeClient";
+import type { LikeRequest, UnlikeRequest } from "../../../api/gen/like";
+import { useAuth } from "../../../utils/AuthProvider";
 
 const VideoFeed: React.FC = () => {
-    const { videos, loading } = useVideos(); // or pass page/limit dynamically
+    const user = useAuth().user;
+    const { videos, setVideos, loading } = useVideos(); // or pass page/limit dynamically
     const navigate = useNavigate(); // Add navigation hook
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const [volume, setVolume] = useState(0.5);
@@ -12,12 +16,67 @@ const VideoFeed: React.FC = () => {
     const [showVolumeControl, setShowVolumeControl] = useState(false);
     const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
     const [showComments, setShowComments] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
-    // Handler
-    const handleLike = (videoId: number) => {
+    const handleLike = async (videoId: number) => {
         console.log(`Liked video ${videoId}`);
-        // TODO: add like logic here
+        try {
+            if (!user || !user.id) {
+                setErrorMessage("User is not authenticated.");
+                return;
+            }
+
+            const req: LikeRequest = {
+                userId: Number(user.id),
+                videoId: videoId,
+            };
+
+            const res = await likeClient.Like(req);
+
+            if (res) {
+                setVideos(prevVideos =>
+                    prevVideos.map(video =>
+                        video.id === videoId
+                            ? { ...video, isLiked: true, likeCount: (Number(video.likeCount) + 1).toString() }
+                            : video
+                    )
+                );
+            }
+        } catch (err) {
+            console.error("Failed to like video", err);
+            setErrorMessage("Failed to like the video.");
+        }
     };
+
+    const handleUnlike = async (videoId: number) => {
+        console.log(`Unliked video ${videoId}`)
+        try {
+            if (!user || !user.id) {
+                setErrorMessage("User is not authenticated.");
+                return;
+            }
+
+            const req: UnlikeRequest = {
+                userId: Number(user.id),
+                videoId: videoId,
+            };
+
+            const res = await likeClient.Unlike(req)
+
+            if (res) {
+                setVideos(prevVideos =>
+                    prevVideos.map(video =>
+                        video.id === videoId
+                            ? { ...video, isLiked: false, likeCount: (Number(video.likeCount) - 1).toString() }
+                            : video
+                    )
+                );
+            }
+        } catch (err) {
+            console.error("Failed to like video", err);
+            setErrorMessage("Failed to like the video.");
+        }
+    }
 
     const handleComment = (videoId: number) => {
         setSelectedVideoId(videoId);  // show comments sidebar for this video
@@ -541,12 +600,13 @@ const VideoFeed: React.FC = () => {
                                     gap: '1rem',
                                     flexWrap: 'wrap',
                                 }}>
+                                    {/* Enhanced Like Button */}
                                     <button 
                                         className="btn btn-link"
-                                        onClick={() => handleLike(video.id)}
+                                        onClick={() => !video.isLiked ? handleLike(video.id) : handleUnlike(video.id)}
                                         style={{ 
                                             fontSize: '0.9rem',
-                                            color: 'white',
+                                            color: video.isLiked ? '#ff4458' : 'white',
                                             textDecoration: 'none',
                                             padding: '0.5rem',
                                             border: 'none',
@@ -555,9 +615,31 @@ const VideoFeed: React.FC = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '0.3rem',
+                                            transition: 'all 0.2s ease',
+                                            transform: video.isLiked ? 'scale(1.05)' : 'scale(1)',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!video.isLiked) {
+                                                e.currentTarget.style.color = '#ff4458';
+                                            }
+                                            e.currentTarget.style.transform = 'scale(1.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!video.isLiked) {
+                                                e.currentTarget.style.color = 'white';
+                                            }
+                                            e.currentTarget.style.transform = video.isLiked ? 'scale(1.05)' : 'scale(1)';
                                         }}
                                     >
-                                        👍 Like
+                                        <span style={{
+                                            fontSize: '1.1rem',
+                                            filter: video.isLiked ? 'drop-shadow(0 0 8px #ff4458)' : 'none',
+                                        }}>
+                                            {video.isLiked ? '❤️' : '🤍'}
+                                        </span>
+                                        <span style={{ fontWeight: '500' }}>
+                                            {video.likeCount}
+                                        </span>
                                     </button>
                                     <button 
                                         className="btn btn-link" 

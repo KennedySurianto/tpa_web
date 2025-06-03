@@ -10,6 +10,7 @@ import (
 
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
+	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
@@ -42,7 +43,7 @@ func main() {
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
 	videoService := service.NewVideoService(videoRepo, minioClient)
-	videoController := controller.NewVideoController(videoService, getUserClient())
+	videoController := controller.NewVideoController(videoService, getUserClient(), getLikeClient())
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
@@ -104,4 +105,29 @@ func getUserClient() userpb.UserServiceClient {
     }
     
 	return userpb.NewUserServiceClient(conn) 
+}
+
+func getLikeClient() likepb.LikeServiceClient {
+	// Initialize services
+	likeServiceHost := os.Getenv("LIKE_SERVICE_HOST")
+    likeServicePort := os.Getenv("LIKE_SERVICE_PORT")
+    
+    if likeServiceHost == "" {
+        likeServiceHost = "activity-service"
+    }
+
+    if likeServicePort == "" {
+        likeServicePort = "50054"
+    }
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", likeServiceHost, likeServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to user service: %v", err)
+    }
+    
+	return likepb.NewLikeServiceClient(conn) 
 }

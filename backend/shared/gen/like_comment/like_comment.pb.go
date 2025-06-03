@@ -406,11 +406,12 @@ const file_like_comment_proto_rawDesc = "" +
 	"\n" +
 	"comment_id\x18\x01 \x01(\rR\tcommentId\",\n" +
 	"\x14GetLikeCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x04R\x05count2\x87\x02\n" +
+	"\x05count\x18\x01 \x01(\x04R\x05count2\xdd\x02\n" +
 	"\x12LikeCommentService\x12J\n" +
 	"\vLikeComment\x12\x1c.activity.LikeCommentRequest\x1a\x1d.activity.LikeCommentResponse\x12P\n" +
 	"\rUnlikeComment\x12\x1e.activity.UnlikeCommentRequest\x1a\x1f.activity.UnlikeCommentResponse\x12S\n" +
-	"\x0eIsCommentLiked\x12\x1f.activity.IsCommentLikedRequest\x1a .activity.IsCommentLikedResponseBQZOgithub.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment;like_commentb\x06proto3"
+	"\x0eIsCommentLiked\x12\x1f.activity.IsCommentLikedRequest\x1a .activity.IsCommentLikedResponse\x12T\n" +
+	"\x13GetCommentLikeCount\x12\x1d.activity.GetLikeCountRequest\x1a\x1e.activity.GetLikeCountResponseBQZOgithub.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment;like_commentb\x06proto3"
 
 var (
 	file_like_comment_proto_rawDescOnce sync.Once
@@ -439,11 +440,13 @@ var file_like_comment_proto_depIdxs = []int32{
 	0, // 0: activity.LikeCommentService.LikeComment:input_type -> activity.LikeCommentRequest
 	2, // 1: activity.LikeCommentService.UnlikeComment:input_type -> activity.UnlikeCommentRequest
 	4, // 2: activity.LikeCommentService.IsCommentLiked:input_type -> activity.IsCommentLikedRequest
-	1, // 3: activity.LikeCommentService.LikeComment:output_type -> activity.LikeCommentResponse
-	3, // 4: activity.LikeCommentService.UnlikeComment:output_type -> activity.UnlikeCommentResponse
-	5, // 5: activity.LikeCommentService.IsCommentLiked:output_type -> activity.IsCommentLikedResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	6, // 3: activity.LikeCommentService.GetCommentLikeCount:input_type -> activity.GetLikeCountRequest
+	1, // 4: activity.LikeCommentService.LikeComment:output_type -> activity.LikeCommentResponse
+	3, // 5: activity.LikeCommentService.UnlikeComment:output_type -> activity.UnlikeCommentResponse
+	5, // 6: activity.LikeCommentService.IsCommentLiked:output_type -> activity.IsCommentLikedResponse
+	7, // 7: activity.LikeCommentService.GetCommentLikeCount:output_type -> activity.GetLikeCountResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

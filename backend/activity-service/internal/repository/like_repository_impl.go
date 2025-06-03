@@ -31,3 +31,11 @@ func (r *LikeRepositoryImpl) IsLiked(userID, videoID uint) (bool, error) {
 	}
 	return err == nil, err
 }
+
+func (r *LikeRepositoryImpl) GetLikeCount(videoID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&model.Like{}).
+		Where("video_id = ?", videoID).
+		Count(&count).Error
+	return count, err
+}

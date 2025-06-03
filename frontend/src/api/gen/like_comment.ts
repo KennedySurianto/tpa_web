@@ -539,6 +539,10 @@ export interface LikeCommentService {
     request: DeepPartial<IsCommentLikedRequest>,
     metadata?: grpc.Metadata,
   ): Promise<IsCommentLikedResponse>;
+  GetCommentLikeCount(
+    request: DeepPartial<GetLikeCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLikeCountResponse>;
 }
 
 export class LikeCommentServiceClientImpl implements LikeCommentService {
@@ -549,6 +553,7 @@ export class LikeCommentServiceClientImpl implements LikeCommentService {
     this.LikeComment = this.LikeComment.bind(this);
     this.UnlikeComment = this.UnlikeComment.bind(this);
     this.IsCommentLiked = this.IsCommentLiked.bind(this);
+    this.GetCommentLikeCount = this.GetCommentLikeCount.bind(this);
   }
 
   LikeComment(request: DeepPartial<LikeCommentRequest>, metadata?: grpc.Metadata): Promise<LikeCommentResponse> {
@@ -564,6 +569,17 @@ export class LikeCommentServiceClientImpl implements LikeCommentService {
     metadata?: grpc.Metadata,
   ): Promise<IsCommentLikedResponse> {
     return this.rpc.unary(LikeCommentServiceIsCommentLikedDesc, IsCommentLikedRequest.fromPartial(request), metadata);
+  }
+
+  GetCommentLikeCount(
+    request: DeepPartial<GetLikeCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLikeCountResponse> {
+    return this.rpc.unary(
+      LikeCommentServiceGetCommentLikeCountDesc,
+      GetLikeCountRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -628,6 +644,29 @@ export const LikeCommentServiceIsCommentLikedDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = IsCommentLikedResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LikeCommentServiceGetCommentLikeCountDesc: UnaryMethodDefinitionish = {
+  methodName: "GetCommentLikeCount",
+  service: LikeCommentServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetLikeCountRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLikeCountResponse.decode(data);
       return {
         ...value,
         toObject() {

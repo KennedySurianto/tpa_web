@@ -8,6 +8,7 @@ service LikeCommentService {
     rpc LikeComment(LikeCommentRequest) returns (LikeCommentResponse);
     rpc UnlikeComment(UnlikeCommentRequest) returns (UnlikeCommentResponse);
     rpc IsCommentLiked(IsCommentLikedRequest) returns (IsCommentLikedResponse);
+    rpc GetCommentLikeCount(GetLikeCountRequest) returns (GetLikeCountResponse);
 }
 
 message LikeCommentRequest {

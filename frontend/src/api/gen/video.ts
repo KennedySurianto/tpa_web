@@ -45,6 +45,8 @@ export interface Video {
   allowDuet: boolean;
   allowStitch: boolean;
   user?: User | undefined;
+  isLiked: boolean;
+  likeCount: string;
 }
 
 /** Request/Response messages */
@@ -124,13 +126,13 @@ export interface UpdateMetricsResponse {
 
 export interface GetRecommendedVideosRequest {
   /** Optional: anonymous users can pass an empty string */
-  userId: string;
+  userId: number;
   /** Max number of videos to return */
   limit: number;
   /** For pagination (e.g., infinite scroll) */
-  lastVideoId: string;
+  lastVideoId: number;
   /** Optional: to support anonymous personalization */
-  deviceId: string;
+  deviceId: number;
   /** Optional: user or device language */
   language: string;
 }
@@ -252,6 +254,8 @@ function createBaseVideo(): Video {
     allowDuet: false,
     allowStitch: false,
     user: undefined,
+    isLiked: false,
+    likeCount: "0",
   };
 }
 
@@ -313,6 +317,12 @@ export const Video: MessageFns<Video> = {
     }
     if (message.user !== undefined) {
       User.encode(message.user, writer.uint32(154).fork()).join();
+    }
+    if (message.isLiked !== false) {
+      writer.uint32(160).bool(message.isLiked);
+    }
+    if (message.likeCount !== "0") {
+      writer.uint32(168).uint64(message.likeCount);
     }
     return writer;
   },
@@ -476,6 +486,22 @@ export const Video: MessageFns<Video> = {
           message.user = User.decode(reader, reader.uint32());
           continue;
         }
+        case 20: {
+          if (tag !== 160) {
+            break;
+          }
+
+          message.isLiked = reader.bool();
+          continue;
+        }
+        case 21: {
+          if (tag !== 168) {
+            break;
+          }
+
+          message.likeCount = reader.uint64().toString();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -506,6 +532,8 @@ export const Video: MessageFns<Video> = {
       allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
       user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
+      isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
+      likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
     };
   },
 
@@ -568,6 +596,12 @@ export const Video: MessageFns<Video> = {
     if (message.user !== undefined) {
       obj.user = User.toJSON(message.user);
     }
+    if (message.isLiked !== false) {
+      obj.isLiked = message.isLiked;
+    }
+    if (message.likeCount !== "0") {
+      obj.likeCount = message.likeCount;
+    }
     return obj;
   },
 
@@ -595,6 +629,8 @@ export const Video: MessageFns<Video> = {
     message.allowDuet = object.allowDuet ?? false;
     message.allowStitch = object.allowStitch ?? false;
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.isLiked = object.isLiked ?? false;
+    message.likeCount = object.likeCount ?? "0";
     return message;
   },
 };
@@ -1712,22 +1748,22 @@ export const UpdateMetricsResponse: MessageFns<UpdateMetricsResponse> = {
 };
 
 function createBaseGetRecommendedVideosRequest(): GetRecommendedVideosRequest {
-  return { userId: "", limit: 0, lastVideoId: "", deviceId: "", language: "" };
+  return { userId: 0, limit: 0, lastVideoId: 0, deviceId: 0, language: "" };
 }
 
 export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest> = {
   encode(message: GetRecommendedVideosRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.userId !== 0) {
+      writer.uint32(8).uint32(message.userId);
     }
     if (message.limit !== 0) {
       writer.uint32(16).int32(message.limit);
     }
-    if (message.lastVideoId !== "") {
-      writer.uint32(26).string(message.lastVideoId);
+    if (message.lastVideoId !== 0) {
+      writer.uint32(24).uint32(message.lastVideoId);
     }
-    if (message.deviceId !== "") {
-      writer.uint32(34).string(message.deviceId);
+    if (message.deviceId !== 0) {
+      writer.uint32(32).uint32(message.deviceId);
     }
     if (message.language !== "") {
       writer.uint32(42).string(message.language);
@@ -1743,11 +1779,11 @@ export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.userId = reader.string();
+          message.userId = reader.uint32();
           continue;
         }
         case 2: {
@@ -1759,19 +1795,19 @@ export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest
           continue;
         }
         case 3: {
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.lastVideoId = reader.string();
+          message.lastVideoId = reader.uint32();
           continue;
         }
         case 4: {
-          if (tag !== 34) {
+          if (tag !== 32) {
             break;
           }
 
-          message.deviceId = reader.string();
+          message.deviceId = reader.uint32();
           continue;
         }
         case 5: {
@@ -1793,27 +1829,27 @@ export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest
 
   fromJSON(object: any): GetRecommendedVideosRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
       limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
-      lastVideoId: isSet(object.lastVideoId) ? globalThis.String(object.lastVideoId) : "",
-      deviceId: isSet(object.deviceId) ? globalThis.String(object.deviceId) : "",
+      lastVideoId: isSet(object.lastVideoId) ? globalThis.Number(object.lastVideoId) : 0,
+      deviceId: isSet(object.deviceId) ? globalThis.Number(object.deviceId) : 0,
       language: isSet(object.language) ? globalThis.String(object.language) : "",
     };
   },
 
   toJSON(message: GetRecommendedVideosRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
     }
     if (message.limit !== 0) {
       obj.limit = Math.round(message.limit);
     }
-    if (message.lastVideoId !== "") {
-      obj.lastVideoId = message.lastVideoId;
+    if (message.lastVideoId !== 0) {
+      obj.lastVideoId = Math.round(message.lastVideoId);
     }
-    if (message.deviceId !== "") {
-      obj.deviceId = message.deviceId;
+    if (message.deviceId !== 0) {
+      obj.deviceId = Math.round(message.deviceId);
     }
     if (message.language !== "") {
       obj.language = message.language;
@@ -1826,10 +1862,10 @@ export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest
   },
   fromPartial<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(object: I): GetRecommendedVideosRequest {
     const message = createBaseGetRecommendedVideosRequest();
-    message.userId = object.userId ?? "";
+    message.userId = object.userId ?? 0;
     message.limit = object.limit ?? 0;
-    message.lastVideoId = object.lastVideoId ?? "";
-    message.deviceId = object.deviceId ?? "";
+    message.lastVideoId = object.lastVideoId ?? 0;
+    message.deviceId = object.deviceId ?? 0;
     message.language = object.language ?? "";
     return message;
   },

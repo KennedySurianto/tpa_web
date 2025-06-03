@@ -8,6 +8,7 @@ service LikeService {
     rpc Like(LikeRequest) returns (LikeResponse);
     rpc Unlike(UnlikeRequest) returns (UnlikeResponse);
     rpc IsLiked(IsLikedRequest) returns (IsLikedResponse);
+    rpc GetVideoLikeCount(GetVideoLikeCountRequest) returns (GetVideoLikeCountResponse);
 }
 
 message LikeRequest {
@@ -31,4 +32,12 @@ message IsLikedRequest {
 
 message IsLikedResponse {
     bool liked = 1;
+}
+
+message GetVideoLikeCountRequest {
+    uint32 video_id = 1;
+}
+
+message GetVideoLikeCountResponse {
+    uint64 count = 1;
 }

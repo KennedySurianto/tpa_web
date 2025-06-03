@@ -65,7 +65,7 @@ func (r *VideoRepositoryImpl) UpdateMetrics(id uint, views, likes, comments *uin
 	return r.GetVideoByID(id)
 }
 
-func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID, language string, limit int32) ([]*model.Video, error) {
+func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error) {
 	var videos []*model.Video
 
 	query := r.db.WithContext(context.Background()).
@@ -76,7 +76,7 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 		Limit(int(limit))
 
 	// Optional: pagination
-	if lastVideoID != "" {
+	if lastVideoID != 0 {
 		var lastVideo model.Video
 		if err := r.db.First(&lastVideo, "id = ?", lastVideoID).Error; err == nil {
 			query = query.Where("created_at < ?", lastVideo.CreatedAt)

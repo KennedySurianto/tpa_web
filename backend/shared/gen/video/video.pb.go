@@ -104,10 +104,12 @@ type Video struct {
 	LikesCount    uint32 `protobuf:"varint,14,opt,name=likes_count,json=likesCount,proto3" json:"likes_count,omitempty"`
 	CommentsCount uint32 `protobuf:"varint,15,opt,name=comments_count,json=commentsCount,proto3" json:"comments_count,omitempty"`
 	// Feature flags
-	AllowComments bool  `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
-	AllowDuet     bool  `protobuf:"varint,17,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
-	AllowStitch   bool  `protobuf:"varint,18,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
-	User          *User `protobuf:"bytes,19,opt,name=user,proto3" json:"user,omitempty"`
+	AllowComments bool   `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	AllowDuet     bool   `protobuf:"varint,17,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch   bool   `protobuf:"varint,18,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	User          *User  `protobuf:"bytes,19,opt,name=user,proto3" json:"user,omitempty"`
+	IsLiked       bool   `protobuf:"varint,20,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
+	LikeCount     uint64 `protobuf:"varint,21,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -273,6 +275,20 @@ func (x *Video) GetUser() *User {
 		return x.User
 	}
 	return nil
+}
+
+func (x *Video) GetIsLiked() bool {
+	if x != nil {
+		return x.IsLiked
+	}
+	return false
+}
+
+func (x *Video) GetLikeCount() uint64 {
+	if x != nil {
+		return x.LikeCount
+	}
+	return 0
 }
 
 // Request/Response messages
@@ -998,11 +1014,11 @@ func (x *UpdateMetricsResponse) GetVideo() *Video {
 
 type GetRecommendedVideosRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                  // Optional: anonymous users can pass an empty string
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`                                 // Max number of videos to return
-	LastVideoId   string                 `protobuf:"bytes,3,opt,name=last_video_id,json=lastVideoId,proto3" json:"last_video_id,omitempty"` // For pagination (e.g., infinite scroll)
-	DeviceId      string                 `protobuf:"bytes,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`            // Optional: to support anonymous personalization
-	Language      string                 `protobuf:"bytes,5,opt,name=language,proto3" json:"language,omitempty"`                            // Optional: user or device language
+	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                  // Optional: anonymous users can pass an empty string
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`                                  // Max number of videos to return
+	LastVideoId   uint32                 `protobuf:"varint,3,opt,name=last_video_id,json=lastVideoId,proto3" json:"last_video_id,omitempty"` // For pagination (e.g., infinite scroll)
+	DeviceId      uint32                 `protobuf:"varint,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`            // Optional: to support anonymous personalization
+	Language      string                 `protobuf:"bytes,5,opt,name=language,proto3" json:"language,omitempty"`                             // Optional: user or device language
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1037,11 +1053,11 @@ func (*GetRecommendedVideosRequest) Descriptor() ([]byte, []int) {
 	return file_video_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *GetRecommendedVideosRequest) GetUserId() string {
+func (x *GetRecommendedVideosRequest) GetUserId() uint32 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *GetRecommendedVideosRequest) GetLimit() int32 {
@@ -1051,18 +1067,18 @@ func (x *GetRecommendedVideosRequest) GetLimit() int32 {
 	return 0
 }
 
-func (x *GetRecommendedVideosRequest) GetLastVideoId() string {
+func (x *GetRecommendedVideosRequest) GetLastVideoId() uint32 {
 	if x != nil {
 		return x.LastVideoId
 	}
-	return ""
+	return 0
 }
 
-func (x *GetRecommendedVideosRequest) GetDeviceId() string {
+func (x *GetRecommendedVideosRequest) GetDeviceId() uint32 {
 	if x != nil {
 		return x.DeviceId
 	}
-	return ""
+	return 0
 }
 
 func (x *GetRecommendedVideosRequest) GetLanguage() string {
@@ -1125,7 +1141,7 @@ const file_video_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1f\n" +
 	"\vprofile_url\x18\x03 \x01(\tR\n" +
-	"profileUrl\"\xca\x05\n" +
+	"profileUrl\"\x84\x06\n" +
 	"\x05Video\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x129\n" +
 	"\n" +
@@ -1152,7 +1168,10 @@ const file_video_proto_rawDesc = "" +
 	"\n" +
 	"allow_duet\x18\x11 \x01(\bR\tallowDuet\x12!\n" +
 	"\fallow_stitch\x18\x12 \x01(\bR\vallowStitch\x12\x1f\n" +
-	"\x04user\x18\x13 \x01(\v2\v.video.UserR\x04userB\x0e\n" +
+	"\x04user\x18\x13 \x01(\v2\v.video.UserR\x04user\x12\x19\n" +
+	"\bis_liked\x18\x14 \x01(\bR\aisLiked\x12\x1d\n" +
+	"\n" +
+	"like_count\x18\x15 \x01(\x04R\tlikeCountB\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_sound_id\"\xce\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +
@@ -1223,10 +1242,10 @@ const file_video_proto_rawDesc = "" +
 	"\x15UpdateMetricsResponse\x12\"\n" +
 	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xa9\x01\n" +
 	"\x1bGetRecommendedVideosRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\"\n" +
-	"\rlast_video_id\x18\x03 \x01(\tR\vlastVideoId\x12\x1b\n" +
-	"\tdevice_id\x18\x04 \x01(\tR\bdeviceId\x12\x1a\n" +
+	"\rlast_video_id\x18\x03 \x01(\rR\vlastVideoId\x12\x1b\n" +
+	"\tdevice_id\x18\x04 \x01(\rR\bdeviceId\x12\x1a\n" +
 	"\blanguage\x18\x05 \x01(\tR\blanguage\"D\n" +
 	"\x1cGetRecommendedVideosResponse\x12$\n" +
 	"\x06videos\x18\x01 \x03(\v2\f.video.VideoR\x06videos2\x8d\x04\n" +

@@ -133,7 +133,7 @@ func stringPtrToString(s *string) string {
 	return *s
 }
 
-func (s *VideoServiceImpl) GetRecommendedVideos(userID, lastVideoID, deviceID, language string, limit int32) ([]*model.Video, error) {
+func (s *VideoServiceImpl) GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error) {
 	// business logic can go here (e.g. ML fallback or filtering)
 	return s.videoRepo.GetRecommendedVideos(userID, lastVideoID, deviceID, language, limit)
 }

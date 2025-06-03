@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
@@ -16,12 +17,14 @@ type VideoController struct {
 	pb.UnimplementedVideoServiceServer
 	videoService service.VideoService
 	userClient userpb.UserServiceClient
+	likeClient likepb.LikeServiceClient
 }
 
-func NewVideoController(videoService service.VideoService, userClient userpb.UserServiceClient) *VideoController {
+func NewVideoController(videoService service.VideoService, userClient userpb.UserServiceClient, likeClient likepb.LikeServiceClient) *VideoController {
 	return &VideoController{
 		videoService: videoService,
 		userClient:   userClient,
+		likeClient:   likeClient,
 	}
 }
 
@@ -240,6 +243,28 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 				Username:  user.Username,
 				ProfileUrl: user.AvatarUrl,
 			},
+
+			IsLiked: func() bool {
+				if req.UserId == 0 {
+					return false
+				}
+				resp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{
+					UserId: req.UserId,
+					VideoId: uint32(v.ID),
+				})
+				if err != nil || resp == nil {
+					return false
+				}
+				return resp.Liked
+			}(),
+
+			LikeCount: func() uint64 {
+				resp, err := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: uint32(v.ID)})
+				if err != nil || resp == nil {
+					return 0
+				}
+				return resp.Count
+			}(),
 		})
 	}
 	return &response, nil

@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LikeService_Like_FullMethodName    = "/activity.LikeService/Like"
-	LikeService_Unlike_FullMethodName  = "/activity.LikeService/Unlike"
-	LikeService_IsLiked_FullMethodName = "/activity.LikeService/IsLiked"
+	LikeService_Like_FullMethodName              = "/activity.LikeService/Like"
+	LikeService_Unlike_FullMethodName            = "/activity.LikeService/Unlike"
+	LikeService_IsLiked_FullMethodName           = "/activity.LikeService/IsLiked"
+	LikeService_GetVideoLikeCount_FullMethodName = "/activity.LikeService/GetVideoLikeCount"
 )
 
 // LikeServiceClient is the client API for LikeService service.
@@ -31,6 +32,7 @@ type LikeServiceClient interface {
 	Like(ctx context.Context, in *LikeRequest, opts ...grpc.CallOption) (*LikeResponse, error)
 	Unlike(ctx context.Context, in *UnlikeRequest, opts ...grpc.CallOption) (*UnlikeResponse, error)
 	IsLiked(ctx context.Context, in *IsLikedRequest, opts ...grpc.CallOption) (*IsLikedResponse, error)
+	GetVideoLikeCount(ctx context.Context, in *GetVideoLikeCountRequest, opts ...grpc.CallOption) (*GetVideoLikeCountResponse, error)
 }
 
 type likeServiceClient struct {
@@ -71,6 +73,16 @@ func (c *likeServiceClient) IsLiked(ctx context.Context, in *IsLikedRequest, opt
 	return out, nil
 }
 
+func (c *likeServiceClient) GetVideoLikeCount(ctx context.Context, in *GetVideoLikeCountRequest, opts ...grpc.CallOption) (*GetVideoLikeCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVideoLikeCountResponse)
+	err := c.cc.Invoke(ctx, LikeService_GetVideoLikeCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LikeServiceServer is the server API for LikeService service.
 // All implementations must embed UnimplementedLikeServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type LikeServiceServer interface {
 	Like(context.Context, *LikeRequest) (*LikeResponse, error)
 	Unlike(context.Context, *UnlikeRequest) (*UnlikeResponse, error)
 	IsLiked(context.Context, *IsLikedRequest) (*IsLikedResponse, error)
+	GetVideoLikeCount(context.Context, *GetVideoLikeCountRequest) (*GetVideoLikeCountResponse, error)
 	mustEmbedUnimplementedLikeServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedLikeServiceServer) Unlike(context.Context, *UnlikeRequest) (*
 }
 func (UnimplementedLikeServiceServer) IsLiked(context.Context, *IsLikedRequest) (*IsLikedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsLiked not implemented")
+}
+func (UnimplementedLikeServiceServer) GetVideoLikeCount(context.Context, *GetVideoLikeCountRequest) (*GetVideoLikeCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVideoLikeCount not implemented")
 }
 func (UnimplementedLikeServiceServer) mustEmbedUnimplementedLikeServiceServer() {}
 func (UnimplementedLikeServiceServer) testEmbeddedByValue()                     {}
@@ -172,6 +188,24 @@ func _LikeService_IsLiked_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LikeService_GetVideoLikeCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideoLikeCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LikeServiceServer).GetVideoLikeCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LikeService_GetVideoLikeCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LikeServiceServer).GetVideoLikeCount(ctx, req.(*GetVideoLikeCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LikeService_ServiceDesc is the grpc.ServiceDesc for LikeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var LikeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsLiked",
 			Handler:    _LikeService_IsLiked_Handler,
+		},
+		{
+			MethodName: "GetVideoLikeCount",
+			Handler:    _LikeService_GetVideoLikeCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
