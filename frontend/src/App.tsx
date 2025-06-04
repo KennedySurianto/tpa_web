@@ -6,8 +6,9 @@ import OnBoardingPage from './pages/auth/OnBoardingPage'
 import PublicRoute from './routes/PublicRoute'
 import { AuthProvider } from './utils/AuthProvider'
 import Layout from './pages/main/Layout'
-import VideoFeed from './pages/main/pages/VideoFeed'
-import UploadVideoPage from './pages/main/pages/UploadVideoPage'
+import VideoFeed from './pages/main/VideoFeed'
+import UploadVideoPage from './pages/main/UploadVideoPage'
+import ProfilePage from './pages/main/ProfilePage'
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
           <Route element={<Layout />} >
             <Route path="/home" element={<VideoFeed />} />
             <Route path="/upload" element={<UploadVideoPage />} />
+            <Route path="/:username" element={<ProfilePage />} />
           </Route>
 
         </Routes>

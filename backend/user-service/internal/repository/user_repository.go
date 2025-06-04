@@ -1,6 +1,10 @@
 package repository
 
-import "github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+import (
+	"context"
+
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+)
 
 type UserRepository interface {
 	CreateUser(user *model.User) error
@@ -16,4 +20,6 @@ type UserRepository interface {
 	SetUserPrivacyStatus(userID uint64, isPrivate bool) error
 	SetUserActiveStatus(userID uint64, isActive bool) error
 	UpdateLastLogin(userID uint64) error
+
+	FindByUsername(ctx context.Context, username string) (*model.User, error)
 }

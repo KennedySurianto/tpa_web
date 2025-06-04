@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
@@ -88,4 +90,16 @@ func (r *UserRepositoryImpl) SetUserActiveStatus(userID uint64, isActive bool) e
 
 func (r *UserRepositoryImpl) UpdateLastLogin(userID uint64) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("last_login_at", time.Now()).Error
+}
+
+func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+    var user model.User
+    if err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error; err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, nil
+        }
+        return nil, err
+    }
+	fmt.Println("[REPO] RETURNING: ", user);
+    return &user, nil
 }

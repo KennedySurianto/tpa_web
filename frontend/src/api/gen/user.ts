@@ -11,6 +11,10 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "user";
 
+export interface GetUserByUsernameRequest {
+  username: string;
+}
+
 export interface UpdateUserPasswordRequest {
   email: string;
   newPassword: string;
@@ -176,6 +180,64 @@ export interface SearchUsersRequest {
   activeOnly: boolean;
   country: string;
 }
+
+function createBaseGetUserByUsernameRequest(): GetUserByUsernameRequest {
+  return { username: "" };
+}
+
+export const GetUserByUsernameRequest: MessageFns<GetUserByUsernameRequest> = {
+  encode(message: GetUserByUsernameRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUserByUsernameRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUserByUsernameRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUserByUsernameRequest {
+    return { username: isSet(object.username) ? globalThis.String(object.username) : "" };
+  },
+
+  toJSON(message: GetUserByUsernameRequest): unknown {
+    const obj: any = {};
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(base?: I): GetUserByUsernameRequest {
+    return GetUserByUsernameRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(object: I): GetUserByUsernameRequest {
+    const message = createBaseGetUserByUsernameRequest();
+    message.username = object.username ?? "";
+    return message;
+  },
+};
 
 function createBaseUpdateUserPasswordRequest(): UpdateUserPasswordRequest {
   return { email: "", newPassword: "" };
@@ -2569,6 +2631,7 @@ export interface UserService {
     metadata?: grpc.Metadata,
   ): Promise<UserListResponse>;
   GetVerifiedUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse>;
+  GetUserByUsername(request: DeepPartial<GetUserByUsernameRequest>, metadata?: grpc.Metadata): Promise<User>;
 }
 
 export class UserServiceClientImpl implements UserService {
@@ -2590,6 +2653,7 @@ export class UserServiceClientImpl implements UserService {
     this.UpdateLastLogin = this.UpdateLastLogin.bind(this);
     this.GetUsersByCountry = this.GetUsersByCountry.bind(this);
     this.GetVerifiedUsers = this.GetVerifiedUsers.bind(this);
+    this.GetUserByUsername = this.GetUserByUsername.bind(this);
   }
 
   CreateUser(request: DeepPartial<CreateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
@@ -2670,6 +2734,10 @@ export class UserServiceClientImpl implements UserService {
 
   GetVerifiedUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse> {
     return this.rpc.unary(UserServiceGetVerifiedUsersDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetUserByUsername(request: DeepPartial<GetUserByUsernameRequest>, metadata?: grpc.Metadata): Promise<User> {
+    return this.rpc.unary(UserServiceGetUserByUsernameDesc, GetUserByUsernameRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2987,6 +3055,29 @@ export const UserServiceGetVerifiedUsersDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = UserListResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const UserServiceGetUserByUsernameDesc: UnaryMethodDefinitionish = {
+  methodName: "GetUserByUsername",
+  service: UserServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetUserByUsernameRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = User.decode(data);
       return {
         ...value,
         toObject() {

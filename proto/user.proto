@@ -22,6 +22,12 @@ service UserService {
 
   rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse);
   rpc GetVerifiedUsers(Empty) returns (UserListResponse);
+  
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (User);
+}
+
+message GetUserByUsernameRequest {
+  string username = 1;
 }
 
 message UpdateUserPasswordRequest {

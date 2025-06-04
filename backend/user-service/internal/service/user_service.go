@@ -1,8 +1,10 @@
 package service
 
 import (
-	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
+	"context"
+
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 )
 
 type UserService interface {
@@ -19,4 +21,6 @@ type UserService interface {
 	SetUserPrivacyStatus(userID uint64, isPrivate bool) error
 	SetUserActiveStatus(userID uint64, isActive bool) error
 	UpdateLastLogin(userID uint64) error
+
+	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
 }

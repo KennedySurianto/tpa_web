@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import for navigation
-import CommentBar from "../components/CommentBar";
-import { useVideos } from "../../../hooks/useVideos";
-import { likeClient } from "../../../api/grpc/likeClient";
-import type { LikeRequest, UnlikeRequest } from "../../../api/gen/like";
-import { useAuth } from "../../../utils/AuthProvider";
+import CommentBar from "./components/CommentBar";
+import { useVideos } from "../../hooks/useVideos";
+import { likeClient } from "../../api/grpc/likeClient";
+import type { LikeRequest, UnlikeRequest } from "../../api/gen/like";
+import { useAuth } from "../../utils/AuthProvider";
 
 const VideoFeed: React.FC = () => {
     const user = useAuth().user;
@@ -145,8 +145,9 @@ const VideoFeed: React.FC = () => {
     };
 
     // Handle user profile navigation
-    const handleUserClick = (userId: number | string) => {
-        navigate(`/user/${userId}`);
+    const handleUserClick = (username: string) => {
+        console.log(`Nagivating to /${username}`);
+        navigate(`/${username}`);
     };
 
     // Update volume for all videos
@@ -526,7 +527,7 @@ const VideoFeed: React.FC = () => {
                             }}>
                                 {/* Profile Picture */}
                                 <div
-                                    onClick={() => video.user?.id && handleUserClick(video.user.id)}
+                                    onClick={() => video.user?.username && handleUserClick(video.user.username)}
                                     style={{
                                         cursor: 'pointer',
                                         flexShrink: 0,
@@ -581,7 +582,7 @@ const VideoFeed: React.FC = () => {
 
                                 {/* Username */}
                                 <div
-                                    onClick={() => video.user?.id && handleUserClick(video.user.id)}
+                                    onClick={() => video.user?.username && handleUserClick(video.user.username)}
                                     style={{
                                         cursor: 'pointer',
                                         fontSize: '1.1rem',

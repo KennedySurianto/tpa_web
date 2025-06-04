@@ -1,6 +1,9 @@
 package service
 
 import (
+	"context"
+	"errors"
+
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/user-service/internal/repository"
@@ -83,4 +86,17 @@ func (u *UserServiceImpl) SetUserActiveStatus(userID uint64, isActive bool) erro
 
 func (u *UserServiceImpl) UpdateLastLogin(userID uint64) error {
 	return u.userRepo.UpdateLastLogin(userID)
+}
+
+func (u *UserServiceImpl) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+    user, err := u.userRepo.FindByUsername(ctx, username)
+    if err != nil {
+        return nil, err
+    }
+
+    if user == nil {
+        return nil, errors.New("user not found")
+    }
+
+    return user, nil
 }

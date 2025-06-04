@@ -114,6 +114,36 @@ func (u *UserController) GetUserById(ctx context.Context, req *pb.GetUserByIdReq
 	return convertModelToPbUser(*user), nil
 }
 
+func (u *UserController) GetUserByUsername(ctx context.Context, req *pb.GetUserByUsernameRequest) (*pb.User, error) {
+    fmt.Println("[CONT 1] GOT REQ: ", req);
+	user, err := u.userService.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("[CONT 2] GOT USER, RETURNING: ", user);
+
+	return &pb.User{
+        Id:            uint64(user.ID),
+        Username:      user.Username,
+        Email:         user.Email,
+        Password:      user.Password,
+        DisplayName:   user.DisplayName,
+        Bio:           user.Bio,
+        AvatarUrl:     user.AvatarURL,
+        IsVerified:    user.IsVerified,
+        IsPrivate:     user.IsPrivate,
+        IsActive:      user.IsActive,
+        LastLoginAt:   user.LastLoginAt.Unix(),
+        Country:       user.Country,
+        AllowDuet:     user.AllowDuet,
+        AllowStitch:   user.AllowStitch,
+        AllowDownload: user.AllowDownload,
+        AllowComments: user.AllowComments,
+        CreatedAt:     user.CreatedAt.Unix(),
+        UpdatedAt:     user.UpdatedAt.Unix(),
+    }, nil
+}
+
 func convertModelToPbUser(u model.User) *pb.User {
 	return &pb.User{
 		Id:               uint64(u.ID),

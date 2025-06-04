@@ -4,9 +4,9 @@ import {
     CreateVideoResponse,
     GrpcWebImpl,
     VideoServiceClientImpl
-} from "../../../api/gen/video";
+} from "../../api/gen/video";
 import { BrowserHeaders } from "browser-headers";
-import { useAuth } from "../../../utils/AuthProvider";
+import { useAuth } from "../../utils/AuthProvider";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
     transport: undefined,

@@ -33,6 +33,7 @@ const (
 	UserService_UpdateLastLogin_FullMethodName       = "/user.UserService/UpdateLastLogin"
 	UserService_GetUsersByCountry_FullMethodName     = "/user.UserService/GetUsersByCountry"
 	UserService_GetVerifiedUsers_FullMethodName      = "/user.UserService/GetVerifiedUsers"
+	UserService_GetUserByUsername_FullMethodName     = "/user.UserService/GetUserByUsername"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -54,6 +55,7 @@ type UserServiceClient interface {
 	UpdateLastLogin(ctx context.Context, in *UpdateLastLoginRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetUsersByCountry(ctx context.Context, in *GetUsersByCountryRequest, opts ...grpc.CallOption) (*UserListResponse, error)
 	GetVerifiedUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserListResponse, error)
+	GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*User, error)
 }
 
 type userServiceClient struct {
@@ -204,6 +206,16 @@ func (c *userServiceClient) GetVerifiedUsers(ctx context.Context, in *Empty, opt
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_GetUserByUsername_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -223,6 +235,7 @@ type UserServiceServer interface {
 	UpdateLastLogin(context.Context, *UpdateLastLoginRequest) (*UserResponse, error)
 	GetUsersByCountry(context.Context, *GetUsersByCountryRequest) (*UserListResponse, error)
 	GetVerifiedUsers(context.Context, *Empty) (*UserListResponse, error)
+	GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*User, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -274,6 +287,9 @@ func (UnimplementedUserServiceServer) GetUsersByCountry(context.Context, *GetUse
 }
 func (UnimplementedUserServiceServer) GetVerifiedUsers(context.Context, *Empty) (*UserListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVerifiedUsers not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -548,6 +564,24 @@ func _UserService_GetVerifiedUsers_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByUsernameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserByUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserByUsername_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserByUsername(ctx, req.(*GetUserByUsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -610,6 +644,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVerifiedUsers",
 			Handler:    _UserService_GetVerifiedUsers_Handler,
+		},
+		{
+			MethodName: "GetUserByUsername",
+			Handler:    _UserService_GetUserByUsername_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
