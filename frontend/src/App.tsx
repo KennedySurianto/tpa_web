@@ -9,6 +9,7 @@ import Layout from './pages/main/Layout'
 import VideoFeed from './pages/main/VideoFeed'
 import UploadVideoPage from './pages/main/UploadVideoPage'
 import ProfilePage from './pages/main/ProfilePage'
+import EditProfilePage from './pages/main/EditProfilePage'
 
 const App = () => {
   return (
@@ -30,6 +31,8 @@ const App = () => {
             <Route path="/home" element={<VideoFeed />} />
             <Route path="/upload" element={<UploadVideoPage />} />
             <Route path="/:username" element={<ProfilePage />} />
+            <Route path="/edit-profile" element={<EditProfilePage />} />
+            
           </Route>
 
         </Routes>

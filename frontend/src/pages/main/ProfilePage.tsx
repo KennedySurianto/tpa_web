@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import type { GetUserByUsernameRequest, User } from '../../api/gen/user';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { userClient } from '../../api/grpc/userClient';
 import { useAuth } from '../../utils/AuthProvider';
 import type { FollowRequest, UserRequest } from '../../api/gen/follow';
 import { followClient } from '../../api/grpc/followClient';
 
 const ProfilePage: React.FC = () => {
-    const { user,logout } = useAuth();
+    const { user, logout } = useAuth();
     const { username } = useParams<{ username: string }>();
+    const navigate = useNavigate();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -125,6 +126,10 @@ const ProfilePage: React.FC = () => {
             setFollowLoading(false);
         }
     };
+
+    const handleEditProfile = () => {
+        navigate("/edit-profile")
+    }
 
     if (loading) {
         return (
@@ -414,7 +419,7 @@ const ProfilePage: React.FC = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        {!isOwnProfile && (
+                        {!isOwnProfile ? (
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -474,6 +479,38 @@ const ProfilePage: React.FC = () => {
                                 }}
                                 >
                                     Message
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                gap: 'clamp(0.5rem, 2vw, 1rem)',
+                                marginBottom: '2rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <button style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                    borderRadius: '8px',
+                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '100px',
+                                    flex: '1',
+                                    maxWidth: '150px'
+                                }}
+                                onMouseOver={(e) => {
+                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                }}
+                                onMouseOut={(e) => {
+                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                }}
+                                onClick={handleEditProfile}
+                                >
+                                    Edit Profile
                                 </button>
                             </div>
                         )}

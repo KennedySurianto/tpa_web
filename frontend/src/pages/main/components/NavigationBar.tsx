@@ -19,7 +19,7 @@ const NavigationBar: React.FC = () => {
     const authenticatedNavItems = [
         { path: "/upload", label: "Upload" },
         { path: "/activity", label: "Activity" },
-        { path: "/profile", label: "Profile" },
+        { path: `/${user?.username}`, label: "Profile" },
         { path: "/following", label: "Following" },
         { path: "/friends", label: "Friends" },
         { path: "/messages", label: "Messages" },
