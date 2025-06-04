@@ -121,8 +121,9 @@ message ValidateTokenResponse {
   string message = 2;
   uint64 user_id = 3;
   string email = 4;
-  google.protobuf.Timestamp expires_at = 5;
-  repeated string permissions = 6;  // User permissions/roles
+  string username = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  repeated string permissions = 7;
 }
 
 message ChangePasswordResponse {

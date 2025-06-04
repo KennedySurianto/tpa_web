@@ -26,7 +26,7 @@ func NewVideoService(videoRepo repository.VideoRepository, minio *storage.MinIOC
 func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video, error) {
 	var videoURL string
 
-	fmt.Println("[VIDEO_SERVICE_IMPL] Received CreateVideoRequest:", req)
+	fmt.Println("[VIDEO_SERVICE_IMPL] Received CreateVideoRequest:", req.Caption, " ", req.Description, " ", req.AllowComments)
 	if len(req.VideoData) > 0 && req.ContentType != "" {
 		// generate a filename, e.g. user_5_caption.mp4
 		fileName := fmt.Sprintf("user_%d_%d.mp4", req.UserId, time.Now().Unix())
@@ -57,6 +57,8 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		AllowDuet:     req.AllowDuet,
 		AllowStitch:   req.AllowStitch,
 	}
+
+	fmt.Println("[VIDEO_SERVICE_IMPL] MODEL ALLOWCOMMENTS: ", video.AllowComments)
 
 	if err := s.videoRepo.CreateVideo(video); err != nil {
 		return nil, err

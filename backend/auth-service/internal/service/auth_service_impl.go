@@ -94,7 +94,7 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req *auth.RegisterReques
 	}
 
 	// Generate tokens
-	accessToken, refreshToken, err := s.generateTokens(userResponse.User.Id, userResponse.User.Email)
+	accessToken, refreshToken, err := s.generateTokens(userResponse.User.Id, userResponse.User.Email, userResponse.User.Username)
 	if err != nil {
 		log.Printf("Failed to generate tokens: %v", err)
 		return &auth.AuthResponse{
@@ -243,7 +243,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*a
 	}
 
 	// Generate tokens
-	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email)
+	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email, userData.Username)
 	if err != nil {
 		log.Printf("[DEBUG] Failed to generate tokens: %v\n", err)
 		return &auth.AuthResponse{
@@ -308,6 +308,7 @@ func (s *AuthServiceImpl) ValidateToken(ctx context.Context, req *auth.ValidateT
 		Message: "Token is valid",
 		UserId:  payload.UserID,
 		Email:   payload.Email,
+		Username: payload.Username,
 	}, nil
 }
 
@@ -349,7 +350,7 @@ func (s *AuthServiceImpl) RefreshToken(ctx context.Context, req *auth.RefreshTok
 	}
 
 	// Generate new tokens
-	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email)
+	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email, userData.Username)
 	if err != nil {
 		log.Printf("Failed to generate new tokens: %v", err)
 		return &auth.AuthResponse{
@@ -380,9 +381,9 @@ func (s *AuthServiceImpl) RefreshToken(ctx context.Context, req *auth.RefreshTok
 	}, nil
 }
 
-func (s *AuthServiceImpl) generateTokens(userId uint64, email string) (string, string, error) {
+func (s *AuthServiceImpl) generateTokens(userId uint64, email, username string) (string, string, error) {
 	// Access token: 24 hours
-	accessToken, _, err := s.pasetoMaker.CreateToken(userId, email, 24*time.Hour)
+	accessToken, _, err := s.pasetoMaker.CreateToken(userId, email, username, 24*time.Hour)
 	if err != nil {
 		return "", "", err
 	}

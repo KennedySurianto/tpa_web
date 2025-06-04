@@ -19,6 +19,7 @@ const VideoFeed: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [currentVideoTime, setCurrentVideoTime] = useState(0);
     const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
+    const [canComment, setCanComment] = useState<boolean>(true);
 
     const formatTime = (timeInSeconds: number): string => {
         const minutes = Math.floor(timeInSeconds / 60);
@@ -131,7 +132,7 @@ const VideoFeed: React.FC = () => {
 
     const handleCloseComments = () => {
         setShowComments(false);
-        setSelectedVideoId(null); // Optional: clear the selected video
+        setSelectedVideoId(null);
     };
 
     const handleShare = (videoId: number) => {
@@ -180,6 +181,7 @@ const VideoFeed: React.FC = () => {
                 if (isVideoInView) {
                     video.play().catch(console.error);
                     currentVideoId = videos[index]?.id || null;
+                    setCanComment(videos[index]?.allowComments ?? true);
                 } else {
                     video.pause();
                     video.currentTime = 0;
@@ -702,24 +704,26 @@ const VideoFeed: React.FC = () => {
                                             {video.likeCount}
                                         </span>
                                     </button>
-                                    <button 
-                                        className="btn btn-link" 
-                                        onClick={() => handleComment(video.id)}
-                                        style={{ 
-                                            fontSize: '0.9rem',
-                                            color: 'white',
-                                            textDecoration: 'none',
-                                            padding: '0.5rem',
-                                            border: 'none',
-                                            background: 'none',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.3rem',
-                                        }}
-                                    >
-                                        💬 Comment
-                                    </button>
+                                    {video.allowComments && (
+                                        <button 
+                                            className="btn btn-link" 
+                                            onClick={() => handleComment(video.id)}
+                                            style={{ 
+                                                fontSize: '0.9rem',
+                                                color: 'white',
+                                                textDecoration: 'none',
+                                                padding: '0.5rem',
+                                                border: 'none',
+                                                background: 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.3rem',
+                                            }}
+                                        >
+                                            💬 Comment
+                                        </button>
+                                    )}
                                     <button 
                                         className="btn btn-link" 
                                         onClick={() => handleShare(video.id)}
@@ -788,6 +792,7 @@ const VideoFeed: React.FC = () => {
                 <CommentBar 
                     videoId={selectedVideoId} 
                     onClose={handleCloseComments}
+                    canComment={canComment}
                 />
             )}
         </div>

@@ -226,10 +226,8 @@ export interface ValidateTokenResponse {
   message: string;
   userId: string;
   email: string;
-  expiresAt?:
-    | Date
-    | undefined;
-  /** User permissions/roles */
+  username: string;
+  expiresAt?: Date | undefined;
   permissions: string[];
 }
 
@@ -1761,7 +1759,7 @@ export const LogoutResponse: MessageFns<LogoutResponse> = {
 };
 
 function createBaseValidateTokenResponse(): ValidateTokenResponse {
-  return { valid: false, message: "", userId: "0", email: "", expiresAt: undefined, permissions: [] };
+  return { valid: false, message: "", userId: "0", email: "", username: "", expiresAt: undefined, permissions: [] };
 }
 
 export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
@@ -1778,11 +1776,14 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     if (message.email !== "") {
       writer.uint32(34).string(message.email);
     }
+    if (message.username !== "") {
+      writer.uint32(42).string(message.username);
+    }
     if (message.expiresAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.expiresAt), writer.uint32(42).fork()).join();
+      Timestamp.encode(toTimestamp(message.expiresAt), writer.uint32(50).fork()).join();
     }
     for (const v of message.permissions) {
-      writer.uint32(50).string(v!);
+      writer.uint32(58).string(v!);
     }
     return writer;
   },
@@ -1831,11 +1832,19 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
             break;
           }
 
-          message.expiresAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.username = reader.string();
           continue;
         }
         case 6: {
           if (tag !== 50) {
+            break;
+          }
+
+          message.expiresAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
             break;
           }
 
@@ -1857,6 +1866,7 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
       expiresAt: isSet(object.expiresAt) ? fromJsonTimestamp(object.expiresAt) : undefined,
       permissions: globalThis.Array.isArray(object?.permissions)
         ? object.permissions.map((e: any) => globalThis.String(e))
@@ -1878,6 +1888,9 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     if (message.email !== "") {
       obj.email = message.email;
     }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
     if (message.expiresAt !== undefined) {
       obj.expiresAt = message.expiresAt.toISOString();
     }
@@ -1896,6 +1909,7 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     message.message = object.message ?? "";
     message.userId = object.userId ?? "0";
     message.email = object.email ?? "";
+    message.username = object.username ?? "";
     message.expiresAt = object.expiresAt ?? undefined;
     message.permissions = object.permissions?.map((e) => e) || [];
     return message;

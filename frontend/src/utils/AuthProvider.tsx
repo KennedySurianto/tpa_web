@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const userInfo: UserInfo = {
                     id: response.userId,
                     email: response.email,
-                    username: "",
+                    username: response.username,
                     displayName: "",
                     bio: "",
                     avatarUrl: "",

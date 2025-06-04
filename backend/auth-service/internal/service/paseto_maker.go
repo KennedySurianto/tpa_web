@@ -18,6 +18,7 @@ type PasetoMaker struct {
 type PasetoPayload struct {
 	UserID    uint64    `json:"user_id"`
 	Email     string    `json:"email"`
+	Username  string    `json:"username"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
@@ -35,10 +36,11 @@ func NewPasetoMaker() *PasetoMaker {
 	}
 }
 
-func (m *PasetoMaker) CreateToken(userID uint64, email string, duration time.Duration) (string, *PasetoPayload, error) {
+func (m *PasetoMaker) CreateToken(userID uint64, email, username string, duration time.Duration) (string, *PasetoPayload, error) {
 	payload := &PasetoPayload{
 		UserID:    userID,
 		Email:     email,
+		Username:  username,
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(duration),
 	}

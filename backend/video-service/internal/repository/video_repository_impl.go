@@ -18,6 +18,7 @@ func NewVideoRepository(db *gorm.DB) *VideoRepositoryImpl {
 }
 
 func (r *VideoRepositoryImpl) CreateVideo(video *model.Video) error {
+	fmt.Println("[REPO] allow_comments: ", video.AllowComments)
 	return r.db.Create(video).Error
 }
 
