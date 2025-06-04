@@ -2,12 +2,20 @@ import React, { useEffect, useState } from 'react';
 import type { GetUserByUsernameRequest, User } from '../../api/gen/user';
 import { useParams } from 'react-router-dom';
 import { userClient } from '../../api/grpc/userClient';
+import { useAuth } from '../../utils/AuthProvider';
+import type { FollowRequest, UserRequest } from '../../api/gen/follow';
+import { followClient } from '../../api/grpc/followClient';
 
 const ProfilePage: React.FC = () => {
+    const { user,logout } = useAuth();
     const { username } = useParams<{ username: string }>();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [isFollowing, setIsFollowing] = useState<boolean>(false);
+    const [followLoading, setFollowLoading] = useState<boolean>(false);
+    const [followersCount, setFollowersCount] = useState<number>(0);
+    const [followingCount, setFollowingCount] = useState<number>(0);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -22,6 +30,14 @@ const ProfilePage: React.FC = () => {
                 const res: User = await userClient.GetUserByUsername(req);
                 console.log(res);
                 setSelectedUser(res);
+                
+                // Check if current user is following this user and get follower counts
+                if (user && res.id) {
+                    await Promise.all([
+                        checkFollowStatus(Number(user.id), Number(res.id)),
+                        getFollowCounts(Number(res.id))
+                    ]);
+                }
             } catch (err) {
                 console.error('Error fetching user:', err);
                 setError('Failed to fetch user data.');
@@ -31,18 +47,131 @@ const ProfilePage: React.FC = () => {
         };
 
         fetchUser();
-    }, [username]);
+    }, [username, user]);
+
+    const checkFollowStatus = async (followerId: number, followedId: number) => {
+        try {
+            const req: UserRequest = { userId: followerId };
+            const res = await followClient.GetFollowing(req);
+            
+            const isUserFollowed = res.follows.some(
+                follow => follow.followedId === followedId
+            );
+            setIsFollowing(isUserFollowed);
+        } catch (err) {
+            console.error('Error checking follow status:', err);
+        }
+    };
+
+    const getFollowCounts = async (userId: number) => {
+        try {
+            const [followersRes, followingRes] = await Promise.all([
+                followClient.GetFollowers({ userId }),
+                followClient.GetFollowing({ userId })
+            ]);
+            
+            setFollowersCount(followersRes.follows.length);
+            setFollowingCount(followingRes.follows.length);
+        } catch (err) {
+            console.error('Error fetching follow counts:', err);
+        }
+    };
+
+    const handleFollow = async () => {
+        if (!user) {
+            console.log("User not authenticated!");
+            logout();
+            return;
+        }
+
+        if (!selectedUser || followLoading) {
+            console.log("Please try again later.");
+            setError("Please try again later.");
+            return;
+        } 
+
+        const followerId = Number(user.id);
+        const followedId = Number(selectedUser.id);
+
+        if (!(followedId && followerId)) {
+            return;
+        }
+
+        setFollowLoading(true);
+
+        try {
+            const req: FollowRequest = {
+                followerId: followerId,
+                followedId: followedId
+            };
+
+            if (isFollowing) {
+                // Unfollow
+                await followClient.Unfollow(req);
+                setIsFollowing(false);
+                setFollowersCount(prev => Math.max(0, prev - 1));
+                console.log("UNFOLLOWED");
+            } else {
+                // Follow
+                await followClient.Follow(req);
+                setIsFollowing(true);
+                setFollowersCount(prev => prev + 1);
+                console.log("FOLLOWED");
+            }
+        } catch (err) {
+            console.error('Error following/unfollowing:', err);
+            setError('Failed to update follow status.');
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div style={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #000 0%, #111 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: '1.2rem'
+            }}>
+                Loading...
+            </div>
+        );
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return (
+            <div style={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #000 0%, #111 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ff6b35',
+                fontSize: '1.2rem'
+            }}>
+                Error: {error}
+            </div>
+        );
     }
 
     if (!selectedUser) {
-        return <div>User not found.</div>;
+        return (
+            <div style={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #000 0%, #111 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ccc',
+                fontSize: '1.2rem'
+            }}>
+                User not found.
+            </div>
+        );
     }
 
     const getAvatarDisplay = () => {
@@ -55,31 +184,33 @@ const ProfilePage: React.FC = () => {
         const seconds = parseInt(timestamp, 10);
         if (isNaN(seconds)) return 'Member since unknown';
 
-        const joinDate = new Date(seconds * 1000); // Convert to milliseconds
+        const joinDate = new Date(seconds * 1000);
         const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
 
         return `Joined ${joinDate.toLocaleDateString('en-US', options)}`;
     };
 
-    return (
-        <div 
-        className='pt-5'
-        style={{ 
-            minHeight: '100vh', 
-            background: 'linear-gradient(135deg, #000 0%, #111 100%)',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
+    const isOwnProfile = user && selectedUser && user.id === selectedUser.id;
 
+    return (
+        <div style={{ 
+            height: '100vh',
+            overflowY: 'auto',
+            background: 'linear-gradient(135deg, #000 0%, #111 100%)',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            padding: '20px 10px'
+        }}>
             {/* Profile Content */}
-            <div className="container py-4">
-                <div className="row justify-center">
-                <div className="col-12 col-md-8 col-lg-6">
-                    
-                    {/* Avatar and Basic Info */}
-                    <div className="text-center mb-4">
+            <div style={{
+                maxWidth: '600px',
+                margin: '0 auto',
+                padding: '0 15px'
+            }}>
+                {/* Avatar and Basic Info */}
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <div style={{
-                        width: '120px',
-                        height: '120px',
+                        width: 'clamp(100px, 20vw, 120px)',
+                        height: 'clamp(100px, 20vw, 120px)',
                         borderRadius: '50%',
                         background: selectedUser.avatarUrl 
                             ? `url(${selectedUser.avatarUrl}) center/cover` 
@@ -87,7 +218,7 @@ const ProfilePage: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: selectedUser.avatarUrl ? '0' : '3rem',
+                        fontSize: selectedUser.avatarUrl ? '0' : 'clamp(2rem, 5vw, 3rem)',
                         margin: '0 auto 1rem',
                         border: '3px solid transparent',
                         backgroundClip: 'padding-box',
@@ -95,169 +226,285 @@ const ProfilePage: React.FC = () => {
                     }}>
                         {!selectedUser.avatarUrl && getAvatarDisplay()}
                         {selectedUser.isVerified && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '5px',
-                            right: '5px',
-                            background: '#20d5ec',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid #000'
-                        }}>
-                            <span style={{ fontSize: '0.8rem', color: '#000' }}>✓</span>
-                        </div>
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '5px',
+                                right: '5px',
+                                background: '#20d5ec',
+                                borderRadius: '50%',
+                                width: '24px',
+                                height: '24px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px solid #000'
+                            }}>
+                                <span style={{ fontSize: '0.8rem', color: '#000' }}>✓</span>
+                            </div>
                         )}
                     </div>
                     
-                    <h2 className="mb-1" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
+                    <h2 style={{ 
+                        fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+                        fontWeight: 'bold', 
+                        color: '#fff',
+                        margin: '0 0 0.5rem 0',
+                        wordBreak: 'break-word'
+                    }}>
                         @{selectedUser.username}
                     </h2>
-                    <p className="mb-2" style={{ fontSize: '1rem', color: '#ccc' }}>
+                    <p style={{ 
+                        fontSize: 'clamp(0.9rem, 3vw, 1rem)', 
+                        color: '#ccc',
+                        margin: '0 0 1rem 0',
+                        wordBreak: 'break-word'
+                    }}>
                         {selectedUser.displayName}
                     </p>
-                    </div>
+                </div>
 
-                    {/* Stats Placeholder */}
-                        <div className="row mb-4">
-                        <div className="col-4 text-center">
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>0</div>
-                            <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Following</div>
-                        </div>
-                        <div className="col-4 text-center">
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>0</div>
-                            <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Followers</div>
-                        </div>
-                        <div className="col-4 text-center">
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>0</div>
-                            <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Likes</div>
-                        </div>
-                    </div>
-
-                    {/* Private Account Message */}
-                    {selectedUser.isPrivate ? (
-                    <div className="text-center py-5">
-                        <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                {/* Stats */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <div>
+                        <div style={{ 
+                            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+                            fontWeight: 'bold', 
+                            color: '#fff' 
                         }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-                        <h3 style={{ marginBottom: '0.5rem', color: '#fff' }}>This account is private</h3>
-                        <p style={{ color: '#ccc', margin: 0 }}>
-                            Follow this account to see their content
-                        </p>
+                            {followingCount}
+                        </div>
+                        <div style={{ 
+                            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
+                            color: '#ccc' 
+                        }}>
+                            Following
                         </div>
                     </div>
-                    ) : (
+                    <div>
+                        <div style={{ 
+                            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+                            fontWeight: 'bold', 
+                            color: '#fff' 
+                        }}>
+                            {followersCount}
+                        </div>
+                        <div style={{ 
+                            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
+                            color: '#ccc' 
+                        }}>
+                            Followers
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{ 
+                            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+                            fontWeight: 'bold', 
+                            color: '#fff' 
+                        }}>
+                            0
+                        </div>
+                        <div style={{ 
+                            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
+                            color: '#ccc' 
+                        }}>
+                            Likes
+                        </div>
+                    </div>
+                </div>
+
+                {/* Private Account Message */}
+                {selectedUser.isPrivate && !isOwnProfile ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px',
+                            padding: 'clamp(1.5rem, 5vw, 2rem)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}>
+                            <div style={{ fontSize: 'clamp(2rem, 6vw, 3rem)', marginBottom: '1rem' }}>🔒</div>
+                            <h3 style={{ 
+                                marginBottom: '0.5rem', 
+                                color: '#fff',
+                                fontSize: 'clamp(1.1rem, 4vw, 1.3rem)'
+                            }}>
+                                This account is private
+                            </h3>
+                            <p style={{ 
+                                color: '#ccc', 
+                                margin: 0,
+                                fontSize: 'clamp(0.9rem, 3vw, 1rem)'
+                            }}>
+                                Follow this account to see their content
+                            </p>
+                        </div>
+                    </div>
+                ) : (
                     <>
                         {/* Bio */}
                         {selectedUser.bio && (
-                        <div className="mb-4 text-center">
-                            <p style={{ 
-                            fontSize: '1rem', 
-                            lineHeight: '1.5',
-                            color: '#fff',
-                            maxWidth: '400px',
-                            margin: '0 auto'
-                            }}>
-                            {selectedUser.bio}
-                            </p>
-                        </div>
+                            <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                                <p style={{ 
+                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)', 
+                                    lineHeight: '1.5',
+                                    color: '#fff',
+                                    maxWidth: '400px',
+                                    margin: '0 auto',
+                                    wordBreak: 'break-word'
+                                }}>
+                                    {selectedUser.bio}
+                                </p>
+                            </div>
                         )}
 
                         {/* User Details */}
-                        <div className="mb-4">
+                        <div style={{ marginBottom: '2rem' }}>
                             <div style={{
                                 background: 'rgba(255, 255, 255, 0.05)',
                                 borderRadius: '12px',
-                                padding: '1.5rem',
+                                padding: 'clamp(1rem, 4vw, 1.5rem)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)'
                             }}>
                                 {selectedUser.country && (
-                                <div className="d-flex align-center mb-3">
-                                    <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>🌍</span>
-                                    <span style={{ color: '#ccc' }}>{selectedUser.country}</span>
-                                </div>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        marginBottom: '1rem',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)'
+                                    }}>
+                                        <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>🌍</span>
+                                        <span style={{ color: '#ccc', wordBreak: 'break-word' }}>
+                                            {selectedUser.country}
+                                        </span>
+                                    </div>
                                 )}
                                 
                                 {selectedUser.createdAt && (
-                                <div className="d-flex align-center mb-3">
-                                    <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📅</span>
-                                    <span style={{ color: '#ccc' }}>{formatJoinDate(selectedUser.createdAt)}</span>
-                                </div>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        marginBottom: '1rem',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)'
+                                    }}>
+                                        <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📅</span>
+                                        <span style={{ color: '#ccc' }}>{formatJoinDate(selectedUser.createdAt)}</span>
+                                    </div>
                                 )}
 
-                                <div className="d-flex align-center">
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)'
+                                }}>
                                     <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📧</span>
-                                    <span style={{ color: '#ccc', fontSize: '0.9rem' }}>{selectedUser.email}</span>
+                                    <span style={{ 
+                                        color: '#ccc', 
+                                        wordBreak: 'break-all',
+                                        overflow: 'hidden'
+                                    }}>
+                                        {selectedUser.email}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="d-flex justify-center gap-2 mb-4">
-                            <button style={{
-                                background: 'linear-gradient(45deg, #ff0050, #ff6b35)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                fontSize: '1rem',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'transform 0.2s ease'
-                            }}
-                            onMouseOver={(e) => (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'}
-                            onMouseOut={(e) => (e.target as HTMLButtonElement).style.transform = 'scale(1)'}
-                            >
-                                Follow
-                            </button>
-                            <button style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: 'white',
-                                border: '1px solid rgba(255, 255, 255, 0.3)',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                fontSize: '1rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
-                            }}
-                            onMouseOut={(e) => {
-                                (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
-                            }}
-                            >
-                                Message
-                            </button>
-                        </div>
+                        {!isOwnProfile && (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                gap: 'clamp(0.5rem, 2vw, 1rem)',
+                                marginBottom: '2rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <button
+                                    style={{
+                                        background: isFollowing 
+                                            ? 'rgba(255, 255, 255, 0.1)' 
+                                            : 'linear-gradient(45deg, #ff0050, #ff6b35)',
+                                        color: 'white',
+                                        border: isFollowing ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
+                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                        borderRadius: '8px',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                        fontWeight: 'bold',
+                                        cursor: followLoading ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        opacity: followLoading ? 0.7 : 1,
+                                        minWidth: '100px',
+                                        flex: '1',
+                                        maxWidth: '150px'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        if (!followLoading) {
+                                            (e.target as HTMLButtonElement).style.transform = 'scale(1.05)';
+                                        }
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.transform = 'scale(1)';
+                                    }}
+                                    onClick={handleFollow}
+                                    disabled={followLoading}
+                                >
+                                    {followLoading ? 'Loading...' : (isFollowing ? 'Unfollow' : 'Follow')}
+                                </button>
+                                <button style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                    borderRadius: '8px',
+                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '100px',
+                                    flex: '1',
+                                    maxWidth: '150px'
+                                }}
+                                onMouseOver={(e) => {
+                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                }}
+                                onMouseOut={(e) => {
+                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                }}
+                                >
+                                    Message
+                                </button>
+                            </div>
+                        )}
 
-                        {/* Content Tabs */}
-                        <div className="text-center">
+                        {/* Content Section */}
+                        <div style={{ textAlign: 'center' }}>
                             <div style={{
                                 background: 'rgba(255, 255, 255, 0.05)',
                                 borderRadius: '12px',
-                                padding: '2rem',
+                                padding: 'clamp(1.5rem, 5vw, 2rem)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)'
                             }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📹</div>
-                                <p style={{ color: '#ccc', margin: 0 }}>
-                                    No videos yet
+                                <div style={{ 
+                                    fontSize: 'clamp(1.5rem, 5vw, 2rem)', 
+                                    marginBottom: '1rem' 
+                                }}>
+                                    📹
+                                </div>
+                                <p style={{ 
+                                    color: '#ccc', 
+                                    margin: 0,
+                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)'
+                                }}>
+                                    {isOwnProfile ? 'You haven\'t posted any videos yet' : 'No videos yet'}
                                 </p>
                             </div>
                         </div>
                     </>
-                    )}
-                </div>
+                )}
             </div>
         </div>
-    </div>
     );
 };
 

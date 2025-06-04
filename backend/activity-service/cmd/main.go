@@ -17,6 +17,7 @@ import (
 	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	likecommentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment"
+	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
@@ -39,13 +40,15 @@ func main() {
 	likeRepo := repository.NewLikeRepository(db)
 	watchRepo := repository.NewWatchRepository(db)
 	likeCommentRepo := repository.NewLikeCommentRepository(db)
+	followRepo := repository.NewFollowRepository(db)
 	
 	// Services
 	commentSvc := service.NewCommentService(commentRepo)
 	likeSvc := service.NewLikeService(likeRepo)
 	watchSvc := service.NewWatchService(watchRepo)
 	likeCommentSvc := service.NewLikeCommentService(likeCommentRepo)
-	
+	followSvc := service.NewFollowService(followRepo)
+
 	// Clients
 	userClient := getUserClient()
 
@@ -54,6 +57,7 @@ func main() {
 	watchCtrl := controller.NewWatchController(watchSvc)
 	likeCommentCtrl := controller.NewLikeCommentController(likeCommentSvc)
 	commentCtrl := controller.NewCommentController(commentSvc, userClient, *likeCommentCtrl)
+	followCtrl := controller.NewFollowController(followSvc)
 	
 	// Register gRPC server
 	grpcServer := grpc.NewServer()
@@ -61,6 +65,7 @@ func main() {
 	likepb.RegisterLikeServiceServer(grpcServer, likeCtrl)
 	watchpb.RegisterWatchServiceServer(grpcServer, watchCtrl)
 	likecommentpb.RegisterLikeCommentServiceServer(grpcServer, likeCommentCtrl)
+	followpb.RegisterFollowServiceServer(grpcServer, followCtrl)
 
 	// Enable reflection (useful for debugging tools like grpcurl)
 	reflection.Register(grpcServer)

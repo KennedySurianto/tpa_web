@@ -26,6 +26,7 @@ func ConnectDatabase() *gorm.DB {
         &model.LikeComment{},
         &model.Like{},
         &model.Watch{},
+        &model.Follow{},
     )
     if err != nil {
         panic(err)

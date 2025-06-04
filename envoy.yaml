@@ -66,6 +66,11 @@ static_resources:
                           route:
                             cluster: activity-service
 
+                        - match:
+                            prefix: "/activity.FollowService/"
+                          route:
+                            cluster: activity-service
+
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:

@@ -46,6 +46,12 @@ proto:
 		--grpc-gateway_out=backend/shared/gen/like_comment --grpc-gateway_opt=paths=source_relative \
 		proto/like_comment.proto
 
+	protoc -Iproto \
+		--go_out=backend/shared/gen/follow --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/follow --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/follow --grpc-gateway_opt=paths=source_relative \
+		proto/follow.proto
+
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
 	protoc \

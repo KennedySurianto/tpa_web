@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow;follow";
+
+service FollowService {
+    rpc Follow(FollowRequest) returns (Empty) {}
+    rpc Unfollow(FollowRequest) returns (Empty) {}
+    rpc GetFollowers(UserRequest) returns (FollowList) {}
+    rpc GetFollowing(UserRequest) returns (FollowList) {}
+}
+
+message FollowRequest {
+    uint32 follower_id = 1;
+    uint32 followed_id = 2;
+}
+
+message UserRequest {
+    uint32 user_id = 1;
+}
+
+message FollowItem {
+    uint32 follower_id = 1;
+    uint32 followed_id = 2;
+}
+
+message FollowList {
+    repeated FollowItem follows = 1;
+}
+
+message Empty {}
