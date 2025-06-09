@@ -62,12 +62,13 @@ func (r *UserRepositoryImpl) GetUserById(id uint) (*model.User, error) {
 
 // New methods implementation
 
-func (r *UserRepositoryImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error {
+func (r *UserRepositoryImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country, username string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
 		"display_name": displayName,
 		"bio":          bio,
 		"avatar_url":   avatarURL,
 		"country":      country,
+		"username":     username,
 	}).Error
 }
 

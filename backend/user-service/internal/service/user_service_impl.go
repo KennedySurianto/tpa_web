@@ -68,8 +68,8 @@ func (u *UserServiceImpl) GetUserById(id uint) (*model.User, error) {
 
 // New methods implementation
 
-func (u *UserServiceImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error {
-	return u.userRepo.UpdateUserProfile(userID, displayName, bio, avatarURL, country)
+func (u *UserServiceImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country, username string) error {
+	return u.userRepo.UpdateUserProfile(userID, displayName, bio, avatarURL, country, username)
 }
 
 func (u *UserServiceImpl) UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error {

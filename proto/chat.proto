@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/chat;chat";
+
+// Chat message model
+message Chat {
+    uint64 id = 1;
+    uint64 sender_id = 2;
+    uint64 receiver_id = 3;
+    string type = 4;
+    string message = 5;
+    string created_at = 6;
+}
+
+// Request to send a message
+message SendMessageRequest {
+    uint64 sender_id = 1;
+    uint64 receiver_id = 2;
+    string type = 3; // "text", "image", or "video"
+    string message = 4;
+}
+
+// Response after sending a message
+message SendMessageResponse {
+    Chat chat = 1;
+}
+
+// Request to get chats by user ID
+message GetChatsByUserIDRequest {
+    uint64 user_id = 1;
+}
+
+// Response with list of chats
+message GetChatsByUserIDResponse {
+    repeated Chat chats = 1;
+}
+
+// Chat service definition
+service ChatService {
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+    rpc GetChatsByUserID(GetChatsByUserIDRequest) returns (GetChatsByUserIDResponse);
+}

@@ -477,6 +477,7 @@ const ProfilePage: React.FC = () => {
                                 onMouseOut={(e) => {
                                     (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
                                 }}
+                                onClick={() => navigate(`/${username}/message`)}
                                 >
                                     Message
                                 </button>

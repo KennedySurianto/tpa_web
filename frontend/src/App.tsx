@@ -10,6 +10,8 @@ import VideoFeed from './pages/main/VideoFeed'
 import UploadVideoPage from './pages/main/UploadVideoPage'
 import ProfilePage from './pages/main/ProfilePage'
 import EditProfilePage from './pages/main/EditProfilePage'
+import PrivateRoute from './routes/PrivateRoute'
+import ChatPage from './pages/main/ChatPage'
 
 const App = () => {
   return (
@@ -29,12 +31,15 @@ const App = () => {
 
           <Route element={<Layout />} >
             <Route path="/home" element={<VideoFeed />} />
-            <Route path="/upload" element={<UploadVideoPage />} />
             <Route path="/:username" element={<ProfilePage />} />
-            <Route path="/edit-profile" element={<EditProfilePage />} />
-            
-          </Route>
 
+            {/* Private routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="/upload" element={<UploadVideoPage />} />
+              <Route path="/edit-profile" element={<EditProfilePage />} />
+              <Route path="/:receiverUsername/message" element={<ChatPage />} />
+            </Route>
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

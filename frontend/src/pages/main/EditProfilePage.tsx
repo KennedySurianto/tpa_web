@@ -370,6 +370,7 @@ const EditProfilePage: React.FC = () => {
                 bio: formData.bio,
                 avatarUrl: formData.avatarUrl,
                 country: formData.country,
+                username: formData.username,
             }
 
             const res = await userClient.UpdateUserProfile(req);

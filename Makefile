@@ -52,6 +52,12 @@ proto:
 		--grpc-gateway_out=backend/shared/gen/follow --grpc-gateway_opt=paths=source_relative \
 		proto/follow.proto
 
+	protoc -Iproto \
+		--go_out=backend/shared/gen/chat --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/chat --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/chat --grpc-gateway_opt=paths=source_relative \
+		proto/chat.proto
+
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
 	protoc \

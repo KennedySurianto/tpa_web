@@ -176,6 +176,7 @@ func (u *UserController) UpdateUserProfile(ctx context.Context, req *pb.UpdateUs
 		req.Bio,
 		req.AvatarUrl,
 		req.Country,
+		req.Username,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user profile: %v", err)

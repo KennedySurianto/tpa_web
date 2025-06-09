@@ -68,6 +68,7 @@ export interface UpdateUserProfileRequest {
   bio: string;
   avatarUrl: string;
   country: string;
+  username: string;
 }
 
 export interface UpdateUserPreferencesRequest {
@@ -954,7 +955,7 @@ export const GetUserByIdRequest: MessageFns<GetUserByIdRequest> = {
 };
 
 function createBaseUpdateUserProfileRequest(): UpdateUserProfileRequest {
-  return { userId: "0", displayName: "", bio: "", avatarUrl: "", country: "" };
+  return { userId: "0", displayName: "", bio: "", avatarUrl: "", country: "", username: "" };
 }
 
 export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
@@ -973,6 +974,9 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
     }
     if (message.country !== "") {
       writer.uint32(42).string(message.country);
+    }
+    if (message.username !== "") {
+      writer.uint32(50).string(message.username);
     }
     return writer;
   },
@@ -1024,6 +1028,14 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
           message.country = reader.string();
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1040,6 +1052,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
       avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
       country: isSet(object.country) ? globalThis.String(object.country) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
     };
   },
 
@@ -1060,6 +1073,9 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
     if (message.country !== "") {
       obj.country = message.country;
     }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
     return obj;
   },
 
@@ -1073,6 +1089,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
     message.bio = object.bio ?? "";
     message.avatarUrl = object.avatarUrl ?? "";
     message.country = object.country ?? "";
+    message.username = object.username ?? "";
     return message;
   },
 };

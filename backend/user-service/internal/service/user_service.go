@@ -16,7 +16,7 @@ type UserService interface {
 	GetUserById(id uint) (*model.User, error)
 	UpdateUserPassword(email string, newPassword string) error
 
-	UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country string) error
+	UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country, username string) error
 	UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error
 	SetUserPrivacyStatus(userID uint64, isPrivate bool) error
 	SetUserActiveStatus(userID uint64, isActive bool) error

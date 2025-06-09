@@ -83,6 +83,7 @@ message UpdateUserProfileRequest {
   string bio = 3;
   string avatar_url = 4;
   string country = 5;
+  string username = 6;
 }
 
 message UpdateUserPreferencesRequest {
