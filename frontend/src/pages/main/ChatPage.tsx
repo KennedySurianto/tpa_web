@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../utils/AuthProvider";
 import { GetChatsByUserIDRequest, SendMessageRequest } from "../../api/gen/chat";
 import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
@@ -17,6 +17,7 @@ export default function ChatPage() {
     const { user } = useAuth();
     const { receiverUsername } = useParams<{ receiverUsername: string }>();
     
+    const navigate = useNavigate();
     const [messages, setMessages] = useState<Message[]>([]);
     const [receiver, setReceiver] = useState<User | null>(null);
     const [input, setInput] = useState("");
@@ -143,88 +144,104 @@ export default function ChatPage() {
     if (user) {
         return (
             <>
-            <ChatWebSocket userId={Number(user.id)} onMessage={handleIncomingMessage} />
-            {/* your UI here */}
-        <div
-        style={{
-            maxWidth: 400,
-            margin: "20px auto",
-            display: "flex",
-            flexDirection: "column",
-            border: "1px solid #ddd",
-            borderRadius: 6,
-            height: "500px",
-        }}
-        >
-        <div
-            style={{
-            flex: 1,
-            padding: 10,
-            overflowY: "auto",
-            backgroundColor: "#f9f9f9",
-            }}
-        >
-            {messages.map((m) => (
+                <ChatWebSocket userId={Number(user.id)} onMessage={handleIncomingMessage} />
                 <div
-                    key={m.id}
-                    style={{
-                    marginBottom: 10,
+                style={{
+                    height: '100vh',
+                    overflowY: 'auto',
+                    margin: "0 auto",
                     display: "flex",
-                    justifyContent: m.sender === user?.username ? "flex-end" : "flex-start",
-                    }}
+                    flexDirection: "column",
+                    border: "1px solid #ddd",
+                    borderRadius: 6,
+                }}
+                className="w-100"
                 >
+                    {/* Header */}
                     <div
-                    style={{
-                        backgroundColor: m.sender === user?.username ? "#0084ff" : "#e5e5ea",
-                        color: m.sender === user?.username ? "white" : "black",
-                        padding: "8px 12px",
-                        borderRadius: 20,
-                        maxWidth: "70%",
-                        wordBreak: "break-word",
-                    }}
+                        style={{
+                            padding: "12px 16px",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#f0f0f0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            fontWeight: "bold",
+                        }}
                     >
-                    <b>{m.sender === user?.username ? "You" : m.sender}</b>: {m.text}
+                        <span style={{ cursor: "pointer" }} onClick={() => navigate(-1)}>⬅</span>
+                        <span>💬 {receiver?.username || "..."}</span>
+                        <span>⋯</span>
+                    </div>
+                    <div
+                        style={{
+                        flex: 1,
+                        padding: 10,
+                        overflowY: "auto",
+                        backgroundColor: "#f9f9f9",
+                        }}
+                    >
+                        {messages.map((m) => (
+                            <div
+                                key={m.id}
+                                style={{
+                                marginBottom: 10,
+                                display: "flex",
+                                justifyContent: m.sender === user?.username ? "flex-end" : "flex-start",
+                                }}
+                            >
+                                <div
+                                style={{
+                                    backgroundColor: m.sender === user?.username ? "#0084ff" : "#e5e5ea",
+                                    color: m.sender === user?.username ? "white" : "black",
+                                    padding: "8px 12px",
+                                    borderRadius: 20,
+                                    maxWidth: "70%",
+                                    wordBreak: "break-word",
+                                }}
+                                >
+                                <b>{m.sender === user?.username ? "You" : m.sender}</b>: {m.text}
+                                </div>
+                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <div style={{ display: "flex", padding: 10, borderTop: "1px solid #ddd" }}>
+                        <input
+                        type="text"
+                        placeholder={`Message to ${receiver?.username || "..."}`}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={onKeyDown}
+                        style={{
+                            flex: 1,
+                            padding: 10,
+                            fontSize: 16,
+                            borderRadius: 20,
+                            border: "1px solid #ccc",
+                            outline: "none",
+                        }}
+                        disabled={!receiver || !user}
+                        />
+                        <button
+                        onClick={sendMessage}
+                        disabled={!receiver || !user}
+                        style={{
+                            marginLeft: 10,
+                            padding: "10px 20px",
+                            borderRadius: 20,
+                            border: "none",
+                            backgroundColor: receiver && user ? "#0084ff" : "#aaa",
+                            color: "white",
+                            fontWeight: "bold",
+                            cursor: receiver && user ? "pointer" : "not-allowed",
+                        }}
+                        >
+                        Send
+                        </button>
                     </div>
                 </div>
-            ))}
-            <div ref={messagesEndRef} />
-        </div>
-
-        <div style={{ display: "flex", padding: 10, borderTop: "1px solid #ddd" }}>
-            <input
-            type="text"
-            placeholder={`Message to ${receiver?.username || "..."}`}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            style={{
-                flex: 1,
-                padding: 10,
-                fontSize: 16,
-                borderRadius: 20,
-                border: "1px solid #ccc",
-                outline: "none",
-            }}
-            disabled={!receiver || !user}
-            />
-            <button
-            onClick={sendMessage}
-            disabled={!receiver || !user}
-            style={{
-                marginLeft: 10,
-                padding: "10px 20px",
-                borderRadius: 20,
-                border: "none",
-                backgroundColor: receiver && user ? "#0084ff" : "#aaa",
-                color: "white",
-                fontWeight: "bold",
-                cursor: receiver && user ? "pointer" : "not-allowed",
-            }}
-            >
-            Send
-            </button>
-        </div>
-        </div>
             </>
         );
     } else {
