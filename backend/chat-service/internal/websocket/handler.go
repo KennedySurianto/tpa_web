@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -28,6 +29,11 @@ func ServeWebSocket(hub *Hub) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, "Failed to upgrade", http.StatusInternalServerError)
 			return
+		}
+
+		fmt.Println("WS Request received:")
+		for k, v := range r.Header {
+			fmt.Printf("%s: %v\n", k, v)
 		}
 
 		client := &Client{

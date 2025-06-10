@@ -32,6 +32,7 @@ func main() {
 	go hub.Run()
 
 	http.HandleFunc("/ws", chatws.ServeWebSocket(hub))
+	http.HandleFunc("/ws/", chatws.ServeWebSocket(hub))
 
 	go func() {
 		log.Println("WebSocket server running at :8081/ws")

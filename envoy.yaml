@@ -12,6 +12,8 @@ static_resources:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: ingress_http
                 codec_type: AUTO
+                upgrade_configs:
+                  - upgrade_type: websocket
                 route_config:
                   name: local_route
                   virtual_hosts:
@@ -76,6 +78,15 @@ static_resources:
                             prefix: "/chat.ChatService/"
                           route:
                             cluster: chat-service
+
+                        - match:
+                            prefix: "/ws"
+                          route:
+                            cluster: chat-service-ws
+                            prefix_rewrite: "/ws"
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: true
 
                 http_filters:
                   - name: envoy.filters.http.cors
@@ -169,6 +180,20 @@ static_resources:
                     socket_address:
                       address: chat-service
                       port_value: 50055
+                    
+    - name: chat-service-ws
+      connect_timeout: 0.25s
+      type: logical_dns
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: chat-service-ws
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: chat-service
+                      port_value: 8081
 
 admin:
   access_log_path: "/tmp/admin_access.log"

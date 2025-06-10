@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../utils/AuthProvider";
-import { SendMessageRequest } from "../../api/gen/chat";
+import { GetChatsByUserIDRequest, SendMessageRequest } from "../../api/gen/chat";
 import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
 import { userClient } from "../../api/grpc/userClient";
 import { chatClient } from "../../api/grpc/chatClient";
+import ChatWebSocket from "../../components/ChatWebSocket";
 
 type Message = {
     id: number;
@@ -15,12 +16,13 @@ type Message = {
 export default function ChatPage() {
     const { user } = useAuth();
     const { receiverUsername } = useParams<{ receiverUsername: string }>();
-
+    
     const [messages, setMessages] = useState<Message[]>([]);
     const [receiver, setReceiver] = useState<User | null>(null);
     const [input, setInput] = useState("");
     const nextId = useRef(1);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const hasFetchedMessages = useRef(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -49,8 +51,44 @@ export default function ChatPage() {
     }, [receiverUsername, user]);
 
     useEffect(() => {
+        if (!user || hasFetchedMessages.current) return;
+
+        const fetchMessages = async () => {
+            try {
+                const req: GetChatsByUserIDRequest = { userId: user.id };
+                const res = await chatClient.GetChatsByUserID(req);
+
+                if (res) {
+                    res.chats.forEach((chat) => {
+                    const message: Message = {
+                        id: nextId.current++,
+                        sender: chat.senderId === user.id ? user.username : receiverUsername || "Unknown",
+                        text: chat.message,
+                    };
+                    setMessages((prev) => [...prev, message]);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to fetch messages:", err);
+            }
+        };
+
+        fetchMessages();
+        hasFetchedMessages.current = true;
+    }, [user, receiverUsername]);
+
+    useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    const handleIncomingMessage = (msg: any) => {
+        const receivedMessage: Message = {
+            id: nextId.current++,
+            sender: receiver?.username || "Unknown",
+            text: msg.message,
+        };
+        setMessages((prev) => [...prev, receivedMessage]);
+    };
 
     const sendMessage = async () => {
         if (!input.trim()) return;
@@ -102,7 +140,11 @@ export default function ChatPage() {
         }
     };
 
-    return (
+    if (user) {
+        return (
+            <>
+            <ChatWebSocket userId={Number(user.id)} onMessage={handleIncomingMessage} />
+            {/* your UI here */}
         <div
         style={{
             maxWidth: 400,
@@ -183,5 +225,13 @@ export default function ChatPage() {
             </button>
         </div>
         </div>
-    );
+            </>
+        );
+    } else {
+        return (
+            <div style={{ textAlign: "center", marginTop: 50 }}>
+                <h2>Please log in to access the chat</h2>
+            </div>
+        );
+    }
 }
