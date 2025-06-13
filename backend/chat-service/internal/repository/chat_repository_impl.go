@@ -26,3 +26,13 @@ func (r *ChatRepositoryImpl) GetByUserID(userID uint64) ([]*model.Chat, error) {
 		Find(&chats).Error
 	return chats, err
 }
+
+func (r *ChatRepositoryImpl) GetBetweenUsers(user1, user2 uint64) ([]*model.Chat, error) {
+	var chats []*model.Chat
+	err := r.db.
+		Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+			user1, user2, user2, user1).
+		Order("created_at ASC").
+		Find(&chats).Error
+	return chats, err
+}

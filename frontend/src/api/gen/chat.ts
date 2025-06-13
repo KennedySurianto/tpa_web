@@ -45,6 +45,15 @@ export interface GetChatsByUserIDResponse {
   chats: Chat[];
 }
 
+export interface GetChatsWithUserRequest {
+  user1Id: string;
+  user2Id: string;
+}
+
+export interface GetChatsWithUserResponse {
+  chats: Chat[];
+}
+
 function createBaseChat(): Chat {
   return { id: "0", senderId: "0", receiverId: "0", type: "", message: "", createdAt: "" };
 }
@@ -467,6 +476,140 @@ export const GetChatsByUserIDResponse: MessageFns<GetChatsByUserIDResponse> = {
   },
 };
 
+function createBaseGetChatsWithUserRequest(): GetChatsWithUserRequest {
+  return { user1Id: "0", user2Id: "0" };
+}
+
+export const GetChatsWithUserRequest: MessageFns<GetChatsWithUserRequest> = {
+  encode(message: GetChatsWithUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.user1Id !== "0") {
+      writer.uint32(8).uint64(message.user1Id);
+    }
+    if (message.user2Id !== "0") {
+      writer.uint32(16).uint64(message.user2Id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatsWithUserRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetChatsWithUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.user1Id = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.user2Id = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetChatsWithUserRequest {
+    return {
+      user1Id: isSet(object.user1Id) ? globalThis.String(object.user1Id) : "0",
+      user2Id: isSet(object.user2Id) ? globalThis.String(object.user2Id) : "0",
+    };
+  },
+
+  toJSON(message: GetChatsWithUserRequest): unknown {
+    const obj: any = {};
+    if (message.user1Id !== "0") {
+      obj.user1Id = message.user1Id;
+    }
+    if (message.user2Id !== "0") {
+      obj.user2Id = message.user2Id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(base?: I): GetChatsWithUserRequest {
+    return GetChatsWithUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(object: I): GetChatsWithUserRequest {
+    const message = createBaseGetChatsWithUserRequest();
+    message.user1Id = object.user1Id ?? "0";
+    message.user2Id = object.user2Id ?? "0";
+    return message;
+  },
+};
+
+function createBaseGetChatsWithUserResponse(): GetChatsWithUserResponse {
+  return { chats: [] };
+}
+
+export const GetChatsWithUserResponse: MessageFns<GetChatsWithUserResponse> = {
+  encode(message: GetChatsWithUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.chats) {
+      Chat.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatsWithUserResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetChatsWithUserResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chats.push(Chat.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetChatsWithUserResponse {
+    return { chats: globalThis.Array.isArray(object?.chats) ? object.chats.map((e: any) => Chat.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: GetChatsWithUserResponse): unknown {
+    const obj: any = {};
+    if (message.chats?.length) {
+      obj.chats = message.chats.map((e) => Chat.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(base?: I): GetChatsWithUserResponse {
+    return GetChatsWithUserResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(object: I): GetChatsWithUserResponse {
+    const message = createBaseGetChatsWithUserResponse();
+    message.chats = object.chats?.map((e) => Chat.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** Chat service definition */
 export interface ChatService {
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse>;
@@ -474,6 +617,10 @@ export interface ChatService {
     request: DeepPartial<GetChatsByUserIDRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetChatsByUserIDResponse>;
+  GetChatsWithUser(
+    request: DeepPartial<GetChatsWithUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetChatsWithUserResponse>;
 }
 
 export class ChatServiceClientImpl implements ChatService {
@@ -483,6 +630,7 @@ export class ChatServiceClientImpl implements ChatService {
     this.rpc = rpc;
     this.SendMessage = this.SendMessage.bind(this);
     this.GetChatsByUserID = this.GetChatsByUserID.bind(this);
+    this.GetChatsWithUser = this.GetChatsWithUser.bind(this);
   }
 
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse> {
@@ -494,6 +642,13 @@ export class ChatServiceClientImpl implements ChatService {
     metadata?: grpc.Metadata,
   ): Promise<GetChatsByUserIDResponse> {
     return this.rpc.unary(ChatServiceGetChatsByUserIDDesc, GetChatsByUserIDRequest.fromPartial(request), metadata);
+  }
+
+  GetChatsWithUser(
+    request: DeepPartial<GetChatsWithUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetChatsWithUserResponse> {
+    return this.rpc.unary(ChatServiceGetChatsWithUserDesc, GetChatsWithUserRequest.fromPartial(request), metadata);
   }
 }
 
@@ -535,6 +690,29 @@ export const ChatServiceGetChatsByUserIDDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetChatsByUserIDResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ChatServiceGetChatsWithUserDesc: UnaryMethodDefinitionish = {
+  methodName: "GetChatsWithUser",
+  service: ChatServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetChatsWithUserRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetChatsWithUserResponse.decode(data);
       return {
         ...value,
         toObject() {

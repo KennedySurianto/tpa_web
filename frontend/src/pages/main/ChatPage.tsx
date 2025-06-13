@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../utils/AuthProvider";
-import { GetChatsByUserIDRequest, SendMessageRequest } from "../../api/gen/chat";
+import { GetChatsWithUserRequest, SendMessageRequest } from "../../api/gen/chat";
 import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
 import { userClient } from "../../api/grpc/userClient";
 import { chatClient } from "../../api/grpc/chatClient";
@@ -52,12 +52,15 @@ export default function ChatPage() {
     }, [receiverUsername, user]);
 
     useEffect(() => {
-        if (!user || hasFetchedMessages.current) return;
+        if (!user || hasFetchedMessages.current || !receiver) return;
 
         const fetchMessages = async () => {
+            console.log("user1Id: ", user.id, "|user2Id: ", receiver?.id || "0");
             try {
-                const req: GetChatsByUserIDRequest = { userId: user.id };
-                const res = await chatClient.GetChatsByUserID(req);
+                const req: GetChatsWithUserRequest = { 
+                    user1Id: user.id, 
+                    user2Id: receiver?.id.toString() || "0" };
+                const res = await chatClient.GetChatsWithUser(req);
 
                 if (res) {
                     res.chats.forEach((chat) => {
@@ -76,22 +79,37 @@ export default function ChatPage() {
 
         fetchMessages();
         hasFetchedMessages.current = true;
-    }, [user, receiverUsername]);
+    }, [user, receiver]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     const handleIncomingMessage = (msg: any) => {
+        console.log("Incoming Messaging: ", msg);
+        if (!user || !receiver) return;
+
+        const isFromReceiver = msg.sender_id === Number(receiver.id);
+        const isFromMe = msg.sender_id === Number(user.id) && msg.receiver_id === Number(receiver.id);
+        console.log("msg.sender_id:", msg.sender_id, " | type: ", typeof(msg.sender_id));
+        console.log("receiver.id:", receiver.id, " | type: ", typeof(receiver.id));
+        console.log("user.id:", user.id, " | type: ", typeof(user.id));
+        console.log("isFromReceiver: ", isFromReceiver);
+        console.log("isFromMe: ", isFromMe);
+
+        if (!isFromReceiver && !isFromMe) return;
+
+        const senderName = isFromMe ? user.username : receiver.username;
+
         const receivedMessage: Message = {
             id: nextId.current++,
-            sender: receiver?.username || "Unknown",
+            sender: senderName,
             text: msg.message,
         };
         setMessages((prev) => [...prev, receivedMessage]);
     };
 
-    const sendMessage = async () => {
+    const sendMessage = async (type: string) => {
         if (!input.trim()) return;
         if (!user) {
             alert("You must be logged in to send messages.");
@@ -113,7 +131,7 @@ export default function ChatPage() {
         const req: SendMessageRequest = {
             senderId: user.id,
             receiverId: receiver.id,
-            type: "text",
+            type: type,
             message: text,
         }
 
@@ -137,14 +155,14 @@ export default function ChatPage() {
     const onKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
         e.preventDefault();
-        sendMessage();
+        sendMessage("text");
         }
     };
 
     if (user) {
         return (
             <>
-                <ChatWebSocket userId={Number(user.id)} onMessage={handleIncomingMessage} />
+                <ChatWebSocket key={`${user.id}-${receiver?.id}`} userId={Number(user.id)} onMessage={handleIncomingMessage} />
                 <div
                 style={{
                     height: '100vh',
@@ -225,7 +243,7 @@ export default function ChatPage() {
                         disabled={!receiver || !user}
                         />
                         <button
-                        onClick={sendMessage}
+                        onClick={() => sendMessage("text")}
                         disabled={!receiver || !user}
                         style={{
                             marginLeft: 10,

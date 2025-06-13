@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/chat-service/internal/model"
@@ -70,4 +71,26 @@ func (h *ChatController) GetChatsByUserID(ctx context.Context, req *chatpb.GetCh
 	return &chatpb.GetChatsByUserIDResponse{
 		Chats: pbChats,
 	}, nil
+}
+
+func (h *ChatController) GetChatsWithUser(ctx context.Context, req *chatpb.GetChatsWithUserRequest) (*chatpb.GetChatsWithUserResponse, error) {
+	chats, err := h.service.GetChatsBetweenUsers(req.GetUser1Id(), req.GetUser2Id())
+	if err != nil {
+		return nil, err
+	}
+
+	var pbChats []*chatpb.Chat
+	for _, c := range chats {
+		pbChats = append(pbChats, &chatpb.Chat{
+			Id:         uint64(c.ID),
+			SenderId:   uint64(c.SenderID),
+			ReceiverId: uint64(c.ReceiverID),
+			Type:       string(c.Type),
+			Message:    c.Message,
+			CreatedAt:  c.CreatedAt.Format(time.RFC3339),
+		})
+	}
+
+	fmt.Println("[CHAT_CONTROLLER] Length of chats with user:", len(pbChats))
+	return &chatpb.GetChatsWithUserResponse{Chats: pbChats}, nil
 }

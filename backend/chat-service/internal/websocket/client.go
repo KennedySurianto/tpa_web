@@ -17,10 +17,12 @@ func (c *Client) ReadPump() {
 		c.Conn.Close()
 	}()
 	for {
-		_, _, err := c.Conn.ReadMessage()
+		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			break
 		}
+		// Forward this message to be broadcasted
+		c.Hub.HandleMessage(message, c.UserID)
 	}
 }
 

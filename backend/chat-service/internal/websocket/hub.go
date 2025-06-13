@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"sync"
 )
 
@@ -9,6 +10,11 @@ type Hub struct {
 	Register   chan *Client
 	Unregister chan *Client
 	mu         sync.RWMutex
+}
+
+type IncomingMessage struct {
+	ReceiverID uint64 `json:"receiver_id"`
+	Message    string `json:"message"`
 }
 
 func NewHub() *Hub {
@@ -43,4 +49,26 @@ func (h *Hub) Broadcast(receiverID uint64, message []byte) {
 	if client, ok := h.Clients[receiverID]; ok {
 		client.Send <- message
 	}
+}
+
+func (h *Hub) HandleMessage(rawMsg []byte, senderID uint64) {
+	var incoming IncomingMessage
+	if err := json.Unmarshal(rawMsg, &incoming); err != nil {
+		return
+	}
+
+	outgoing := map[string]interface{}{
+		"sender_id":  senderID,
+		"message":    incoming.Message,
+	}
+	jsonMsg, err := json.Marshal(outgoing)
+	if err != nil {
+		return
+	}
+
+	// Send to receiver
+	h.Broadcast(incoming.ReceiverID, jsonMsg)
+
+	// Send to sender
+	h.Broadcast(senderID, jsonMsg)
 }

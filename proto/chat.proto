@@ -37,8 +37,18 @@ message GetChatsByUserIDResponse {
     repeated Chat chats = 1;
 }
 
+message GetChatsWithUserRequest {
+    uint64 user1_id = 1;
+    uint64 user2_id = 2;
+}
+
+message GetChatsWithUserResponse {
+    repeated Chat chats = 1;
+}
+
 // Chat service definition
 service ChatService {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
     rpc GetChatsByUserID(GetChatsByUserIDRequest) returns (GetChatsByUserIDResponse);
+    rpc GetChatsWithUser(GetChatsWithUserRequest) returns (GetChatsWithUserResponse);
 }

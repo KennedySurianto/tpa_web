@@ -17,9 +17,6 @@ export interface User {
   profileUrl: string;
 }
 
-export interface Reply {
-}
-
 export interface Comment {
   id: string;
   createdAt: string;
@@ -145,49 +142,6 @@ export const User: MessageFns<User> = {
     message.id = object.id ?? "0";
     message.username = object.username ?? "";
     message.profileUrl = object.profileUrl ?? "";
-    return message;
-  },
-};
-
-function createBaseReply(): Reply {
-  return {};
-}
-
-export const Reply: MessageFns<Reply> = {
-  encode(_: Reply, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): Reply {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseReply();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): Reply {
-    return {};
-  },
-
-  toJSON(_: Reply): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Reply>, I>>(base?: I): Reply {
-    return Reply.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Reply>, I>>(_: I): Reply {
-    const message = createBaseReply();
     return message;
   },
 };

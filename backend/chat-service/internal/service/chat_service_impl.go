@@ -20,3 +20,7 @@ func (s *ChatServiceImpl) SendMessage(chat *model.Chat) (*model.Chat, error) {
 func (s *ChatServiceImpl) GetChatsByUserID(userID uint64) ([]*model.Chat, error) {
 	return s.repo.GetByUserID(userID)
 }
+
+func (s *ChatServiceImpl) GetChatsBetweenUsers(user1, user2 uint64) ([]*model.Chat, error) {
+	return s.repo.GetBetweenUsers(user1, user2)
+}
