@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"; // Add this import for navigatio
 import CommentBar from "./components/CommentBar";
 import { useVideos } from "../../hooks/useVideos";
 import { likeClient } from "../../api/grpc/likeClient";
+import { videoClient } from "../../api/grpc/videoClient";
 import type { LikeRequest, UnlikeRequest } from "../../api/gen/like";
 import { useAuth } from "../../utils/AuthProvider";
 
@@ -20,6 +21,32 @@ const VideoFeed: React.FC = () => {
     const [currentVideoTime, setCurrentVideoTime] = useState(0);
     const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
     const [canComment, setCanComment] = useState<boolean>(true);
+    const [captionsMap, setCaptionsMap] = useState<{ [videoId: number]: { en: string[], id: string[] } }>({});
+    const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
+    const [showCaptions, setShowCaptions] = useState<boolean>(true);
+
+    const fetchCaptions = async (videoId: number) => {
+        try {
+            const res = await videoClient.GetCaptions({ videoId });
+            if (res && res.captions) {
+                setCaptionsMap(prev => ({
+                    ...prev,
+                    [videoId]: {
+                        en: res.captions["en"]?.lines || [],
+                        id: res.captions["id"]?.lines || [],
+                    },
+                }));
+            }
+        } catch (err) {
+            console.error("Failed to fetch captions:", err);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedVideoId && !captionsMap[selectedVideoId]) {
+            fetchCaptions(selectedVideoId);
+        }
+    }, [selectedVideoId]);
 
     const formatTime = (timeInSeconds: number): string => {
         const minutes = Math.floor(timeInSeconds / 60);
@@ -635,6 +662,12 @@ const VideoFeed: React.FC = () => {
                                 </div>
                             )}
 
+                            {showCaptions && (
+                                <div style={{ fontSize: '1rem', lineHeight: '1.4', marginBottom: '0.75rem', fontWeight: '500', color: 'white' }}>
+                                    {captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption}
+                                </div>
+                            )}
+
                             <div className="d-flex align-center w-100 gap-2">
                                 <input
                                     type="range"
@@ -724,6 +757,66 @@ const VideoFeed: React.FC = () => {
                                             💬 Comment
                                         </button>
                                     )}
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                        {/* Toggle Caption On/Off */}
+                                        <button 
+                                            onClick={() => setShowCaptions(!showCaptions)}
+                                            style={{
+                                                color: showCaptions ? "white" : "grey",
+                                                fontSize: '0.9rem',
+                                                textDecoration: 'none',
+                                                padding: '0.5rem',
+                                                border: 'none',
+                                                background: 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.3rem',
+                                            }}
+                                        >
+                                            📝 CC
+                                        </button>
+
+                                        {/* Language Selection - Only visible if captions are ON */}
+                                        {showCaptions && (
+                                            <>
+                                                <button 
+                                                    onClick={() => setSelectedLanguage("en")} 
+                                                    style={{ 
+                                                        color: selectedLanguage === "en" ? "white" : "grey",
+                                                        fontSize: '0.6rem',
+                                                        textDecoration: 'none',
+                                                        padding: '0.5rem',
+                                                        border: 'none',
+                                                        background: 'none',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.3rem', 
+                                                    }}
+                                                >
+                                                    EN
+                                                </button>
+                                                <button 
+                                                    onClick={() => setSelectedLanguage("id")} 
+                                                    style={{ 
+                                                        color: selectedLanguage === "id" ? "white" : "grey",
+                                                        fontSize: '0.6rem',
+                                                        textDecoration: 'none',
+                                                        padding: '0.5rem',
+                                                        border: 'none',
+                                                        background: 'none',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.3rem',
+                                                    }}
+                                                >
+                                                    ID
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                     <button 
                                         className="btn btn-link" 
                                         onClick={() => handleShare(video.id)}
