@@ -50,12 +50,12 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req *auth.RegisterReques
 
 	// Create user via user service
 	createUserReq := &user.CreateUserRequest{
-		Username:    strings.TrimSpace(req.Username),
+		Username:    req.Username,
 		Email:       strings.TrimSpace(strings.ToLower(req.Email)),
 		Password:    string(hashedPassword),
 		DisplayName: strings.TrimSpace(req.DisplayName),
 		Bio:         strings.TrimSpace(req.Bio),
-		AvatarUrl:   strings.TrimSpace(req.AvatarUrl), // Note: Keep as AvatarUrl to match protobuf
+		Avatar:      req.Avatar, // Note: Keep as AvatarUrl to match protobuf
 		Country:     strings.TrimSpace(req.Country),
 	}
 
@@ -111,14 +111,24 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req *auth.RegisterReques
 		Message:      "User registered successfully",
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		User: &auth.UserInfo{
+		User: &auth.User{
 			Id:          userResponse.User.Id,
 			Username:    userResponse.User.Username,
 			Email:       userResponse.User.Email,
 			DisplayName: userResponse.User.DisplayName,
-			AvatarUrl:   userResponse.User.AvatarUrl,
+			Bio: 	   userResponse.User.Bio,
+			Avatar:      userResponse.User.Avatar,
 			IsVerified:  userResponse.User.IsVerified,
+			IsPrivate:  userResponse.User.IsPrivate,
+			IsActive:   userResponse.User.IsActive,
+			LastLoginAt: userResponse.User.LastLoginAt, // Unix timestamp
 			Country:     userResponse.User.Country,
+			AllowDuet:  userResponse.User.AllowDuet,
+			AllowStitch: userResponse.User.AllowStitch,
+			AllowDownload: userResponse.User.AllowDownload,
+			AllowComments: userResponse.User.AllowComments,
+			CreatedAt:  userResponse.User.CreatedAt, // Unix timestamp
+			UpdatedAt:  userResponse.User.UpdatedAt, // Unix timestamp
 		},
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 	}, nil
@@ -263,14 +273,24 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*a
 		Message:      "Login successful",
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		User: &auth.UserInfo{
+		User: &auth.User{
 			Id:          userData.Id,
 			Username:    userData.Username,
 			Email:       userData.Email,
 			DisplayName: userData.DisplayName,
-			AvatarUrl:   userData.AvatarUrl,
+			Bio: 	   	 userData.Bio,
+			Avatar:      userData.Avatar,
 			IsVerified:  userData.IsVerified,
+			IsPrivate:  userData.IsPrivate,
+			IsActive:   userData.IsActive,
+			LastLoginAt: userData.LastLoginAt, // Unix timestamp
 			Country:     userData.Country,
+			AllowDuet:  userData.AllowDuet,
+			AllowStitch: userData.AllowStitch,
+			AllowDownload: userData.AllowDownload,
+			AllowComments: userData.AllowComments,
+			CreatedAt:  userData.CreatedAt, // Unix timestamp
+			UpdatedAt:  userData.UpdatedAt, // Unix timestamp
 		},
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 	}, nil
@@ -368,14 +388,24 @@ func (s *AuthServiceImpl) RefreshToken(ctx context.Context, req *auth.RefreshTok
 		Message:      "Token refreshed successfully",
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		User: &auth.UserInfo{
+		User: &auth.User{
 			Id:          userData.Id,
 			Username:    userData.Username,
 			Email:       userData.Email,
 			DisplayName: userData.DisplayName,
-			AvatarUrl:   userData.AvatarUrl,
+			Bio: 	   	 userData.Bio,
+			Avatar:      userData.Avatar,
 			IsVerified:  userData.IsVerified,
+			IsPrivate:  userData.IsPrivate,
+			IsActive:   userData.IsActive,
+			LastLoginAt: userData.LastLoginAt, // Unix timestamp
 			Country:     userData.Country,
+			AllowDuet:  userData.AllowDuet,
+			AllowStitch: userData.AllowStitch,
+			AllowDownload: userData.AllowDownload,
+			AllowComments: userData.AllowComments,
+			CreatedAt:  userData.CreatedAt, // Unix timestamp
+			UpdatedAt:  userData.UpdatedAt, // Unix timestamp
 		},
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 	}, nil

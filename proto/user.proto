@@ -8,16 +8,12 @@ service UserService {
   rpc CreateUser(CreateUserRequest) returns (UserResponse);
   rpc GetAllUsers(Empty) returns (UserListResponse);
   rpc GetUserByEmail(GetUserRequest) returns (User);
-  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (UserResponse);
   rpc GetUserById(GetUserByIdRequest) returns (User);
   rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UserResponse);
 
   // Additional profile and preference management endpoints
-  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UserResponse);
-  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UserResponse);
-  rpc SetUserPrivacyStatus(SetUserPrivacyStatusRequest) returns (UserResponse);
-  rpc SetUserActiveStatus(SetUserActiveStatusRequest) returns (UserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
   rpc UpdateLastLogin(UpdateLastLoginRequest) returns (UserResponse);
 
   rpc GetUsersByCountry(GetUsersByCountryRequest) returns (UserListResponse);
@@ -49,7 +45,7 @@ message CreateUserRequest {
   string password = 3;
   string display_name = 4;
   string bio = 5;
-  string avatar_url = 6;
+  bytes avatar = 6;
   string country = 7;
   bool is_private = 8;
   UserPreferences preferences = 9;
@@ -57,16 +53,6 @@ message CreateUserRequest {
 
 message GetUserRequest {
   string email = 1;
-}
-
-message UpdateUserRequest {
-  string email = 1;
-  string username = 2;
-  string password = 3;
-  string display_name = 4;
-  string bio = 5;
-  string avatar_url = 6;
-  string country = 7;
 }
 
 message DeleteUserRequest {
@@ -77,31 +63,20 @@ message GetUserByIdRequest {
   uint64 id = 1;
 }
 
-message UpdateUserProfileRequest {
-  uint64 user_id = 1;
-  string display_name = 2;
-  string bio = 3;
-  string avatar_url = 4;
-  string country = 5;
-  string username = 6;
-}
-
-message UpdateUserPreferencesRequest {
-  uint64 user_id = 1;
-  bool allow_duet = 2;
-  bool allow_stitch = 3;
-  bool allow_download = 4;
-  bool allow_comments = 5;
-}
-
-message SetUserPrivacyStatusRequest {
-  uint64 user_id = 1;
-  bool is_private = 2;
-}
-
-message SetUserActiveStatusRequest {
-  uint64 user_id = 1;
-  bool is_active = 2;
+message UpdateUserRequest {
+  uint32 id = 1;
+  string username = 2;
+  string display_name = 3;
+  string bio = 4;
+  bytes avatar = 5;
+  bool is_verified = 6;
+  bool is_private = 7;
+  bool is_active = 8;
+  string country = 9;
+  bool allow_duet = 10;
+  bool allow_stitch = 11;
+  bool allow_download = 12;
+  bool allow_comments = 13;
 }
 
 message UpdateLastLoginRequest {
@@ -112,7 +87,6 @@ message GetUsersByCountryRequest {
   string country = 1;
 }
 
-// Response Messages
 message User {
   uint64 id = 1;
   string username = 2;
@@ -120,7 +94,7 @@ message User {
   string password = 4; // hashed
   string display_name = 5;
   string bio = 6;
-  string avatar_url = 7;
+  bytes avatar = 7;
   bool is_verified = 8;
   bool is_private = 9;
   bool is_active = 10;
@@ -155,7 +129,7 @@ message UserProfile {
   string username = 2;
   string display_name = 3;
   string bio = 4;
-  string avatar_url = 5;
+  bytes avatar = 5;
   bool is_verified = 6;
   bool is_private = 7;
   string country = 8;

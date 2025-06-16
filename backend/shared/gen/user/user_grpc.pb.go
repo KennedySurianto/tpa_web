@@ -19,21 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CreateUser_FullMethodName            = "/user.UserService/CreateUser"
-	UserService_GetAllUsers_FullMethodName           = "/user.UserService/GetAllUsers"
-	UserService_GetUserByEmail_FullMethodName        = "/user.UserService/GetUserByEmail"
-	UserService_UpdateUser_FullMethodName            = "/user.UserService/UpdateUser"
-	UserService_DeleteUser_FullMethodName            = "/user.UserService/DeleteUser"
-	UserService_GetUserById_FullMethodName           = "/user.UserService/GetUserById"
-	UserService_UpdateUserPassword_FullMethodName    = "/user.UserService/UpdateUserPassword"
-	UserService_UpdateUserProfile_FullMethodName     = "/user.UserService/UpdateUserProfile"
-	UserService_UpdateUserPreferences_FullMethodName = "/user.UserService/UpdateUserPreferences"
-	UserService_SetUserPrivacyStatus_FullMethodName  = "/user.UserService/SetUserPrivacyStatus"
-	UserService_SetUserActiveStatus_FullMethodName   = "/user.UserService/SetUserActiveStatus"
-	UserService_UpdateLastLogin_FullMethodName       = "/user.UserService/UpdateLastLogin"
-	UserService_GetUsersByCountry_FullMethodName     = "/user.UserService/GetUsersByCountry"
-	UserService_GetVerifiedUsers_FullMethodName      = "/user.UserService/GetVerifiedUsers"
-	UserService_GetUserByUsername_FullMethodName     = "/user.UserService/GetUserByUsername"
+	UserService_CreateUser_FullMethodName         = "/user.UserService/CreateUser"
+	UserService_GetAllUsers_FullMethodName        = "/user.UserService/GetAllUsers"
+	UserService_GetUserByEmail_FullMethodName     = "/user.UserService/GetUserByEmail"
+	UserService_DeleteUser_FullMethodName         = "/user.UserService/DeleteUser"
+	UserService_GetUserById_FullMethodName        = "/user.UserService/GetUserById"
+	UserService_UpdateUserPassword_FullMethodName = "/user.UserService/UpdateUserPassword"
+	UserService_UpdateUser_FullMethodName         = "/user.UserService/UpdateUser"
+	UserService_UpdateLastLogin_FullMethodName    = "/user.UserService/UpdateLastLogin"
+	UserService_GetUsersByCountry_FullMethodName  = "/user.UserService/GetUsersByCountry"
+	UserService_GetVerifiedUsers_FullMethodName   = "/user.UserService/GetVerifiedUsers"
+	UserService_GetUserByUsername_FullMethodName  = "/user.UserService/GetUserByUsername"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -43,15 +39,11 @@ type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetAllUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserListResponse, error)
 	GetUserByEmail(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetUserById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*User, error)
 	UpdateUserPassword(ctx context.Context, in *UpdateUserPasswordRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	// Additional profile and preference management endpoints
-	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	UpdateUserPreferences(ctx context.Context, in *UpdateUserPreferencesRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	SetUserPrivacyStatus(ctx context.Context, in *SetUserPrivacyStatusRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	SetUserActiveStatus(ctx context.Context, in *SetUserActiveStatusRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	UpdateLastLogin(ctx context.Context, in *UpdateLastLoginRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetUsersByCountry(ctx context.Context, in *GetUsersByCountryRequest, opts ...grpc.CallOption) (*UserListResponse, error)
 	GetVerifiedUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserListResponse, error)
@@ -96,16 +88,6 @@ func (c *userServiceClient) GetUserByEmail(ctx context.Context, in *GetUserReque
 	return out, nil
 }
 
-func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, UserService_UpdateUser_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserResponse)
@@ -136,40 +118,10 @@ func (c *userServiceClient) UpdateUserPassword(ctx context.Context, in *UpdateUs
 	return out, nil
 }
 
-func (c *userServiceClient) UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, UserService_UpdateUserProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) UpdateUserPreferences(ctx context.Context, in *UpdateUserPreferencesRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, UserService_UpdateUserPreferences_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) SetUserPrivacyStatus(ctx context.Context, in *SetUserPrivacyStatusRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, UserService_SetUserPrivacyStatus_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) SetUserActiveStatus(ctx context.Context, in *SetUserActiveStatusRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, UserService_SetUserActiveStatus_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserService_UpdateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +175,11 @@ type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*UserResponse, error)
 	GetAllUsers(context.Context, *Empty) (*UserListResponse, error)
 	GetUserByEmail(context.Context, *GetUserRequest) (*User, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*UserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*UserResponse, error)
 	GetUserById(context.Context, *GetUserByIdRequest) (*User, error)
 	UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UserResponse, error)
 	// Additional profile and preference management endpoints
-	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UserResponse, error)
-	UpdateUserPreferences(context.Context, *UpdateUserPreferencesRequest) (*UserResponse, error)
-	SetUserPrivacyStatus(context.Context, *SetUserPrivacyStatusRequest) (*UserResponse, error)
-	SetUserActiveStatus(context.Context, *SetUserActiveStatusRequest) (*UserResponse, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*UserResponse, error)
 	UpdateLastLogin(context.Context, *UpdateLastLoginRequest) (*UserResponse, error)
 	GetUsersByCountry(context.Context, *GetUsersByCountryRequest) (*UserListResponse, error)
 	GetVerifiedUsers(context.Context, *Empty) (*UserListResponse, error)
@@ -255,9 +203,6 @@ func (UnimplementedUserServiceServer) GetAllUsers(context.Context, *Empty) (*Use
 func (UnimplementedUserServiceServer) GetUserByEmail(context.Context, *GetUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByEmail not implemented")
 }
-func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
-}
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
@@ -267,17 +212,8 @@ func (UnimplementedUserServiceServer) GetUserById(context.Context, *GetUserByIdR
 func (UnimplementedUserServiceServer) UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserPassword not implemented")
 }
-func (UnimplementedUserServiceServer) UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserProfile not implemented")
-}
-func (UnimplementedUserServiceServer) UpdateUserPreferences(context.Context, *UpdateUserPreferencesRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserPreferences not implemented")
-}
-func (UnimplementedUserServiceServer) SetUserPrivacyStatus(context.Context, *SetUserPrivacyStatusRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUserPrivacyStatus not implemented")
-}
-func (UnimplementedUserServiceServer) SetUserActiveStatus(context.Context, *SetUserActiveStatusRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUserActiveStatus not implemented")
+func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateLastLogin(context.Context, *UpdateLastLoginRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateLastLogin not implemented")
@@ -366,24 +302,6 @@ func _UserService_GetUserByEmail_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).UpdateUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_UpdateUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserRequest)
 	if err := dec(in); err != nil {
@@ -438,74 +356,20 @@ func _UserService_UpdateUserPassword_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_UpdateUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserProfileRequest)
+func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).UpdateUserProfile(ctx, in)
+		return srv.(UserServiceServer).UpdateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_UpdateUserProfile_FullMethodName,
+		FullMethod: UserService_UpdateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UpdateUserProfile(ctx, req.(*UpdateUserProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_UpdateUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserPreferencesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).UpdateUserPreferences(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_UpdateUserPreferences_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UpdateUserPreferences(ctx, req.(*UpdateUserPreferencesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_SetUserPrivacyStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetUserPrivacyStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).SetUserPrivacyStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_SetUserPrivacyStatus_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).SetUserPrivacyStatus(ctx, req.(*SetUserPrivacyStatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_SetUserActiveStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetUserActiveStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).SetUserActiveStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_SetUserActiveStatus_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).SetUserActiveStatus(ctx, req.(*SetUserActiveStatusRequest))
+		return srv.(UserServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -602,10 +466,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUserByEmail_Handler,
 		},
 		{
-			MethodName: "UpdateUser",
-			Handler:    _UserService_UpdateUser_Handler,
-		},
-		{
 			MethodName: "DeleteUser",
 			Handler:    _UserService_DeleteUser_Handler,
 		},
@@ -618,20 +478,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_UpdateUserPassword_Handler,
 		},
 		{
-			MethodName: "UpdateUserProfile",
-			Handler:    _UserService_UpdateUserProfile_Handler,
-		},
-		{
-			MethodName: "UpdateUserPreferences",
-			Handler:    _UserService_UpdateUserPreferences_Handler,
-		},
-		{
-			MethodName: "SetUserPrivacyStatus",
-			Handler:    _UserService_SetUserPrivacyStatus_Handler,
-		},
-		{
-			MethodName: "SetUserActiveStatus",
-			Handler:    _UserService_SetUserActiveStatus_Handler,
+			MethodName: "UpdateUser",
+			Handler:    _UserService_UpdateUser_Handler,
 		},
 		{
 			MethodName: "UpdateLastLogin",

@@ -15,7 +15,7 @@ export const protobufPackage = "video";
 export interface User {
   id: string;
   username: string;
-  profileUrl: string;
+  avatar: Uint8Array;
 }
 
 /** Video message definition */
@@ -160,7 +160,7 @@ export interface GetCaptionsResponse_CaptionsEntry {
 }
 
 function createBaseUser(): User {
-  return { id: "0", username: "", profileUrl: "" };
+  return { id: "0", username: "", avatar: new Uint8Array(0) };
 }
 
 export const User: MessageFns<User> = {
@@ -171,8 +171,8 @@ export const User: MessageFns<User> = {
     if (message.username !== "") {
       writer.uint32(18).string(message.username);
     }
-    if (message.profileUrl !== "") {
-      writer.uint32(26).string(message.profileUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(26).bytes(message.avatar);
     }
     return writer;
   },
@@ -205,7 +205,7 @@ export const User: MessageFns<User> = {
             break;
           }
 
-          message.profileUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
       }
@@ -221,7 +221,7 @@ export const User: MessageFns<User> = {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "0",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
-      profileUrl: isSet(object.profileUrl) ? globalThis.String(object.profileUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
     };
   },
 
@@ -233,8 +233,8 @@ export const User: MessageFns<User> = {
     if (message.username !== "") {
       obj.username = message.username;
     }
-    if (message.profileUrl !== "") {
-      obj.profileUrl = message.profileUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     return obj;
   },
@@ -246,7 +246,7 @@ export const User: MessageFns<User> = {
     const message = createBaseUser();
     message.id = object.id ?? "0";
     message.username = object.username ?? "";
-    message.profileUrl = object.profileUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     return message;
   },
 };

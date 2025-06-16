@@ -34,7 +34,7 @@ export interface CreateUserRequest {
   password: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
   country: string;
   isPrivate: boolean;
   preferences?: UserPreferences | undefined;
@@ -42,16 +42,6 @@ export interface CreateUserRequest {
 
 export interface GetUserRequest {
   email: string;
-}
-
-export interface UpdateUserRequest {
-  email: string;
-  username: string;
-  password: string;
-  displayName: string;
-  bio: string;
-  avatarUrl: string;
-  country: string;
 }
 
 export interface DeleteUserRequest {
@@ -62,31 +52,20 @@ export interface GetUserByIdRequest {
   id: string;
 }
 
-export interface UpdateUserProfileRequest {
-  userId: string;
+export interface UpdateUserRequest {
+  id: number;
+  username: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
+  isVerified: boolean;
+  isPrivate: boolean;
+  isActive: boolean;
   country: string;
-  username: string;
-}
-
-export interface UpdateUserPreferencesRequest {
-  userId: string;
   allowDuet: boolean;
   allowStitch: boolean;
   allowDownload: boolean;
   allowComments: boolean;
-}
-
-export interface SetUserPrivacyStatusRequest {
-  userId: string;
-  isPrivate: boolean;
-}
-
-export interface SetUserActiveStatusRequest {
-  userId: string;
-  isActive: boolean;
 }
 
 export interface UpdateLastLoginRequest {
@@ -97,7 +76,6 @@ export interface GetUsersByCountryRequest {
   country: string;
 }
 
-/** Response Messages */
 export interface User {
   id: string;
   username: string;
@@ -106,7 +84,7 @@ export interface User {
   password: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
   isVerified: boolean;
   isPrivate: boolean;
   isActive: boolean;
@@ -149,7 +127,7 @@ export interface UserProfile {
   username: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
   isVerified: boolean;
   isPrivate: boolean;
   country: string;
@@ -431,7 +409,7 @@ function createBaseCreateUserRequest(): CreateUserRequest {
     password: "",
     displayName: "",
     bio: "",
-    avatarUrl: "",
+    avatar: new Uint8Array(0),
     country: "",
     isPrivate: false,
     preferences: undefined,
@@ -455,8 +433,8 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     if (message.bio !== "") {
       writer.uint32(42).string(message.bio);
     }
-    if (message.avatarUrl !== "") {
-      writer.uint32(50).string(message.avatarUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(50).bytes(message.avatar);
     }
     if (message.country !== "") {
       writer.uint32(58).string(message.country);
@@ -522,7 +500,7 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 7: {
@@ -565,7 +543,7 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
       password: isSet(object.password) ? globalThis.String(object.password) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       country: isSet(object.country) ? globalThis.String(object.country) : "",
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
       preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
@@ -589,8 +567,8 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     if (message.bio !== "") {
       obj.bio = message.bio;
     }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     if (message.country !== "") {
       obj.country = message.country;
@@ -614,7 +592,7 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     message.password = object.password ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     message.country = object.country ?? "";
     message.isPrivate = object.isPrivate ?? false;
     message.preferences = (object.preferences !== undefined && object.preferences !== null)
@@ -678,162 +656,6 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
     const message = createBaseGetUserRequest();
     message.email = object.email ?? "";
-    return message;
-  },
-};
-
-function createBaseUpdateUserRequest(): UpdateUserRequest {
-  return { email: "", username: "", password: "", displayName: "", bio: "", avatarUrl: "", country: "" };
-}
-
-export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
-  encode(message: UpdateUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.email !== "") {
-      writer.uint32(10).string(message.email);
-    }
-    if (message.username !== "") {
-      writer.uint32(18).string(message.username);
-    }
-    if (message.password !== "") {
-      writer.uint32(26).string(message.password);
-    }
-    if (message.displayName !== "") {
-      writer.uint32(34).string(message.displayName);
-    }
-    if (message.bio !== "") {
-      writer.uint32(42).string(message.bio);
-    }
-    if (message.avatarUrl !== "") {
-      writer.uint32(50).string(message.avatarUrl);
-    }
-    if (message.country !== "") {
-      writer.uint32(58).string(message.country);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateUserRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.email = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.username = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.password = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.displayName = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.bio = reader.string();
-          continue;
-        }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.avatarUrl = reader.string();
-          continue;
-        }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.country = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UpdateUserRequest {
-    return {
-      email: isSet(object.email) ? globalThis.String(object.email) : "",
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
-      password: isSet(object.password) ? globalThis.String(object.password) : "",
-      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
-      bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
-      country: isSet(object.country) ? globalThis.String(object.country) : "",
-    };
-  },
-
-  toJSON(message: UpdateUserRequest): unknown {
-    const obj: any = {};
-    if (message.email !== "") {
-      obj.email = message.email;
-    }
-    if (message.username !== "") {
-      obj.username = message.username;
-    }
-    if (message.password !== "") {
-      obj.password = message.password;
-    }
-    if (message.displayName !== "") {
-      obj.displayName = message.displayName;
-    }
-    if (message.bio !== "") {
-      obj.bio = message.bio;
-    }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
-    }
-    if (message.country !== "") {
-      obj.country = message.country;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(base?: I): UpdateUserRequest {
-    return UpdateUserRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(object: I): UpdateUserRequest {
-    const message = createBaseUpdateUserRequest();
-    message.email = object.email ?? "";
-    message.username = object.username ?? "";
-    message.password = object.password ?? "";
-    message.displayName = object.displayName ?? "";
-    message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
-    message.country = object.country ?? "";
     return message;
   },
 };
@@ -954,37 +776,72 @@ export const GetUserByIdRequest: MessageFns<GetUserByIdRequest> = {
   },
 };
 
-function createBaseUpdateUserProfileRequest(): UpdateUserProfileRequest {
-  return { userId: "0", displayName: "", bio: "", avatarUrl: "", country: "", username: "" };
+function createBaseUpdateUserRequest(): UpdateUserRequest {
+  return {
+    id: 0,
+    username: "",
+    displayName: "",
+    bio: "",
+    avatar: new Uint8Array(0),
+    isVerified: false,
+    isPrivate: false,
+    isActive: false,
+    country: "",
+    allowDuet: false,
+    allowStitch: false,
+    allowDownload: false,
+    allowComments: false,
+  };
 }
 
-export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
-  encode(message: UpdateUserProfileRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.displayName !== "") {
-      writer.uint32(18).string(message.displayName);
-    }
-    if (message.bio !== "") {
-      writer.uint32(26).string(message.bio);
-    }
-    if (message.avatarUrl !== "") {
-      writer.uint32(34).string(message.avatarUrl);
-    }
-    if (message.country !== "") {
-      writer.uint32(42).string(message.country);
+export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
+  encode(message: UpdateUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).uint32(message.id);
     }
     if (message.username !== "") {
-      writer.uint32(50).string(message.username);
+      writer.uint32(18).string(message.username);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(26).string(message.displayName);
+    }
+    if (message.bio !== "") {
+      writer.uint32(34).string(message.bio);
+    }
+    if (message.avatar.length !== 0) {
+      writer.uint32(42).bytes(message.avatar);
+    }
+    if (message.isVerified !== false) {
+      writer.uint32(48).bool(message.isVerified);
+    }
+    if (message.isPrivate !== false) {
+      writer.uint32(56).bool(message.isPrivate);
+    }
+    if (message.isActive !== false) {
+      writer.uint32(64).bool(message.isActive);
+    }
+    if (message.country !== "") {
+      writer.uint32(74).string(message.country);
+    }
+    if (message.allowDuet !== false) {
+      writer.uint32(80).bool(message.allowDuet);
+    }
+    if (message.allowStitch !== false) {
+      writer.uint32(88).bool(message.allowStitch);
+    }
+    if (message.allowDownload !== false) {
+      writer.uint32(96).bool(message.allowDownload);
+    }
+    if (message.allowComments !== false) {
+      writer.uint32(104).bool(message.allowComments);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserProfileRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateUserProfileRequest();
+    const message = createBaseUpdateUserRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -993,7 +850,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
             break;
           }
 
-          message.userId = reader.uint64().toString();
+          message.id = reader.uint32();
           continue;
         }
         case 2: {
@@ -1001,7 +858,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
             break;
           }
 
-          message.displayName = reader.string();
+          message.username = reader.string();
           continue;
         }
         case 3: {
@@ -1009,7 +866,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
             break;
           }
 
-          message.bio = reader.string();
+          message.displayName = reader.string();
           continue;
         }
         case 4: {
@@ -1017,7 +874,7 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.bio = reader.string();
           continue;
         }
         case 5: {
@@ -1025,140 +882,67 @@ export const UpdateUserProfileRequest: MessageFns<UpdateUserProfileRequest> = {
             break;
           }
 
-          message.country = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 6: {
-          if (tag !== 50) {
+          if (tag !== 48) {
             break;
           }
 
-          message.username = reader.string();
+          message.isVerified = reader.bool();
           continue;
         }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UpdateUserProfileRequest {
-    return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
-      bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
-      country: isSet(object.country) ? globalThis.String(object.country) : "",
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
-    };
-  },
-
-  toJSON(message: UpdateUserProfileRequest): unknown {
-    const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
-    }
-    if (message.displayName !== "") {
-      obj.displayName = message.displayName;
-    }
-    if (message.bio !== "") {
-      obj.bio = message.bio;
-    }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
-    }
-    if (message.country !== "") {
-      obj.country = message.country;
-    }
-    if (message.username !== "") {
-      obj.username = message.username;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UpdateUserProfileRequest>, I>>(base?: I): UpdateUserProfileRequest {
-    return UpdateUserProfileRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserProfileRequest>, I>>(object: I): UpdateUserProfileRequest {
-    const message = createBaseUpdateUserProfileRequest();
-    message.userId = object.userId ?? "0";
-    message.displayName = object.displayName ?? "";
-    message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
-    message.country = object.country ?? "";
-    message.username = object.username ?? "";
-    return message;
-  },
-};
-
-function createBaseUpdateUserPreferencesRequest(): UpdateUserPreferencesRequest {
-  return { userId: "0", allowDuet: false, allowStitch: false, allowDownload: false, allowComments: false };
-}
-
-export const UpdateUserPreferencesRequest: MessageFns<UpdateUserPreferencesRequest> = {
-  encode(message: UpdateUserPreferencesRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.allowDuet !== false) {
-      writer.uint32(16).bool(message.allowDuet);
-    }
-    if (message.allowStitch !== false) {
-      writer.uint32(24).bool(message.allowStitch);
-    }
-    if (message.allowDownload !== false) {
-      writer.uint32(32).bool(message.allowDownload);
-    }
-    if (message.allowComments !== false) {
-      writer.uint32(40).bool(message.allowComments);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserPreferencesRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateUserPreferencesRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
+        case 7: {
+          if (tag !== 56) {
             break;
           }
 
-          message.userId = reader.uint64().toString();
+          message.isPrivate = reader.bool();
           continue;
         }
-        case 2: {
-          if (tag !== 16) {
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.isActive = reader.bool();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.country = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
             break;
           }
 
           message.allowDuet = reader.bool();
           continue;
         }
-        case 3: {
-          if (tag !== 24) {
+        case 11: {
+          if (tag !== 88) {
             break;
           }
 
           message.allowStitch = reader.bool();
           continue;
         }
-        case 4: {
-          if (tag !== 32) {
+        case 12: {
+          if (tag !== 96) {
             break;
           }
 
           message.allowDownload = reader.bool();
           continue;
         }
-        case 5: {
-          if (tag !== 40) {
+        case 13: {
+          if (tag !== 104) {
             break;
           }
 
@@ -1174,9 +958,17 @@ export const UpdateUserPreferencesRequest: MessageFns<UpdateUserPreferencesReque
     return message;
   },
 
-  fromJSON(object: any): UpdateUserPreferencesRequest {
+  fromJSON(object: any): UpdateUserRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
+      bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
+      isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
+      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      country: isSet(object.country) ? globalThis.String(object.country) : "",
       allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
       allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
@@ -1184,10 +976,34 @@ export const UpdateUserPreferencesRequest: MessageFns<UpdateUserPreferencesReque
     };
   },
 
-  toJSON(message: UpdateUserPreferencesRequest): unknown {
+  toJSON(message: UpdateUserRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.displayName !== "") {
+      obj.displayName = message.displayName;
+    }
+    if (message.bio !== "") {
+      obj.bio = message.bio;
+    }
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
+    }
+    if (message.isVerified !== false) {
+      obj.isVerified = message.isVerified;
+    }
+    if (message.isPrivate !== false) {
+      obj.isPrivate = message.isPrivate;
+    }
+    if (message.isActive !== false) {
+      obj.isActive = message.isActive;
+    }
+    if (message.country !== "") {
+      obj.country = message.country;
     }
     if (message.allowDuet !== false) {
       obj.allowDuet = message.allowDuet;
@@ -1204,168 +1020,24 @@ export const UpdateUserPreferencesRequest: MessageFns<UpdateUserPreferencesReque
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdateUserPreferencesRequest>, I>>(base?: I): UpdateUserPreferencesRequest {
-    return UpdateUserPreferencesRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(base?: I): UpdateUserRequest {
+    return UpdateUserRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserPreferencesRequest>, I>>(object: I): UpdateUserPreferencesRequest {
-    const message = createBaseUpdateUserPreferencesRequest();
-    message.userId = object.userId ?? "0";
+  fromPartial<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(object: I): UpdateUserRequest {
+    const message = createBaseUpdateUserRequest();
+    message.id = object.id ?? 0;
+    message.username = object.username ?? "";
+    message.displayName = object.displayName ?? "";
+    message.bio = object.bio ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
+    message.isVerified = object.isVerified ?? false;
+    message.isPrivate = object.isPrivate ?? false;
+    message.isActive = object.isActive ?? false;
+    message.country = object.country ?? "";
     message.allowDuet = object.allowDuet ?? false;
     message.allowStitch = object.allowStitch ?? false;
     message.allowDownload = object.allowDownload ?? false;
     message.allowComments = object.allowComments ?? false;
-    return message;
-  },
-};
-
-function createBaseSetUserPrivacyStatusRequest(): SetUserPrivacyStatusRequest {
-  return { userId: "0", isPrivate: false };
-}
-
-export const SetUserPrivacyStatusRequest: MessageFns<SetUserPrivacyStatusRequest> = {
-  encode(message: SetUserPrivacyStatusRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.isPrivate !== false) {
-      writer.uint32(16).bool(message.isPrivate);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SetUserPrivacyStatusRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSetUserPrivacyStatusRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.userId = reader.uint64().toString();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.isPrivate = reader.bool();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SetUserPrivacyStatusRequest {
-    return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
-    };
-  },
-
-  toJSON(message: SetUserPrivacyStatusRequest): unknown {
-    const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
-    }
-    if (message.isPrivate !== false) {
-      obj.isPrivate = message.isPrivate;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SetUserPrivacyStatusRequest>, I>>(base?: I): SetUserPrivacyStatusRequest {
-    return SetUserPrivacyStatusRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SetUserPrivacyStatusRequest>, I>>(object: I): SetUserPrivacyStatusRequest {
-    const message = createBaseSetUserPrivacyStatusRequest();
-    message.userId = object.userId ?? "0";
-    message.isPrivate = object.isPrivate ?? false;
-    return message;
-  },
-};
-
-function createBaseSetUserActiveStatusRequest(): SetUserActiveStatusRequest {
-  return { userId: "0", isActive: false };
-}
-
-export const SetUserActiveStatusRequest: MessageFns<SetUserActiveStatusRequest> = {
-  encode(message: SetUserActiveStatusRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.isActive !== false) {
-      writer.uint32(16).bool(message.isActive);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SetUserActiveStatusRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSetUserActiveStatusRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.userId = reader.uint64().toString();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.isActive = reader.bool();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SetUserActiveStatusRequest {
-    return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
-    };
-  },
-
-  toJSON(message: SetUserActiveStatusRequest): unknown {
-    const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
-    }
-    if (message.isActive !== false) {
-      obj.isActive = message.isActive;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SetUserActiveStatusRequest>, I>>(base?: I): SetUserActiveStatusRequest {
-    return SetUserActiveStatusRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SetUserActiveStatusRequest>, I>>(object: I): SetUserActiveStatusRequest {
-    const message = createBaseSetUserActiveStatusRequest();
-    message.userId = object.userId ?? "0";
-    message.isActive = object.isActive ?? false;
     return message;
   },
 };
@@ -1494,7 +1166,7 @@ function createBaseUser(): User {
     password: "",
     displayName: "",
     bio: "",
-    avatarUrl: "",
+    avatar: new Uint8Array(0),
     isVerified: false,
     isPrivate: false,
     isActive: false,
@@ -1529,8 +1201,8 @@ export const User: MessageFns<User> = {
     if (message.bio !== "") {
       writer.uint32(50).string(message.bio);
     }
-    if (message.avatarUrl !== "") {
-      writer.uint32(58).string(message.avatarUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(58).bytes(message.avatar);
     }
     if (message.isVerified !== false) {
       writer.uint32(64).bool(message.isVerified);
@@ -1628,7 +1300,7 @@ export const User: MessageFns<User> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 8: {
@@ -1736,7 +1408,7 @@ export const User: MessageFns<User> = {
       password: isSet(object.password) ? globalThis.String(object.password) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
       isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
@@ -1771,8 +1443,8 @@ export const User: MessageFns<User> = {
     if (message.bio !== "") {
       obj.bio = message.bio;
     }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     if (message.isVerified !== false) {
       obj.isVerified = message.isVerified;
@@ -1821,7 +1493,7 @@ export const User: MessageFns<User> = {
     message.password = object.password ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     message.isVerified = object.isVerified ?? false;
     message.isPrivate = object.isPrivate ?? false;
     message.isActive = object.isActive ?? false;
@@ -2070,7 +1742,7 @@ function createBaseUserProfile(): UserProfile {
     username: "",
     displayName: "",
     bio: "",
-    avatarUrl: "",
+    avatar: new Uint8Array(0),
     isVerified: false,
     isPrivate: false,
     country: "",
@@ -2092,8 +1764,8 @@ export const UserProfile: MessageFns<UserProfile> = {
     if (message.bio !== "") {
       writer.uint32(34).string(message.bio);
     }
-    if (message.avatarUrl !== "") {
-      writer.uint32(42).string(message.avatarUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(42).bytes(message.avatar);
     }
     if (message.isVerified !== false) {
       writer.uint32(48).bool(message.isVerified);
@@ -2154,7 +1826,7 @@ export const UserProfile: MessageFns<UserProfile> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 6: {
@@ -2204,7 +1876,7 @@ export const UserProfile: MessageFns<UserProfile> = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
       country: isSet(object.country) ? globalThis.String(object.country) : "",
@@ -2226,8 +1898,8 @@ export const UserProfile: MessageFns<UserProfile> = {
     if (message.bio !== "") {
       obj.bio = message.bio;
     }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     if (message.isVerified !== false) {
       obj.isVerified = message.isVerified;
@@ -2253,7 +1925,7 @@ export const UserProfile: MessageFns<UserProfile> = {
     message.username = object.username ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     message.isVerified = object.isVerified ?? false;
     message.isPrivate = object.isPrivate ?? false;
     message.country = object.country ?? "";
@@ -2624,24 +2296,11 @@ export interface UserService {
   CreateUser(request: DeepPartial<CreateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   GetAllUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse>;
   GetUserByEmail(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
-  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   DeleteUser(request: DeepPartial<DeleteUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   GetUserById(request: DeepPartial<GetUserByIdRequest>, metadata?: grpc.Metadata): Promise<User>;
   UpdateUserPassword(request: DeepPartial<UpdateUserPasswordRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   /** Additional profile and preference management endpoints */
-  UpdateUserProfile(request: DeepPartial<UpdateUserProfileRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
-  UpdateUserPreferences(
-    request: DeepPartial<UpdateUserPreferencesRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse>;
-  SetUserPrivacyStatus(
-    request: DeepPartial<SetUserPrivacyStatusRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse>;
-  SetUserActiveStatus(
-    request: DeepPartial<SetUserActiveStatusRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse>;
+  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   UpdateLastLogin(request: DeepPartial<UpdateLastLoginRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
   GetUsersByCountry(
     request: DeepPartial<GetUsersByCountryRequest>,
@@ -2659,14 +2318,10 @@ export class UserServiceClientImpl implements UserService {
     this.CreateUser = this.CreateUser.bind(this);
     this.GetAllUsers = this.GetAllUsers.bind(this);
     this.GetUserByEmail = this.GetUserByEmail.bind(this);
-    this.UpdateUser = this.UpdateUser.bind(this);
     this.DeleteUser = this.DeleteUser.bind(this);
     this.GetUserById = this.GetUserById.bind(this);
     this.UpdateUserPassword = this.UpdateUserPassword.bind(this);
-    this.UpdateUserProfile = this.UpdateUserProfile.bind(this);
-    this.UpdateUserPreferences = this.UpdateUserPreferences.bind(this);
-    this.SetUserPrivacyStatus = this.SetUserPrivacyStatus.bind(this);
-    this.SetUserActiveStatus = this.SetUserActiveStatus.bind(this);
+    this.UpdateUser = this.UpdateUser.bind(this);
     this.UpdateLastLogin = this.UpdateLastLogin.bind(this);
     this.GetUsersByCountry = this.GetUsersByCountry.bind(this);
     this.GetVerifiedUsers = this.GetVerifiedUsers.bind(this);
@@ -2685,10 +2340,6 @@ export class UserServiceClientImpl implements UserService {
     return this.rpc.unary(UserServiceGetUserByEmailDesc, GetUserRequest.fromPartial(request), metadata);
   }
 
-  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceUpdateUserDesc, UpdateUserRequest.fromPartial(request), metadata);
-  }
-
   DeleteUser(request: DeepPartial<DeleteUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
     return this.rpc.unary(UserServiceDeleteUserDesc, DeleteUserRequest.fromPartial(request), metadata);
   }
@@ -2701,41 +2352,8 @@ export class UserServiceClientImpl implements UserService {
     return this.rpc.unary(UserServiceUpdateUserPasswordDesc, UpdateUserPasswordRequest.fromPartial(request), metadata);
   }
 
-  UpdateUserProfile(request: DeepPartial<UpdateUserProfileRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceUpdateUserProfileDesc, UpdateUserProfileRequest.fromPartial(request), metadata);
-  }
-
-  UpdateUserPreferences(
-    request: DeepPartial<UpdateUserPreferencesRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse> {
-    return this.rpc.unary(
-      UserServiceUpdateUserPreferencesDesc,
-      UpdateUserPreferencesRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  SetUserPrivacyStatus(
-    request: DeepPartial<SetUserPrivacyStatusRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse> {
-    return this.rpc.unary(
-      UserServiceSetUserPrivacyStatusDesc,
-      SetUserPrivacyStatusRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  SetUserActiveStatus(
-    request: DeepPartial<SetUserActiveStatusRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UserResponse> {
-    return this.rpc.unary(
-      UserServiceSetUserActiveStatusDesc,
-      SetUserActiveStatusRequest.fromPartial(request),
-      metadata,
-    );
+  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
+    return this.rpc.unary(UserServiceUpdateUserDesc, UpdateUserRequest.fromPartial(request), metadata);
   }
 
   UpdateLastLogin(request: DeepPartial<UpdateLastLoginRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
@@ -2829,29 +2447,6 @@ export const UserServiceGetUserByEmailDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const UserServiceUpdateUserDesc: UnaryMethodDefinitionish = {
-  methodName: "UpdateUser",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return UpdateUserRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = UserResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
 export const UserServiceDeleteUserDesc: UnaryMethodDefinitionish = {
   methodName: "DeleteUser",
   service: UserServiceDesc,
@@ -2921,83 +2516,14 @@ export const UserServiceUpdateUserPasswordDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const UserServiceUpdateUserProfileDesc: UnaryMethodDefinitionish = {
-  methodName: "UpdateUserProfile",
+export const UserServiceUpdateUserDesc: UnaryMethodDefinitionish = {
+  methodName: "UpdateUser",
   service: UserServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return UpdateUserProfileRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = UserResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const UserServiceUpdateUserPreferencesDesc: UnaryMethodDefinitionish = {
-  methodName: "UpdateUserPreferences",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return UpdateUserPreferencesRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = UserResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const UserServiceSetUserPrivacyStatusDesc: UnaryMethodDefinitionish = {
-  methodName: "SetUserPrivacyStatus",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return SetUserPrivacyStatusRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = UserResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const UserServiceSetUserActiveStatusDesc: UnaryMethodDefinitionish = {
-  methodName: "SetUserActiveStatus",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return SetUserActiveStatusRequest.encode(this).finish();
+      return UpdateUserRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -3170,6 +2696,31 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+}
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
 }
 

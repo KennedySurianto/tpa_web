@@ -42,9 +42,9 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
             // For now, let's just log and continue with empty user
             fmt.Printf("Error fetching user %d: %v\n", comment.UserID, err)
 			user = &userpb.User{
-				Id:        0,
-				Username:  "Unknown",
-				AvatarUrl: "",
+				Id:        	0,
+				Username:  	"Unknown",
+				Avatar: 	nil,
 			}
         }
 
@@ -60,7 +60,7 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
 			User: &pb.User{
 				Id:         user.Id,
                 Username:   user.Username,
-                ProfileUrl: user.AvatarUrl,
+                Avatar: 	user.Avatar,
             },
 			Replies: func() []*pb.Comment {
 				replies, err := c.svc.GetReplies(ctx, comment.ID)
@@ -74,9 +74,9 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
 					if err != nil {
 						fmt.Printf("Error fetching user %d for reply: %v\n", reply.UserID, err)
 						replyUser = &userpb.User{
-							Id:        0,
-							Username:  "Unknown",
-							AvatarUrl: "",
+							Id:        	0,
+							Username:  	"Unknown",
+							Avatar: 	nil,
 						}
 					}
 
@@ -117,7 +117,7 @@ func (c *CommentController) GetComments(ctx context.Context, req *pb.GetComments
 						User: &pb.User{
 							Id:         replyUser.Id,
 							Username:   replyUser.Username,
-							ProfileUrl: replyUser.AvatarUrl,
+							Avatar: 	replyUser.Avatar,
 						},
 						IsLiked:   isLiked,
 						LikeCount: likeCount,

@@ -145,7 +145,7 @@ export interface RegisterRequest {
   confirmPassword: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
   country: string;
   isPrivate: boolean;
   preferences?: UserPreferences | undefined;
@@ -206,7 +206,7 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   user?:
-    | UserInfo
+    | User
     | undefined;
   /** Unix timestamp for access token */
   expiresAt: string;
@@ -257,21 +257,27 @@ export interface ResendVerificationResponse {
 }
 
 /** Data Messages */
-export interface UserInfo {
+export interface User {
   id: string;
   username: string;
   email: string;
   displayName: string;
   bio: string;
-  avatarUrl: string;
+  avatar: Uint8Array;
   isVerified: boolean;
   isPrivate: boolean;
   isActive: boolean;
+  /** Unix timestamp */
+  lastLoginAt: string;
   country: string;
-  createdAt?: Date | undefined;
-  lastLoginAt?: Date | undefined;
-  preferences?: UserPreferences | undefined;
-  stats?: UserStats | undefined;
+  allowDuet: boolean;
+  allowStitch: boolean;
+  allowDownload: boolean;
+  allowComments: boolean;
+  /** Unix timestamp */
+  createdAt: string;
+  /** Unix timestamp */
+  updatedAt: string;
 }
 
 export interface UserPreferences {
@@ -599,7 +605,7 @@ function createBaseRegisterRequest(): RegisterRequest {
     confirmPassword: "",
     displayName: "",
     bio: "",
-    avatarUrl: "",
+    avatar: new Uint8Array(0),
     country: "",
     isPrivate: false,
     preferences: undefined,
@@ -626,8 +632,8 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     if (message.bio !== "") {
       writer.uint32(50).string(message.bio);
     }
-    if (message.avatarUrl !== "") {
-      writer.uint32(58).string(message.avatarUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(58).bytes(message.avatar);
     }
     if (message.country !== "") {
       writer.uint32(66).string(message.country);
@@ -701,7 +707,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 8: {
@@ -745,7 +751,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
       confirmPassword: isSet(object.confirmPassword) ? globalThis.String(object.confirmPassword) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       country: isSet(object.country) ? globalThis.String(object.country) : "",
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
       preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
@@ -772,8 +778,8 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     if (message.bio !== "") {
       obj.bio = message.bio;
     }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     if (message.country !== "") {
       obj.country = message.country;
@@ -798,7 +804,7 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     message.confirmPassword = object.confirmPassword ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     message.country = object.country ?? "";
     message.isPrivate = object.isPrivate ?? false;
     message.preferences = (object.preferences !== undefined && object.preferences !== null)
@@ -1514,7 +1520,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
       writer.uint32(42).string(message.refreshToken);
     }
     if (message.user !== undefined) {
-      UserInfo.encode(message.user, writer.uint32(50).fork()).join();
+      User.encode(message.user, writer.uint32(50).fork()).join();
     }
     if (message.expiresAt !== "0") {
       writer.uint32(56).int64(message.expiresAt);
@@ -1580,7 +1586,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
             break;
           }
 
-          message.user = UserInfo.decode(reader, reader.uint32());
+          message.user = User.decode(reader, reader.uint32());
           continue;
         }
         case 7: {
@@ -1623,7 +1629,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
       error: isSet(object.error) ? globalThis.String(object.error) : "",
       accessToken: isSet(object.accessToken) ? globalThis.String(object.accessToken) : "",
       refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
-      user: isSet(object.user) ? UserInfo.fromJSON(object.user) : undefined,
+      user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
       expiresAt: isSet(object.expiresAt) ? globalThis.String(object.expiresAt) : "0",
       refreshExpiresAt: isSet(object.refreshExpiresAt) ? globalThis.String(object.refreshExpiresAt) : "0",
       tokenInfo: isSet(object.tokenInfo) ? TokenInfo.fromJSON(object.tokenInfo) : undefined,
@@ -1648,7 +1654,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
       obj.refreshToken = message.refreshToken;
     }
     if (message.user !== undefined) {
-      obj.user = UserInfo.toJSON(message.user);
+      obj.user = User.toJSON(message.user);
     }
     if (message.expiresAt !== "0") {
       obj.expiresAt = message.expiresAt;
@@ -1672,7 +1678,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
     message.error = object.error ?? "";
     message.accessToken = object.accessToken ?? "";
     message.refreshToken = object.refreshToken ?? "";
-    message.user = (object.user !== undefined && object.user !== null) ? UserInfo.fromPartial(object.user) : undefined;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     message.expiresAt = object.expiresAt ?? "0";
     message.refreshExpiresAt = object.refreshExpiresAt ?? "0";
     message.tokenInfo = (object.tokenInfo !== undefined && object.tokenInfo !== null)
@@ -2296,27 +2302,30 @@ export const ResendVerificationResponse: MessageFns<ResendVerificationResponse> 
   },
 };
 
-function createBaseUserInfo(): UserInfo {
+function createBaseUser(): User {
   return {
     id: "0",
     username: "",
     email: "",
     displayName: "",
     bio: "",
-    avatarUrl: "",
+    avatar: new Uint8Array(0),
     isVerified: false,
     isPrivate: false,
     isActive: false,
+    lastLoginAt: "0",
     country: "",
-    createdAt: undefined,
-    lastLoginAt: undefined,
-    preferences: undefined,
-    stats: undefined,
+    allowDuet: false,
+    allowStitch: false,
+    allowDownload: false,
+    allowComments: false,
+    createdAt: "0",
+    updatedAt: "0",
   };
 }
 
-export const UserInfo: MessageFns<UserInfo> = {
-  encode(message: UserInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const User: MessageFns<User> = {
+  encode(message: User, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== "0") {
       writer.uint32(8).uint64(message.id);
     }
@@ -2332,8 +2341,8 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.bio !== "") {
       writer.uint32(42).string(message.bio);
     }
-    if (message.avatarUrl !== "") {
-      writer.uint32(50).string(message.avatarUrl);
+    if (message.avatar.length !== 0) {
+      writer.uint32(50).bytes(message.avatar);
     }
     if (message.isVerified !== false) {
       writer.uint32(56).bool(message.isVerified);
@@ -2344,28 +2353,37 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.isActive !== false) {
       writer.uint32(72).bool(message.isActive);
     }
+    if (message.lastLoginAt !== "0") {
+      writer.uint32(80).int64(message.lastLoginAt);
+    }
     if (message.country !== "") {
-      writer.uint32(82).string(message.country);
+      writer.uint32(90).string(message.country);
     }
-    if (message.createdAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(90).fork()).join();
+    if (message.allowDuet !== false) {
+      writer.uint32(96).bool(message.allowDuet);
     }
-    if (message.lastLoginAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.lastLoginAt), writer.uint32(98).fork()).join();
+    if (message.allowStitch !== false) {
+      writer.uint32(104).bool(message.allowStitch);
     }
-    if (message.preferences !== undefined) {
-      UserPreferences.encode(message.preferences, writer.uint32(106).fork()).join();
+    if (message.allowDownload !== false) {
+      writer.uint32(112).bool(message.allowDownload);
     }
-    if (message.stats !== undefined) {
-      UserStats.encode(message.stats, writer.uint32(114).fork()).join();
+    if (message.allowComments !== false) {
+      writer.uint32(120).bool(message.allowComments);
+    }
+    if (message.createdAt !== "0") {
+      writer.uint32(128).int64(message.createdAt);
+    }
+    if (message.updatedAt !== "0") {
+      writer.uint32(136).int64(message.updatedAt);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): UserInfo {
+  decode(input: BinaryReader | Uint8Array, length?: number): User {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUserInfo();
+    const message = createBaseUser();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2414,7 +2432,7 @@ export const UserInfo: MessageFns<UserInfo> = {
             break;
           }
 
-          message.avatarUrl = reader.string();
+          message.avatar = reader.bytes();
           continue;
         }
         case 7: {
@@ -2442,11 +2460,11 @@ export const UserInfo: MessageFns<UserInfo> = {
           continue;
         }
         case 10: {
-          if (tag !== 82) {
+          if (tag !== 80) {
             break;
           }
 
-          message.country = reader.string();
+          message.lastLoginAt = reader.int64().toString();
           continue;
         }
         case 11: {
@@ -2454,31 +2472,55 @@ export const UserInfo: MessageFns<UserInfo> = {
             break;
           }
 
-          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.country = reader.string();
           continue;
         }
         case 12: {
-          if (tag !== 98) {
+          if (tag !== 96) {
             break;
           }
 
-          message.lastLoginAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.allowDuet = reader.bool();
           continue;
         }
         case 13: {
-          if (tag !== 106) {
+          if (tag !== 104) {
             break;
           }
 
-          message.preferences = UserPreferences.decode(reader, reader.uint32());
+          message.allowStitch = reader.bool();
           continue;
         }
         case 14: {
-          if (tag !== 114) {
+          if (tag !== 112) {
             break;
           }
 
-          message.stats = UserStats.decode(reader, reader.uint32());
+          message.allowDownload = reader.bool();
+          continue;
+        }
+        case 15: {
+          if (tag !== 120) {
+            break;
+          }
+
+          message.allowComments = reader.bool();
+          continue;
+        }
+        case 16: {
+          if (tag !== 128) {
+            break;
+          }
+
+          message.createdAt = reader.int64().toString();
+          continue;
+        }
+        case 17: {
+          if (tag !== 136) {
+            break;
+          }
+
+          message.updatedAt = reader.int64().toString();
           continue;
         }
       }
@@ -2490,26 +2532,29 @@ export const UserInfo: MessageFns<UserInfo> = {
     return message;
   },
 
-  fromJSON(object: any): UserInfo {
+  fromJSON(object: any): User {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "0",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
       isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      lastLoginAt: isSet(object.lastLoginAt) ? globalThis.String(object.lastLoginAt) : "0",
       country: isSet(object.country) ? globalThis.String(object.country) : "",
-      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
-      lastLoginAt: isSet(object.lastLoginAt) ? fromJsonTimestamp(object.lastLoginAt) : undefined,
-      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
-      stats: isSet(object.stats) ? UserStats.fromJSON(object.stats) : undefined,
+      allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : false,
+      allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
+      allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
+      allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "0",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "0",
     };
   },
 
-  toJSON(message: UserInfo): unknown {
+  toJSON(message: User): unknown {
     const obj: any = {};
     if (message.id !== "0") {
       obj.id = message.id;
@@ -2526,8 +2571,8 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.bio !== "") {
       obj.bio = message.bio;
     }
-    if (message.avatarUrl !== "") {
-      obj.avatarUrl = message.avatarUrl;
+    if (message.avatar.length !== 0) {
+      obj.avatar = base64FromBytes(message.avatar);
     }
     if (message.isVerified !== false) {
       obj.isVerified = message.isVerified;
@@ -2538,47 +2583,55 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.isActive !== false) {
       obj.isActive = message.isActive;
     }
+    if (message.lastLoginAt !== "0") {
+      obj.lastLoginAt = message.lastLoginAt;
+    }
     if (message.country !== "") {
       obj.country = message.country;
     }
-    if (message.createdAt !== undefined) {
-      obj.createdAt = message.createdAt.toISOString();
+    if (message.allowDuet !== false) {
+      obj.allowDuet = message.allowDuet;
     }
-    if (message.lastLoginAt !== undefined) {
-      obj.lastLoginAt = message.lastLoginAt.toISOString();
+    if (message.allowStitch !== false) {
+      obj.allowStitch = message.allowStitch;
     }
-    if (message.preferences !== undefined) {
-      obj.preferences = UserPreferences.toJSON(message.preferences);
+    if (message.allowDownload !== false) {
+      obj.allowDownload = message.allowDownload;
     }
-    if (message.stats !== undefined) {
-      obj.stats = UserStats.toJSON(message.stats);
+    if (message.allowComments !== false) {
+      obj.allowComments = message.allowComments;
+    }
+    if (message.createdAt !== "0") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.updatedAt !== "0") {
+      obj.updatedAt = message.updatedAt;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UserInfo>, I>>(base?: I): UserInfo {
-    return UserInfo.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<User>, I>>(base?: I): User {
+    return User.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UserInfo>, I>>(object: I): UserInfo {
-    const message = createBaseUserInfo();
+  fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
+    const message = createBaseUser();
     message.id = object.id ?? "0";
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.displayName = object.displayName ?? "";
     message.bio = object.bio ?? "";
-    message.avatarUrl = object.avatarUrl ?? "";
+    message.avatar = object.avatar ?? new Uint8Array(0);
     message.isVerified = object.isVerified ?? false;
     message.isPrivate = object.isPrivate ?? false;
     message.isActive = object.isActive ?? false;
+    message.lastLoginAt = object.lastLoginAt ?? "0";
     message.country = object.country ?? "";
-    message.createdAt = object.createdAt ?? undefined;
-    message.lastLoginAt = object.lastLoginAt ?? undefined;
-    message.preferences = (object.preferences !== undefined && object.preferences !== null)
-      ? UserPreferences.fromPartial(object.preferences)
-      : undefined;
-    message.stats = (object.stats !== undefined && object.stats !== null)
-      ? UserStats.fromPartial(object.stats)
-      : undefined;
+    message.allowDuet = object.allowDuet ?? false;
+    message.allowStitch = object.allowStitch ?? false;
+    message.allowDownload = object.allowDownload ?? false;
+    message.allowComments = object.allowComments ?? false;
+    message.createdAt = object.createdAt ?? "0";
+    message.updatedAt = object.updatedAt ?? "0";
     return message;
   },
 };
@@ -3624,6 +3677,31 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+}
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
 }
 

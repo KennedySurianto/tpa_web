@@ -37,7 +37,7 @@ func (u *UserController) CreateUser(ctx context.Context, req *pb.CreateUserReque
 			Password:    createdUser.Password,
 			DisplayName: createdUser.DisplayName,
 			Bio:         createdUser.Bio,
-			AvatarUrl:   createdUser.AvatarURL,
+			Avatar:      createdUser.Avatar,
 			IsVerified:  createdUser.IsVerified,
 			IsPrivate:   createdUser.IsPrivate,
 			IsActive:    createdUser.IsActive,
@@ -81,14 +81,6 @@ func (u *UserController) GetUserByEmail(ctx context.Context, req *pb.GetUserRequ
 	return convertModelToPbUser(*user), nil
 }
 
-func (u *UserController) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
-	err := u.userService.UpdateUser(req.Email, req.Username, req.Password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update user: %v", err)
-	}
-	return &pb.UserResponse{Message: "User updated successfully"}, nil
-}
-
 func (u *UserController) UpdateUserPassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UserResponse, error) {
 	err := u.userService.UpdateUserPassword(req.Email, req.NewPassword);
 	if err != nil {
@@ -129,7 +121,7 @@ func (u *UserController) GetUserByUsername(ctx context.Context, req *pb.GetUserB
         Password:      user.Password,
         DisplayName:   user.DisplayName,
         Bio:           user.Bio,
-        AvatarUrl:     user.AvatarURL,
+        Avatar:        user.Avatar,
         IsVerified:    user.IsVerified,
         IsPrivate:     user.IsPrivate,
         IsActive:      user.IsActive,
@@ -152,7 +144,7 @@ func convertModelToPbUser(u model.User) *pb.User {
 		Password: 		  u.Password,
 		DisplayName:      u.DisplayName,
 		Bio:              u.Bio,
-		AvatarUrl:        u.AvatarURL,
+		Avatar:           u.Avatar,
 		IsVerified:       u.IsVerified,
 		IsPrivate:        u.IsPrivate,
 		IsActive:         u.IsActive,
@@ -167,51 +159,26 @@ func convertModelToPbUser(u model.User) *pb.User {
 	}
 }
 
-// Additional methods for enhanced user operations
-
-func (u *UserController) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProfileRequest) (*pb.UserResponse, error) {
-	err := u.userService.UpdateUserProfile(
-		req.UserId,
+func (u *UserController) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+	err := u.userService.UpdateUser(
+		req.Id,
+		req.Username,
 		req.DisplayName,
 		req.Bio,
-		req.AvatarUrl,
+		req.Avatar,
+		req.IsVerified,
+		req.IsPrivate,
+		req.IsActive,
 		req.Country,
-		req.Username,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update user profile: %v", err)
-	}
-	return &pb.UserResponse{Message: "User profile updated successfully"}, nil
-}
-
-func (u *UserController) UpdateUserPreferences(ctx context.Context, req *pb.UpdateUserPreferencesRequest) (*pb.UserResponse, error) {
-	err := u.userService.UpdateUserPreferences(
-		req.UserId,
 		req.AllowDuet,
 		req.AllowStitch,
 		req.AllowDownload,
 		req.AllowComments,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update user preferences: %v", err)
+		return nil, fmt.Errorf("failed to update user profile: %v", err)
 	}
-	return &pb.UserResponse{Message: "User preferences updated successfully"}, nil
-}
-
-func (u *UserController) SetUserPrivacyStatus(ctx context.Context, req *pb.SetUserPrivacyStatusRequest) (*pb.UserResponse, error) {
-	err := u.userService.SetUserPrivacyStatus(req.UserId, req.IsPrivate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update user privacy status: %v", err)
-	}
-	return &pb.UserResponse{Message: "User privacy status updated successfully"}, nil
-}
-
-func (u *UserController) SetUserActiveStatus(ctx context.Context, req *pb.SetUserActiveStatusRequest) (*pb.UserResponse, error) {
-	err := u.userService.SetUserActiveStatus(req.UserId, req.IsActive)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update user active status: %v", err)
-	}
-	return &pb.UserResponse{Message: "User active status updated successfully"}, nil
+	return &pb.UserResponse{Message: "User profile updated successfully"}, nil
 }
 
 func (u *UserController) UpdateLastLogin(ctx context.Context, req *pb.UpdateLastLoginRequest) (*pb.UserResponse, error) {

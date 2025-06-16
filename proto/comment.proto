@@ -7,7 +7,7 @@ option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/activ
 message User {
     uint64 id = 1;
     string username = 2;
-    string profile_url = 3;
+    bytes avatar = 3;
 }
 
 message Comment {

@@ -25,7 +25,7 @@ type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	ProfileUrl    string                 `protobuf:"bytes,3,opt,name=profile_url,json=profileUrl,proto3" json:"profile_url,omitempty"`
+	Avatar        []byte                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -74,11 +74,11 @@ func (x *User) GetUsername() string {
 	return ""
 }
 
-func (x *User) GetProfileUrl() string {
+func (x *User) GetAvatar() []byte {
 	if x != nil {
-		return x.ProfileUrl
+		return x.Avatar
 	}
-	return ""
+	return nil
 }
 
 type Comment struct {
@@ -427,12 +427,11 @@ var File_comment_proto protoreflect.FileDescriptor
 
 const file_comment_proto_rawDesc = "" +
 	"\n" +
-	"\rcomment.proto\x12\bactivity\"S\n" +
+	"\rcomment.proto\x12\bactivity\"J\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1f\n" +
-	"\vprofile_url\x18\x03 \x01(\tR\n" +
-	"profileUrl\"\xfe\x02\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
+	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xfe\x02\n" +
 	"\aComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
 	"\n" +

@@ -26,7 +26,7 @@ func (u *UserServiceImpl) CreateUser(req *pb.CreateUserRequest) (*model.User, er
 		Password:    req.Password,
 		DisplayName: req.DisplayName,
 		Bio:         req.Bio,
-		AvatarURL:   req.AvatarUrl,
+		Avatar:  	 req.Avatar,
 		Country:     req.Country,
 	}
 
@@ -50,12 +50,23 @@ func (u *UserServiceImpl) UpdateUserPassword(email string, newPassword string) e
 	return u.userRepo.UpdateUserPassword(email, newPassword);
 }
 
-func (u *UserServiceImpl) UpdateUser(email, name, password string) error {
+func (u *UserServiceImpl) UpdateUser(id uint32, username, displayName, bio string, avatar []byte, IsVerified, isPrivate, IsActive bool, country string, allowDuet, allowStitch, allowDownload, allowComments bool) error {
 	updatedUser := &model.User{
-		Username: name,
-		Password: password,
+		Username:    username,
+		DisplayName: displayName,
+		Bio:         bio,
+		Avatar:      avatar,
+		IsVerified:  IsVerified,
+		IsPrivate:   isPrivate,
+		IsActive:    IsActive,
+		Country:     country,
+		AllowDuet:   allowDuet,
+		AllowStitch: allowStitch,
+		AllowDownload: allowDownload,
+		AllowComments: allowComments,
 	}
-	return u.userRepo.UpdateUser(email, updatedUser)
+	updatedUser.ID = uint(id)
+	return u.userRepo.UpdateUser(updatedUser)
 }
 
 func (u *UserServiceImpl) DeleteUser(email string) error {
@@ -64,24 +75,6 @@ func (u *UserServiceImpl) DeleteUser(email string) error {
 
 func (u *UserServiceImpl) GetUserById(id uint) (*model.User, error) {
 	return u.userRepo.GetUserById(id)
-}
-
-// New methods implementation
-
-func (u *UserServiceImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country, username string) error {
-	return u.userRepo.UpdateUserProfile(userID, displayName, bio, avatarURL, country, username)
-}
-
-func (u *UserServiceImpl) UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error {
-	return u.userRepo.UpdateUserPreferences(userID, allowDuet, allowStitch, allowDownload, allowComments)
-}
-
-func (u *UserServiceImpl) SetUserPrivacyStatus(userID uint64, isPrivate bool) error {
-	return u.userRepo.SetUserPrivacyStatus(userID, isPrivate)
-}
-
-func (u *UserServiceImpl) SetUserActiveStatus(userID uint64, isActive bool) error {
-	return u.userRepo.SetUserActiveStatus(userID, isActive)
 }
 
 func (u *UserServiceImpl) UpdateLastLogin(userID uint64) error {

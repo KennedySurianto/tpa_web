@@ -4,13 +4,13 @@ import {
     ValidateTokenRequest,
     RefreshTokenRequest,
     AuthResponse,
-    UserInfo,
     LogoutRequest,
+    User,
 } from "../api/gen/auth";
 import { authClient } from "../api/grpc/authClient";
 
 interface AuthContextType {
-    user: UserInfo | null;
+    user: User | null;
     isAuthenticated: boolean;
     loading: boolean;
     login: (response: AuthResponse) => void;
@@ -20,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<UserInfo | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -40,23 +40,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const response = await authClient.ValidateToken(request);
             if (response.valid) {
                 // If you want, reconstruct a minimal UserInfo object
-                const userInfo: UserInfo = {
+                const user: User = {
                     id: response.userId,
                     email: response.email,
                     username: response.username,
                     displayName: "",
                     bio: "",
-                    avatarUrl: "",
+                    avatar: new Uint8Array(),
                     isVerified: false,
                     isPrivate: false,
                     isActive: true,
+                    lastLoginAt: "",
                     country: "",
-                    createdAt: undefined,
-                    lastLoginAt: undefined,
-                    preferences: undefined,
-                    stats: undefined,
+                    allowDuet: false,
+                    allowStitch: false,
+                    allowDownload: false,
+                    allowComments: false,
+                    createdAt: "",
+                    updatedAt: "",
                 };
-                setUser(userInfo);
+                setUser(user);
                 return true;
             }
             return false;

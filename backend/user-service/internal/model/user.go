@@ -16,7 +16,7 @@ type User struct {
 	// Profile information
 	DisplayName string `json:"display_name"`
 	Bio         string `gorm:"type:text" json:"bio"`
-	AvatarURL   string `json:"avatar_url"`
+	Avatar      []byte `gorm:"type:bytea" json:"-"`
 	
 	// TikTok specific attributes
 	IsVerified   bool `gorm:"default:false" json:"is_verified"`

@@ -6,6 +6,7 @@ import { likeClient } from "../../api/grpc/likeClient";
 import { videoClient } from "../../api/grpc/videoClient";
 import type { LikeRequest, UnlikeRequest } from "../../api/gen/like";
 import { useAuth } from "../../utils/AuthProvider";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
 
 const VideoFeed: React.FC = () => {
     const user = useAuth().user;
@@ -394,7 +395,9 @@ const VideoFeed: React.FC = () => {
                                         justifyContent: 'center',
                                         transition: 'all 0.3s ease',
                                         backdropFilter: 'blur(4px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderWidth: '1px',
+                                        borderStyle: 'solid',
+                                        borderColor: 'rgba(255, 255, 255, 0.1)',
                                     }}
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -425,7 +428,9 @@ const VideoFeed: React.FC = () => {
                                             gap: '0.75rem',
                                             minHeight: '200px',
                                             backdropFilter: 'blur(4px)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderWidth: '1px',
+                                            borderStyle: 'solid',
+                                            borderColor: 'rgba(255, 255, 255, 0.1)',
                                         }}
                                     >
                                         <span style={{
@@ -562,9 +567,9 @@ const VideoFeed: React.FC = () => {
                                         flexShrink: 0,
                                     }}
                                 >
-                                    {video.user?.profileUrl ? (
+                                    {video.user?.avatar ? (
                                         <img
-                                            src={video.user.profileUrl}
+                                            src={avatarBytesToUrl(video.user.avatar) || '👤'}
                                             alt={`${video.user.username || 'User'}'s profile`}
                                             style={{
                                                 width: '40px',

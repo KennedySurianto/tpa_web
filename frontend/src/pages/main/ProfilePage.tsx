@@ -5,6 +5,7 @@ import { userClient } from '../../api/grpc/userClient';
 import { useAuth } from '../../utils/AuthProvider';
 import type { FollowRequest, UserRequest } from '../../api/gen/follow';
 import { followClient } from '../../api/grpc/followClient';
+import { avatarBytesToUrl } from '../../utils/avatarConverter';
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -179,8 +180,8 @@ const ProfilePage: React.FC = () => {
         );
     }
 
-    const getAvatarDisplay = () => {
-        return selectedUser?.avatarUrl || '👤';
+    const getAvatarDisplay = (): string => {
+        return avatarBytesToUrl(selectedUser?.avatar) || '👤';
     };
 
     const formatJoinDate = (timestamp: string | undefined) => {
@@ -217,19 +218,19 @@ const ProfilePage: React.FC = () => {
                         width: 'clamp(100px, 20vw, 120px)',
                         height: 'clamp(100px, 20vw, 120px)',
                         borderRadius: '50%',
-                        background: selectedUser.avatarUrl 
-                            ? `url(${selectedUser.avatarUrl}) center/cover` 
+                        background: selectedUser.avatar 
+                            ? `url(${avatarBytesToUrl(selectedUser.avatar)}) center/cover` 
                             : 'linear-gradient(135deg, #ff0050, #ff6b35)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: selectedUser.avatarUrl ? '0' : 'clamp(2rem, 5vw, 3rem)',
+                        fontSize: selectedUser.avatar ? '0' : 'clamp(2rem, 5vw, 3rem)',
                         margin: '0 auto 1rem',
                         border: '3px solid transparent',
                         backgroundClip: 'padding-box',
                         position: 'relative'
                     }}>
-                        {!selectedUser.avatarUrl && getAvatarDisplay()}
+                        {!selectedUser.avatar && getAvatarDisplay()}
                         {selectedUser.isVerified && (
                             <div style={{
                                 position: 'absolute',
@@ -242,7 +243,9 @@ const ProfilePage: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: '2px solid #000'
+                                borderWidth: '2px',
+                                borderStyle: 'solid',
+                                borderColor: 'rgba(255, 255, 255, 0.1)'
                             }}>
                                 <span style={{ fontSize: '0.8rem', color: '#000' }}>✓</span>
                             </div>

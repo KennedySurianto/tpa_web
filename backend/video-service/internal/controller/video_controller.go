@@ -224,7 +224,7 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			user = &userpb.User{
 				Id:        0,
 				Username:  "Unknown",
-				AvatarUrl: "",
+				Avatar: nil,
 			}
         }
 
@@ -255,7 +255,7 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			User: &pb.User{
 				Id:        uint64(user.Id),
 				Username:  user.Username,
-				ProfileUrl: user.AvatarUrl,
+				Avatar: user.Avatar,
 			},
 
 			IsLiked: func() bool {

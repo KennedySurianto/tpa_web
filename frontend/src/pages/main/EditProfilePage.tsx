@@ -1,8 +1,9 @@
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
-import type { GetUserByIdRequest, UpdateUserProfileRequest, User } from '../../api/gen/user';
+import type { GetUserByIdRequest, UpdateUserRequest, User } from '../../api/gen/user';
 import { useAuth } from '../../utils/AuthProvider';
 import { userClient } from '../../api/grpc/userClient';
 import { useNavigate } from 'react-router-dom';
+import { avatarBytesToUrl } from '../../utils/avatarConverter';
 
 // Helper function to format Unix timestamps
 const formatTimestamp = (timestampStr: string | undefined): string => {
@@ -255,52 +256,53 @@ const EditProfilePage: React.FC = () => {
         if (!formData || !originalData) return false;
         
         const compareFields = [
-        'username', 'displayName', 'email', 'country', 'bio', 'avatarUrl',
-        'isPrivate', 'allowComments', 'allowDuet', 'allowStitch', 'allowDownload'
+            'username', 'displayName', 'bio', 'avatar', 'country',
+            'isPrivate', 'isActive', 'isVerified', 
+            'allowComments', 'allowDuet', 'allowStitch', 'allowDownload'
         ];
         
         return compareFields.some(field => 
-        formData[field as keyof User] !== originalData[field as keyof User]
+            formData[field as keyof User] !== originalData[field as keyof User]
         );
     }, [formData, originalData]);
 
     // Clear messages after 5 seconds
     useEffect(() => {
         if (successMessage || errorMessage) {
-        const timer = setTimeout(() => {
-            setSuccessMessage('');
-            setErrorMessage('');
-        }, 5000);
-        return () => clearTimeout(timer);
+            const timer = setTimeout(() => {
+                setSuccessMessage('');
+                setErrorMessage('');
+            }, 5000);
+            return () => clearTimeout(timer);
         }
     }, [successMessage, errorMessage]);
 
     // Effect to fetch user data
     useEffect(() => {
         const fetchUser = async () => {
-        setIsLoading(true);
-        setErrorMessage('');
-        
-        if (!(authUser && authUser.id)) {
-            console.warn('No authenticated user ID found.');
-            setUserProfile(null);
-            setErrorMessage('No authenticated user found. Please log in.');
-            setIsLoading(false);
-            return;
-        }
+            setIsLoading(true);
+            setErrorMessage('');
+            
+            if (!(authUser && authUser.id)) {
+                console.warn('No authenticated user ID found.');
+                setUserProfile(null);
+                setErrorMessage('No authenticated user found. Please log in.');
+                setIsLoading(false);
+                return;
+            }
 
-        try {
-            const req: GetUserByIdRequest = { id: authUser.id };
-            const res: User = await userClient.GetUserById(req);
-            console.log('Fetched user data:', res);
-            setUserProfile(res);
-        } catch (err) {
-            console.error('Error fetching user:', err);
-            setUserProfile(null);
-            setErrorMessage('Failed to load profile data. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+            try {
+                const req: GetUserByIdRequest = { id: authUser.id };
+                const res: User = await userClient.GetUserById(req);
+                console.log('Fetched user data:', res);
+                setUserProfile(res);
+            } catch (err) {
+                console.error('Error fetching user:', err);
+                setUserProfile(null);
+                setErrorMessage('Failed to load profile data. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
         };
 
         fetchUser();
@@ -311,7 +313,7 @@ const EditProfilePage: React.FC = () => {
         if (userProfile) {
             setFormData(userProfile);
             setOriginalData(userProfile);
-            setAvatarPreview(userProfile.avatarUrl || '👤');
+            setAvatarPreview(avatarBytesToUrl(userProfile.avatar) || '👤');
         } else {
             setFormData(null);
             setOriginalData(null);
@@ -322,7 +324,7 @@ const EditProfilePage: React.FC = () => {
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => (prev ? { ...prev, [name]: value } : null));
-        if (name === 'avatarUrl') {
+        if (name === 'avatar') {
             setAvatarPreview(value || '👤');
         }
         // Clear messages when user starts editing
@@ -346,12 +348,12 @@ const EditProfilePage: React.FC = () => {
         e.preventDefault();
         if (!formData) {
             setErrorMessage('Profile data is not available.');
-        return;
+            return;
         }
 
         if (!hasChanges) {
             setErrorMessage('No changes to save.');
-        return;
+            return;
         }
 
         setIsSaving(true);
@@ -360,20 +362,24 @@ const EditProfilePage: React.FC = () => {
 
         try {
             console.log('Form submitted:', formData);
-            // Here you would typically send the formData to your backend API
-            // Example: await userClient.UpdateUser(formData);
             
-            // Simulate API call
-            const req: UpdateUserProfileRequest = {
-                userId: userProfile?.id || "0",
+            const req: UpdateUserRequest = {
+                id: Number(userProfile?.id) || 0,
+                username: formData.username,
                 displayName: formData.displayName,
                 bio: formData.bio,
-                avatarUrl: formData.avatarUrl,
+                avatar: formData.avatar,
+                isVerified: formData.isVerified,
+                isPrivate: formData.isPrivate,
+                isActive: formData.isActive,
                 country: formData.country,
-                username: formData.username,
-            }
+                allowDuet: formData.allowDuet,
+                allowStitch: formData.allowStitch,
+                allowDownload: formData.allowDownload,
+                allowComments: formData.allowComments,
+            };
 
-            const res = await userClient.UpdateUserProfile(req);
+            const res = await userClient.UpdateUser(req);
             if (res) {
                 setSuccessMessage('Profile updated successfully!');
                 setOriginalData(formData);
@@ -423,294 +429,327 @@ const EditProfilePage: React.FC = () => {
 
     if (isLoading) {
         return (
-        <div style={containerStyle}>
-            <div style={cardStyle}>
-            <h1 style={pageTitleStyle}>Edit Profile</h1>
-            <div style={loadingStyle}>
-                <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                border: '3px solid #e2e8f0', 
-                borderTop: '3px solid #3b82f6', 
-                borderRadius: '50%', 
-                animation: 'spin 1s linear infinite',
-                marginBottom: '1rem'
-                }}></div>
-                <p>Loading profile...</p>
+            <div style={containerStyle}>
+                <div style={cardStyle}>
+                    <h1 style={pageTitleStyle}>Edit Profile</h1>
+                    <div style={loadingStyle}>
+                        <div style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            border: '3px solid #e2e8f0', 
+                            borderTop: '3px solid #3b82f6', 
+                            borderRadius: '50%', 
+                            animation: 'spin 1s linear infinite',
+                            marginBottom: '1rem'
+                        }}></div>
+                        <p>Loading profile...</p>
+                    </div>
+                </div>
             </div>
-            </div>
-        </div>
         );
     }
 
     if (!formData) {
         return (
-        <div style={containerStyle}>
-            <div style={cardStyle}>
-            <h1 style={pageTitleStyle}>Edit Profile</h1>
-            <div style={loadingStyle}>
-                <p>Could not load profile data. Please try again later.</p>
-                <button 
-                style={secondaryButtonStyle}
-                onClick={() => window.location.reload()}
-                >
-                Retry
-                </button>
+            <div style={containerStyle}>
+                <div style={cardStyle}>
+                    <h1 style={pageTitleStyle}>Edit Profile</h1>
+                    <div style={loadingStyle}>
+                        <p>Could not load profile data. Please try again later.</p>
+                        <button 
+                            style={secondaryButtonStyle}
+                            onClick={() => window.location.reload()}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
             </div>
-            </div>
-        </div>
         );
     }
 
     return (
         <div style={containerStyle}>
-        <div style={cardStyle}>
-            <h1 style={pageTitleStyle}>Edit Profile</h1>
-            <p style={subtitleStyle}>Update your personal information and account settings</p>
+            <div style={cardStyle}>
+                <h1 style={pageTitleStyle}>Edit Profile</h1>
+                <p style={subtitleStyle}>Update your personal information and account settings</p>
 
-            {/* Success/Error Messages */}
-            {successMessage && (
-            <div style={successStyle}>
-                ✓ {successMessage}
-            </div>
-            )}
-            {errorMessage && (
-            <div style={errorStyle}>
-                ⚠ {errorMessage}
-            </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-            {/* Avatar Section */}
-            <div style={avatarContainerStyle}>
-                {renderAvatar()}
-                <div style={{ width: '100%', maxWidth: '400px' }}>
-                <label htmlFor="avatarUrl" style={labelStyle}>Profile Picture URL</label>
-                <input
-                    type="url"
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    value={formData.avatarUrl || ''}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('avatarUrl')}
-                    onBlur={handleBlur}
-                    style={getInputStyle('avatarUrl')}
-                    placeholder="https://example.com/your-avatar.jpg"
-                />
-                </div>
-            </div>
-
-            {/* Personal Information Section */}
-            <h2 style={sectionTitleStyle}>Personal Information</h2>
-            <div style={{ 
-                ...gridStyle, 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' 
-            }}>
-                <div>
-                <label htmlFor="username" style={labelStyle}>Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username || ''}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('username')}
-                    onBlur={handleBlur}
-                    style={getInputStyle('username')}
-                    required
-                />
-                </div>
-                <div>
-                <label htmlFor="displayName" style={labelStyle}>Display Name</label>
-                <input
-                    type="text"
-                    id="displayName"
-                    name="displayName"
-                    value={formData.displayName || ''}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('displayName')}
-                    onBlur={handleBlur}
-                    style={getInputStyle('displayName')}
-                />
-                </div>
-                
-                <div>
-                <label htmlFor="country" style={labelStyle}>Country</label>
-                <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={formData.country || ''}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('country')}
-                    onBlur={handleBlur}
-                    style={getInputStyle('country')}
-                />
-                </div>
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="bio" style={labelStyle}>Bio</label>
-                <textarea
-                id="bio"
-                name="bio"
-                value={formData.bio || ''}
-                onChange={handleChange}
-                onFocus={() => handleFocus('bio')}
-                onBlur={handleBlur}
-                style={focusedInput === 'bio' ? { ...textareaStyle, borderColor: '#3b82f6', boxShadow: '0 0 0 3px rgb(59 130 246 / 0.1)' } : textareaStyle}
-                rows={4}
-                placeholder="Tell us about yourself..."
-                />
-            </div>
-
-            {/* Account Settings Section */}
-            <h2 style={sectionTitleStyle}>Account Settings</h2>
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-                gap: '1.5rem',
-                alignItems: 'start',
-                marginBottom: '1.5rem'
-            }}>
-                <div>
-                <label style={labelStyle}>Password</label>
-                <button 
-                    type="button" 
-                    style={secondaryButtonStyle}
-                    onClick={() => navigate('/forgot-password')}
-                >
-                    Change Password
-                </button>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.5rem' }}>
-                <input
-                    type="checkbox"
-                    id="isPrivate"
-                    name="isPrivate"
-                    checked={formData.isPrivate || false}
-                    onChange={handleCheckboxChange}
-                    style={checkboxStyle}
-                />
-                <label htmlFor="isPrivate" style={checkboxLabelStyle}>
-                    Private Account
-                </label>
-                </div>
-            </div>
-
-            {/* Content Settings Section */}
-            <h2 style={sectionTitleStyle}>Content Settings</h2>
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                gap: '1rem',
-                marginBottom: '1.5rem'
-            }}>
-                {[
-                { id: 'allowComments', label: 'Allow Comments' },
-                { id: 'allowDuet', label: 'Allow Duet' },
-                { id: 'allowStitch', label: 'Allow Stitch' },
-                { id: 'allowDownload', label: 'Allow Downloads' },
-                ].map(setting => (
-                <label key={setting.id} htmlFor={setting.id} style={checkboxLabelStyle}>
-                    <input
-                    type="checkbox"
-                    id={setting.id}
-                    name={setting.id}
-                    checked={formData[setting.id as keyof User] as boolean || false}
-                    onChange={handleCheckboxChange}
-                    style={checkboxStyle}
-                    />
-                    {setting.label}
-                </label>
-                ))}
-            </div>
-
-            {/* Other Information Section (Read-only) */}
-            <h2 style={sectionTitleStyle}>Account Information</h2>
-            <div style={{ marginBottom: '2rem' }}>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>User ID:</span>
-                <p style={infoValueStyle}>{formData.id}</p>
-                </div>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>Email Address:</span>
-                <p style={infoValueStyle}>{formData.email}</p>
-                </div>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>Account Status:</span>
-                <p style={infoValueStyle}>{formData.isActive ? 'Active' : 'Inactive'}</p>
-                </div>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>Verified:</span>
-                <p style={infoValueStyle}>{formData.isVerified ? 'Yes' : 'No'}</p>
-                </div>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>Last Login:</span>
-                <p style={infoValueStyle}>{formatTimestamp(formData.lastLoginAt)}</p>
-                </div>
-                <div style={infoRowStyle}>
-                <span style={infoLabelStyle}>Member Since:</span>
-                <p style={infoValueStyle}>{formatTimestamp(formData.createdAt)}</p>
-                </div>
-            </div>
-
-            {/* Submit Button */}
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                gap: '1rem',
-                paddingTop: '1.5rem',
-                borderTop: '1px solid #e2e8f0'
-            }}>
-                <button 
-                type="submit" 
-                disabled={!hasChanges || isSaving}
-                style={
-                    !hasChanges || isSaving 
-                    ? disabledButtonStyle 
-                    : primaryButtonStyle
-                }
-                onMouseEnter={(e) => {
-                    if (hasChanges && !isSaving) {
-                    Object.assign(e.currentTarget.style, primaryButtonHoverStyle);
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    if (hasChanges && !isSaving) {
-                    Object.assign(e.currentTarget.style, primaryButtonStyle);
-                    }
-                }}
-                >
-                {isSaving ? (
-                    <>
-                    <div style={{ 
-                        width: '16px', 
-                        height: '16px', 
-                        border: '2px solid transparent', 
-                        borderTop: '2px solid currentColor', 
-                        borderRadius: '50%', 
-                        animation: 'spin 1s linear infinite'
-                    }}></div>
-                    Saving...
-                    </>
-                ) : (
-                    'Save Changes'
+                {/* Success/Error Messages */}
+                {successMessage && (
+                    <div style={successStyle}>
+                        ✓ {successMessage}
+                    </div>
                 )}
-                </button>
-            </div>
-            </form>
+                {errorMessage && (
+                    <div style={errorStyle}>
+                        ⚠ {errorMessage}
+                    </div>
+                )}
 
-            {/* Add CSS animation for spinner */}
-            <style>
-            {`
-                @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-                }
-            `}
-            </style>
-        </div>
+                <form onSubmit={handleSubmit}>
+                    {/* Avatar Section */}
+                    <div style={avatarContainerStyle}>
+                        {renderAvatar()}
+                        <div style={{ width: '100%', maxWidth: '400px' }}>
+                            <label htmlFor="avatar" style={labelStyle}>Upload Profile Picture</label>
+                            <input
+                                type="file"
+                                id="avatar"
+                                name="avatar"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    const buffer = await file.arrayBuffer();
+                                    const bytes = new Uint8Array(buffer);
+
+                                    setFormData(prev =>
+                                        prev ? { ...prev, avatar: bytes } : null
+                                    );
+
+                                    // Update preview
+                                    const base64 = btoa(String.fromCharCode(...bytes));
+                                    setAvatarPreview(`data:${file.type};base64,${base64}`);
+                                }}
+                                onFocus={() => handleFocus('avatar')}
+                                onBlur={handleBlur}
+                                style={getInputStyle('avatar')}
+                            />
+                        </div>
+                    </div>
+                    {/* Personal Information Section */}
+                    <h2 style={sectionTitleStyle}>Personal Information</h2>
+                    <div style={{ 
+                        ...gridStyle, 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' 
+                    }}>
+                        <div>
+                            <label htmlFor="username" style={labelStyle}>Username</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value={formData.username || ''}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus('username')}
+                                onBlur={handleBlur}
+                                style={getInputStyle('username')}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="displayName" style={labelStyle}>Display Name</label>
+                            <input
+                                type="text"
+                                id="displayName"
+                                name="displayName"
+                                value={formData.displayName || ''}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus('displayName')}
+                                onBlur={handleBlur}
+                                style={getInputStyle('displayName')}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label htmlFor="country" style={labelStyle}>Country</label>
+                            <input
+                                type="text"
+                                id="country"
+                                name="country"
+                                value={formData.country || ''}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus('country')}
+                                onBlur={handleBlur}
+                                style={getInputStyle('country')}
+                            />
+                        </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label htmlFor="bio" style={labelStyle}>Bio</label>
+                        <textarea
+                            id="bio"
+                            name="bio"
+                            value={formData.bio || ''}
+                            onChange={handleChange}
+                            onFocus={() => handleFocus('bio')}
+                            onBlur={handleBlur}
+                            style={focusedInput === 'bio' ? { ...textareaStyle, borderColor: '#3b82f6', boxShadow: '0 0 0 3px rgb(59 130 246 / 0.1)' } : textareaStyle}
+                            rows={4}
+                            placeholder="Tell us about yourself..."
+                        />
+                    </div>
+
+                    {/* Account Settings Section */}
+                    <h2 style={sectionTitleStyle}>Account Settings</h2>
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+                        gap: '1.5rem',
+                        alignItems: 'start',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <div>
+                            <label style={labelStyle}>Password</label>
+                            <button 
+                                type="button" 
+                                style={secondaryButtonStyle}
+                                onClick={() => navigate('/forgot-password')}
+                            >
+                                Change Password
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Account Status Section */}
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                        gap: '1rem',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <label htmlFor="isPrivate" style={checkboxLabelStyle}>
+                            <input
+                                type="checkbox"
+                                id="isPrivate"
+                                name="isPrivate"
+                                checked={formData.isPrivate || false}
+                                onChange={handleCheckboxChange}
+                                style={checkboxStyle}
+                            />
+                            Private Account
+                        </label>
+                        <label htmlFor="isActive" style={checkboxLabelStyle}>
+                            <input
+                                type="checkbox"
+                                id="isActive"
+                                name="isActive"
+                                checked={formData.isActive || false}
+                                onChange={handleCheckboxChange}
+                                style={checkboxStyle}
+                            />
+                            Account Active
+                        </label>
+                        <label htmlFor="isVerified" style={checkboxLabelStyle}>
+                            <input
+                                type="checkbox"
+                                id="isVerified"
+                                name="isVerified"
+                                checked={formData.isVerified || false}
+                                onChange={handleCheckboxChange}
+                                style={checkboxStyle}
+                            />
+                            Verified Account
+                        </label>
+                    </div>
+
+                    {/* Content Settings Section */}
+                    <h2 style={sectionTitleStyle}>Content Settings</h2>
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                        gap: '1rem',
+                        marginBottom: '1.5rem'
+                    }}>
+                        {[
+                            { id: 'allowComments', label: 'Allow Comments' },
+                            { id: 'allowDuet', label: 'Allow Duet' },
+                            { id: 'allowStitch', label: 'Allow Stitch' },
+                            { id: 'allowDownload', label: 'Allow Downloads' },
+                        ].map(setting => (
+                            <label key={setting.id} htmlFor={setting.id} style={checkboxLabelStyle}>
+                                <input
+                                    type="checkbox"
+                                    id={setting.id}
+                                    name={setting.id}
+                                    checked={formData[setting.id as keyof User] as boolean || false}
+                                    onChange={handleCheckboxChange}
+                                    style={checkboxStyle}
+                                />
+                                {setting.label}
+                            </label>
+                        ))}
+                    </div>
+
+                    {/* Other Information Section (Read-only) */}
+                    <h2 style={sectionTitleStyle}>Account Information</h2>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <div style={infoRowStyle}>
+                            <span style={infoLabelStyle}>User ID:</span>
+                            <p style={infoValueStyle}>{formData.id}</p>
+                        </div>
+                        <div style={infoRowStyle}>
+                            <span style={infoLabelStyle}>Email Address:</span>
+                            <p style={infoValueStyle}>{formData.email}</p>
+                        </div>
+                        <div style={infoRowStyle}>
+                            <span style={infoLabelStyle}>Last Login:</span>
+                            <p style={infoValueStyle}>{formatTimestamp(formData.lastLoginAt)}</p>
+                        </div>
+                        <div style={infoRowStyle}>
+                            <span style={infoLabelStyle}>Member Since:</span>
+                            <p style={infoValueStyle}>{formatTimestamp(formData.createdAt)}</p>
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'flex-end', 
+                        gap: '1rem',
+                        paddingTop: '1.5rem',
+                        borderTop: '1px solid #e2e8f0'
+                    }}>
+                        <button 
+                            type="submit" 
+                            disabled={!hasChanges || isSaving}
+                            style={
+                                !hasChanges || isSaving 
+                                    ? disabledButtonStyle 
+                                    : primaryButtonStyle
+                            }
+                            onMouseEnter={(e) => {
+                                if (hasChanges && !isSaving) {
+                                    Object.assign(e.currentTarget.style, primaryButtonHoverStyle);
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (hasChanges && !isSaving) {
+                                    Object.assign(e.currentTarget.style, primaryButtonStyle);
+                                }
+                            }}
+                        >
+                            {isSaving ? (
+                                <>
+                                    <div style={{ 
+                                        width: '16px', 
+                                        height: '16px', 
+                                        border: '2px solid transparent', 
+                                        borderTop: '2px solid currentColor', 
+                                        borderRadius: '50%', 
+                                        animation: 'spin 1s linear infinite'
+                                    }}></div>
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Changes'
+                            )}
+                        </button>
+                    </div>
+                </form>
+
+                {/* Add CSS animation for spinner */}
+                <style>
+                    {`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}
+                </style>
+            </div>
         </div>
     );
 };

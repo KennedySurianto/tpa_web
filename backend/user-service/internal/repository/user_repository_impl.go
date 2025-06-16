@@ -43,8 +43,8 @@ func (r *UserRepositoryImpl) UpdateUserPassword(email string, newPassword string
 	return r.db.Model(&model.User{}).Where("email = ?", email).Update("password", newPassword).Error
 }
 
-func (r *UserRepositoryImpl) UpdateUser(email string, updatedUser *model.User) error {
-	return r.db.Model(&model.User{}).Where("email = ?", email).Updates(updatedUser).Error
+func (r *UserRepositoryImpl) UpdateUser(updatedUser *model.User) error {
+	return r.db.Model(&model.User{}).Where("id = ?", updatedUser.ID).Updates(updatedUser).Error
 }
 
 func (r *UserRepositoryImpl) DeleteUser(email string) error {
@@ -58,35 +58,6 @@ func (r *UserRepositoryImpl) GetUserById(id uint) (*model.User, error) {
 		return nil, err
 	}
 	return &user, err
-}
-
-// New methods implementation
-
-func (r *UserRepositoryImpl) UpdateUserProfile(userID uint64, displayName, bio, avatarURL, country, username string) error {
-	return r.db.Model(&model.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
-		"display_name": displayName,
-		"bio":          bio,
-		"avatar_url":   avatarURL,
-		"country":      country,
-		"username":     username,
-	}).Error
-}
-
-func (r *UserRepositoryImpl) UpdateUserPreferences(userID uint64, allowDuet, allowStitch, allowDownload, allowComments bool) error {
-	return r.db.Model(&model.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
-		"allow_duet":     allowDuet,
-		"allow_stitch":   allowStitch,
-		"allow_download": allowDownload,
-		"allow_comments": allowComments,
-	}).Error
-}
-
-func (r *UserRepositoryImpl) SetUserPrivacyStatus(userID uint64, isPrivate bool) error {
-	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("is_private", isPrivate).Error
-}
-
-func (r *UserRepositoryImpl) SetUserActiveStatus(userID uint64, isActive bool) error {
-	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("is_active", isActive).Error
 }
 
 func (r *UserRepositoryImpl) UpdateLastLogin(userID uint64) error {
