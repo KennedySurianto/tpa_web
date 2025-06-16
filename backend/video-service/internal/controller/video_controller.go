@@ -75,6 +75,20 @@ func (s *VideoController) CreateVideo(ctx context.Context, req *pb.CreateVideoRe
 	}, nil
 }
 
+func (vc *VideoController) GetCaptions(ctx context.Context, req *pb.GetCaptionsRequest) (*pb.GetCaptionsResponse, error) {
+    captions, err := vc.videoService.GetCaptionsByVideoID(uint(req.VideoId))
+    if err != nil {
+        return nil, err
+    }
+
+    result := make(map[string]*pb.CaptionList)
+    for _, c := range captions {
+        result[c.Language] = &pb.CaptionList{Lines: c.Texts}
+    }
+
+    return &pb.GetCaptionsResponse{Captions: result}, nil
+}
+
 func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest) (*pb.GetVideoResponse, error) {
 	video, err := s.videoService.GetVideoByID(uint(req.Id))
 	if err != nil {

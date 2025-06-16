@@ -141,6 +141,24 @@ export interface GetRecommendedVideosResponse {
   videos: Video[];
 }
 
+/** for caption generator */
+export interface GetCaptionsRequest {
+  videoId: number;
+}
+
+export interface CaptionList {
+  lines: string[];
+}
+
+export interface GetCaptionsResponse {
+  captions: { [key: string]: CaptionList };
+}
+
+export interface GetCaptionsResponse_CaptionsEntry {
+  key: string;
+  value?: CaptionList | undefined;
+}
+
 function createBaseUser(): User {
   return { id: "0", username: "", profileUrl: "" };
 }
@@ -1929,6 +1947,286 @@ export const GetRecommendedVideosResponse: MessageFns<GetRecommendedVideosRespon
   },
 };
 
+function createBaseGetCaptionsRequest(): GetCaptionsRequest {
+  return { videoId: 0 };
+}
+
+export const GetCaptionsRequest: MessageFns<GetCaptionsRequest> = {
+  encode(message: GetCaptionsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.videoId !== 0) {
+      writer.uint32(8).uint32(message.videoId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetCaptionsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetCaptionsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.videoId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetCaptionsRequest {
+    return { videoId: isSet(object.videoId) ? globalThis.Number(object.videoId) : 0 };
+  },
+
+  toJSON(message: GetCaptionsRequest): unknown {
+    const obj: any = {};
+    if (message.videoId !== 0) {
+      obj.videoId = Math.round(message.videoId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetCaptionsRequest>, I>>(base?: I): GetCaptionsRequest {
+    return GetCaptionsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetCaptionsRequest>, I>>(object: I): GetCaptionsRequest {
+    const message = createBaseGetCaptionsRequest();
+    message.videoId = object.videoId ?? 0;
+    return message;
+  },
+};
+
+function createBaseCaptionList(): CaptionList {
+  return { lines: [] };
+}
+
+export const CaptionList: MessageFns<CaptionList> = {
+  encode(message: CaptionList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.lines) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CaptionList {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCaptionList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.lines.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CaptionList {
+    return { lines: globalThis.Array.isArray(object?.lines) ? object.lines.map((e: any) => globalThis.String(e)) : [] };
+  },
+
+  toJSON(message: CaptionList): unknown {
+    const obj: any = {};
+    if (message.lines?.length) {
+      obj.lines = message.lines;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CaptionList>, I>>(base?: I): CaptionList {
+    return CaptionList.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CaptionList>, I>>(object: I): CaptionList {
+    const message = createBaseCaptionList();
+    message.lines = object.lines?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseGetCaptionsResponse(): GetCaptionsResponse {
+  return { captions: {} };
+}
+
+export const GetCaptionsResponse: MessageFns<GetCaptionsResponse> = {
+  encode(message: GetCaptionsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    Object.entries(message.captions).forEach(([key, value]) => {
+      GetCaptionsResponse_CaptionsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetCaptionsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetCaptionsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = GetCaptionsResponse_CaptionsEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.captions[entry1.key] = entry1.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetCaptionsResponse {
+    return {
+      captions: isObject(object.captions)
+        ? Object.entries(object.captions).reduce<{ [key: string]: CaptionList }>((acc, [key, value]) => {
+          acc[key] = CaptionList.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: GetCaptionsResponse): unknown {
+    const obj: any = {};
+    if (message.captions) {
+      const entries = Object.entries(message.captions);
+      if (entries.length > 0) {
+        obj.captions = {};
+        entries.forEach(([k, v]) => {
+          obj.captions[k] = CaptionList.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetCaptionsResponse>, I>>(base?: I): GetCaptionsResponse {
+    return GetCaptionsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetCaptionsResponse>, I>>(object: I): GetCaptionsResponse {
+    const message = createBaseGetCaptionsResponse();
+    message.captions = Object.entries(object.captions ?? {}).reduce<{ [key: string]: CaptionList }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = CaptionList.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseGetCaptionsResponse_CaptionsEntry(): GetCaptionsResponse_CaptionsEntry {
+  return { key: "", value: undefined };
+}
+
+export const GetCaptionsResponse_CaptionsEntry: MessageFns<GetCaptionsResponse_CaptionsEntry> = {
+  encode(message: GetCaptionsResponse_CaptionsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      CaptionList.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetCaptionsResponse_CaptionsEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetCaptionsResponse_CaptionsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = CaptionList.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetCaptionsResponse_CaptionsEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? CaptionList.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: GetCaptionsResponse_CaptionsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = CaptionList.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetCaptionsResponse_CaptionsEntry>, I>>(
+    base?: I,
+  ): GetCaptionsResponse_CaptionsEntry {
+    return GetCaptionsResponse_CaptionsEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetCaptionsResponse_CaptionsEntry>, I>>(
+    object: I,
+  ): GetCaptionsResponse_CaptionsEntry {
+    const message = createBaseGetCaptionsResponse_CaptionsEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? CaptionList.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
 /** Video service definition */
 export interface VideoService {
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse>;
@@ -1941,6 +2239,8 @@ export interface VideoService {
     request: DeepPartial<GetRecommendedVideosRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetRecommendedVideosResponse>;
+  /** caption generator */
+  GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -1955,6 +2255,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.ListVideos = this.ListVideos.bind(this);
     this.UpdateMetrics = this.UpdateMetrics.bind(this);
     this.GetRecommendedVideos = this.GetRecommendedVideos.bind(this);
+    this.GetCaptions = this.GetCaptions.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -1990,6 +2291,10 @@ export class VideoServiceClientImpl implements VideoService {
       GetRecommendedVideosRequest.fromPartial(request),
       metadata,
     );
+  }
+
+  GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse> {
+    return this.rpc.unary(VideoServiceGetCaptionsDesc, GetCaptionsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2156,6 +2461,29 @@ export const VideoServiceGetRecommendedVideosDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const VideoServiceGetCaptionsDesc: UnaryMethodDefinitionish = {
+  methodName: "GetCaptions",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetCaptionsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetCaptionsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
@@ -2281,6 +2609,10 @@ function fromJsonTimestamp(o: any): Date {
   } else {
     return fromTimestamp(Timestamp.fromJSON(o));
   }
+}
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {

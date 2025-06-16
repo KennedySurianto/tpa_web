@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -89,4 +91,33 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 	}
 
 	return videos, nil
+}
+
+func (r *VideoRepositoryImpl) SaveCaption(c *model.Caption) error {
+	return r.db.Create(c).Error
+}
+
+func (r *VideoRepositoryImpl) GetCaptionsByVideoID(videoID uint) ([]model.Caption, error) {
+	var captions []model.Caption
+	err := r.db.Where("video_id = ?", videoID).Find(&captions).Error
+	return captions, err
+}
+
+// new functions
+func (r *VideoRepositoryImpl) BeginTx() *gorm.DB {
+	return r.db.Begin()
+}
+
+func (r *VideoRepositoryImpl) CreateVideoTx(tx *gorm.DB, video *model.Video) error {
+	return tx.Create(video).Error
+}
+
+func (r *VideoRepositoryImpl) SaveCaptionTx(tx *gorm.DB, caption *model.Caption) error {
+	return tx.Model(&model.Caption{}).Create(map[string]interface{}{
+		"video_id":   caption.VideoID,
+		"language":   caption.Language,
+		"texts":      pq.Array(caption.Texts),
+		"created_at": time.Now(),
+		"updated_at": time.Now(),
+	}).Error
 }

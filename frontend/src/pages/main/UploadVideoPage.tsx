@@ -68,7 +68,15 @@ const UploadVideoPage: React.FC = () => {
                 setVideoURL(url);
             }
         } catch (err: any) {
-            console.error("Upload failed:", err?.message || err);
+            if (
+                err.message?.includes("upstream request timeout") ||
+                err.code === "DEADLINE_EXCEEDED"
+            ) {
+                console.log("⏳ Video is still being processed. Please wait a few moments and check your profile.");
+            } else {
+                alert("Upload failed: " + (err.message || "Unknown error"));
+                console.error("Upload failed:", err);
+            }
         } finally {
             setLoading(false);
         }

@@ -13,4 +13,5 @@ type VideoService interface {
 	ListVideos(req *pb.ListVideosRequest) ([]model.Video, int64, error)
 	UpdateMetrics(req *pb.UpdateMetricsRequest) (*model.Video, error)
 	GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error)
+	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
 }

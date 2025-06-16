@@ -132,6 +132,19 @@ message GetRecommendedVideosResponse {
   repeated Video videos = 1;
 }
 
+// for caption generator
+message GetCaptionsRequest {
+  uint32 video_id = 1;
+}
+
+message CaptionList {
+  repeated string lines = 1;
+}
+
+message GetCaptionsResponse {
+  map<string, CaptionList> captions = 1;
+}
+
 // Video service definition
 service VideoService {
   rpc CreateVideo(CreateVideoRequest) returns (CreateVideoResponse);
@@ -141,4 +154,6 @@ service VideoService {
   rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
   rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
   rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetRecommendedVideosResponse);
+  // caption generator
+  rpc GetCaptions(GetCaptionsRequest) returns (GetCaptionsResponse);
 }

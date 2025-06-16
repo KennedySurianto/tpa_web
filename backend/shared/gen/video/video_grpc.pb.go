@@ -26,6 +26,7 @@ const (
 	VideoService_ListVideos_FullMethodName           = "/video.VideoService/ListVideos"
 	VideoService_UpdateMetrics_FullMethodName        = "/video.VideoService/UpdateMetrics"
 	VideoService_GetRecommendedVideos_FullMethodName = "/video.VideoService/GetRecommendedVideos"
+	VideoService_GetCaptions_FullMethodName          = "/video.VideoService/GetCaptions"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -41,6 +42,8 @@ type VideoServiceClient interface {
 	ListVideos(ctx context.Context, in *ListVideosRequest, opts ...grpc.CallOption) (*ListVideosResponse, error)
 	UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error)
 	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error)
+	// caption generator
+	GetCaptions(ctx context.Context, in *GetCaptionsRequest, opts ...grpc.CallOption) (*GetCaptionsResponse, error)
 }
 
 type videoServiceClient struct {
@@ -121,6 +124,16 @@ func (c *videoServiceClient) GetRecommendedVideos(ctx context.Context, in *GetRe
 	return out, nil
 }
 
+func (c *videoServiceClient) GetCaptions(ctx context.Context, in *GetCaptionsRequest, opts ...grpc.CallOption) (*GetCaptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCaptionsResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetCaptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -134,6 +147,8 @@ type VideoServiceServer interface {
 	ListVideos(context.Context, *ListVideosRequest) (*ListVideosResponse, error)
 	UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error)
 	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error)
+	// caption generator
+	GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -164,6 +179,9 @@ func (UnimplementedVideoServiceServer) UpdateMetrics(context.Context, *UpdateMet
 }
 func (UnimplementedVideoServiceServer) GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendedVideos not implemented")
+}
+func (UnimplementedVideoServiceServer) GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCaptions not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -312,6 +330,24 @@ func _VideoService_GetRecommendedVideos_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetCaptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCaptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetCaptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetCaptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetCaptions(ctx, req.(*GetCaptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -346,6 +382,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRecommendedVideos",
 			Handler:    _VideoService_GetRecommendedVideos_Handler,
+		},
+		{
+			MethodName: "GetCaptions",
+			Handler:    _VideoService_GetCaptions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

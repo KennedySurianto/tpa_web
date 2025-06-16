@@ -46,6 +46,7 @@ static_resources:
                             prefix: "/video.VideoService/"
                           route:
                             cluster: video-service
+                            timeout: 300s
 
                         # Route activity-service gRPC calls
                         - match:

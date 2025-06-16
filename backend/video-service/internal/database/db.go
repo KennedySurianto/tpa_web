@@ -21,7 +21,10 @@ func ConnectDatabase() *gorm.DB {
 		panic(err)
 	}
 
-	err = db.AutoMigrate(&model.Video{})
+	err = db.AutoMigrate(
+		&model.Video{},
+		&model.Caption{},
+	)
 	if err != nil {
 		panic(err)
 	}

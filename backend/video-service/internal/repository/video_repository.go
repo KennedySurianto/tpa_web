@@ -1,6 +1,9 @@
 package repository
 
-import "github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
+import (
+	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
+	"gorm.io/gorm"
+)
 
 type VideoRepository interface {
 	CreateVideo(video *model.Video) error
@@ -10,4 +13,9 @@ type VideoRepository interface {
 	ListVideos(userID uint, page, limit int) ([]model.Video, int64, error)
 	UpdateMetrics(id uint, views, likes, comments *uint) (*model.Video, error)
 	GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error)
+	SaveCaption(caption *model.Caption) error
+	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
+	BeginTx() *gorm.DB
+	CreateVideoTx(tx *gorm.DB, video *model.Video) error
+	SaveCaptionTx(tx *gorm.DB, caption *model.Caption) error
 }
