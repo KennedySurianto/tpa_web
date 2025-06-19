@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { signalingClient } from "../../api/grpc/signalingClient";
-import { JoinRequest, SignalMessage } from "../../api/gen/signaling";
+import { liveClient } from "../../api/grpc/liveClient";
+import { JoinRequest, SignalMessage } from "../../api/gen/live";
 import { useAuth } from "../../utils/AuthProvider";
 import { useParams } from "react-router-dom";
 import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
@@ -55,14 +55,14 @@ const LiveViewerPage: React.FC = () => {
           type: "candidate",
           sdpOrCandidate: JSON.stringify(event.candidate),
         });
-        signalingClient.SendSignal(candidateMsg);
+        liveClient.SendSignal(candidateMsg);
       }
     };
 
     setPeerConnection(pc);
 
     const joinReq = JoinRequest.fromPartial({ userId: localUserId });
-    signalingClient.JoinRoom(joinReq).subscribe({
+    liveClient.JoinRoom(joinReq).subscribe({
       next: async (message: SignalMessage) => {
         const type = message.type;
 
@@ -77,7 +77,7 @@ const LiveViewerPage: React.FC = () => {
             type: "answer",
             sdpOrCandidate: JSON.stringify(answer),
           });
-          signalingClient.SendSignal(answerMsg);
+          liveClient.SendSignal(answerMsg);
         }
 
         if (type === "candidate" && message.sdpOrCandidate) {
@@ -93,7 +93,7 @@ const LiveViewerPage: React.FC = () => {
       receiver: remoteUserId,
       type: "viewer-join",
     });
-    signalingClient.SendSignal(viewerJoin);
+    liveClient.SendSignal(viewerJoin);
   }, [localUserId, remoteUserId]);
 
   return (

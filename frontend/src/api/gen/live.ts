@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.7.0
 //   protoc               v6.31.0
-// source: signaling.proto
+// source: live.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
@@ -11,7 +11,7 @@ import { BrowserHeaders } from "browser-headers";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 
-export const protobufPackage = "signaling";
+export const protobufPackage = "live";
 
 export interface JoinRequest {
   userId: number;
@@ -236,12 +236,12 @@ export const Empty: MessageFns<Empty> = {
   },
 };
 
-export interface SignalingService {
+export interface LiveService {
   JoinRoom(request: DeepPartial<JoinRequest>, metadata?: grpc.Metadata): Observable<SignalMessage>;
   SendSignal(request: DeepPartial<SignalMessage>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
-export class SignalingServiceClientImpl implements SignalingService {
+export class LiveServiceClientImpl implements LiveService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
@@ -251,19 +251,19 @@ export class SignalingServiceClientImpl implements SignalingService {
   }
 
   JoinRoom(request: DeepPartial<JoinRequest>, metadata?: grpc.Metadata): Observable<SignalMessage> {
-    return this.rpc.invoke(SignalingServiceJoinRoomDesc, JoinRequest.fromPartial(request), metadata);
+    return this.rpc.invoke(LiveServiceJoinRoomDesc, JoinRequest.fromPartial(request), metadata);
   }
 
   SendSignal(request: DeepPartial<SignalMessage>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(SignalingServiceSendSignalDesc, SignalMessage.fromPartial(request), metadata);
+    return this.rpc.unary(LiveServiceSendSignalDesc, SignalMessage.fromPartial(request), metadata);
   }
 }
 
-export const SignalingServiceDesc = { serviceName: "signaling.SignalingService" };
+export const LiveServiceDesc = { serviceName: "live.LiveService" };
 
-export const SignalingServiceJoinRoomDesc: UnaryMethodDefinitionish = {
+export const LiveServiceJoinRoomDesc: UnaryMethodDefinitionish = {
   methodName: "JoinRoom",
-  service: SignalingServiceDesc,
+  service: LiveServiceDesc,
   requestStream: false,
   responseStream: true,
   requestType: {
@@ -284,9 +284,9 @@ export const SignalingServiceJoinRoomDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const SignalingServiceSendSignalDesc: UnaryMethodDefinitionish = {
+export const LiveServiceSendSignalDesc: UnaryMethodDefinitionish = {
   methodName: "SendSignal",
-  service: SignalingServiceDesc,
+  service: LiveServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {

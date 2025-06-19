@@ -1,4 +1,4 @@
-import { GrpcWebImpl, SignalingServiceClientImpl } from "../gen/signaling";
+import { GrpcWebImpl, LiveServiceClientImpl } from "../gen/live";
 import { BrowserHeaders } from "browser-headers";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
@@ -6,4 +6,4 @@ const transport = new GrpcWebImpl("http://localhost:8080", {
     metadata: new BrowserHeaders(),
 });
 
-export const signalingClient = new SignalingServiceClientImpl(transport);
+export const liveClient = new LiveServiceClientImpl(transport);

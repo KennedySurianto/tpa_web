@@ -89,11 +89,11 @@ static_resources:
                               - upgrade_type: websocket
                                 enabled: true
 
-                        # Route signaling-service gRPC calls
+                        # Route live-service gRPC calls
                         - match:
-                            prefix: "/signaling.SignalingService/"
+                            prefix: "/live.LiveService/"
                           route:
-                            cluster: signaling-service
+                            cluster: live-service
                             timeout: 300s
 
                 http_filters:
@@ -203,20 +203,20 @@ static_resources:
                       address: chat-service
                       port_value: 8081
     
-    # Signaling Service cluster
-    - name: signaling-service
+    # Live Service cluster
+    - name: live-service
       connect_timeout: 0.25s
       type: logical_dns
       http2_protocol_options: {}  # Enable HTTP/2 for gRPC
       lb_policy: round_robin
       load_assignment:
-        cluster_name: signaling-service
+        cluster_name: live-service
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
-                      address: signaling-service
+                      address: live-service
                       port_value: 50056
 
 admin:

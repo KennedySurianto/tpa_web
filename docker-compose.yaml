@@ -286,11 +286,11 @@ services:
       retries: 3
       start_period: 20s
 
-  signaling-service:
-    container_name: signaling-service
+  live-service:
+    container_name: live-service
     build: 
       context: ./backend
-      dockerfile: signaling-service/Dockerfile
+      dockerfile: live-service/Dockerfile
     expose:
       - "50056"
     ports:

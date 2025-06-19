@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.0
-// source: signaling.proto
+// source: live.proto
 
-package signaling
+package live
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -30,7 +30,7 @@ type JoinRequest struct {
 
 func (x *JoinRequest) Reset() {
 	*x = JoinRequest{}
-	mi := &file_signaling_proto_msgTypes[0]
+	mi := &file_live_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *JoinRequest) String() string {
 func (*JoinRequest) ProtoMessage() {}
 
 func (x *JoinRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_signaling_proto_msgTypes[0]
+	mi := &file_live_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *JoinRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinRequest.ProtoReflect.Descriptor instead.
 func (*JoinRequest) Descriptor() ([]byte, []int) {
-	return file_signaling_proto_rawDescGZIP(), []int{0}
+	return file_live_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *JoinRequest) GetUserId() uint32 {
@@ -77,7 +77,7 @@ type SignalMessage struct {
 
 func (x *SignalMessage) Reset() {
 	*x = SignalMessage{}
-	mi := &file_signaling_proto_msgTypes[1]
+	mi := &file_live_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -89,7 +89,7 @@ func (x *SignalMessage) String() string {
 func (*SignalMessage) ProtoMessage() {}
 
 func (x *SignalMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_signaling_proto_msgTypes[1]
+	mi := &file_live_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -102,7 +102,7 @@ func (x *SignalMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignalMessage.ProtoReflect.Descriptor instead.
 func (*SignalMessage) Descriptor() ([]byte, []int) {
-	return file_signaling_proto_rawDescGZIP(), []int{1}
+	return file_live_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SignalMessage) GetSender() uint32 {
@@ -141,7 +141,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_signaling_proto_msgTypes[2]
+	mi := &file_live_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +153,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_signaling_proto_msgTypes[2]
+	mi := &file_live_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,14 +166,15 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_signaling_proto_rawDescGZIP(), []int{2}
+	return file_live_proto_rawDescGZIP(), []int{2}
 }
 
-var File_signaling_proto protoreflect.FileDescriptor
+var File_live_proto protoreflect.FileDescriptor
 
-const file_signaling_proto_rawDesc = "" +
+const file_live_proto_rawDesc = "" +
 	"\n" +
-	"\x0fsignaling.proto\x12\tsignaling\"&\n" +
+	"\n" +
+	"live.proto\x12\x04live\"&\n" +
 	"\vJoinRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\"\x81\x01\n" +
 	"\rSignalMessage\x12\x16\n" +
@@ -181,35 +182,35 @@ const file_signaling_proto_rawDesc = "" +
 	"\breceiver\x18\x02 \x01(\rR\breceiver\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\tR\x04type\x12(\n" +
 	"\x10sdp_or_candidate\x18\x04 \x01(\tR\x0esdpOrCandidate\"\a\n" +
-	"\x05Empty2\x8c\x01\n" +
-	"\x10SignalingService\x12>\n" +
-	"\bJoinRoom\x12\x16.signaling.JoinRequest\x1a\x18.signaling.SignalMessage0\x01\x128\n" +
+	"\x05Empty2s\n" +
+	"\vLiveService\x124\n" +
+	"\bJoinRoom\x12\x11.live.JoinRequest\x1a\x13.live.SignalMessage0\x01\x12.\n" +
 	"\n" +
-	"SendSignal\x12\x18.signaling.SignalMessage\x1a\x10.signaling.EmptyBKZIgithub.com/KennedySurianto/tpa_web/backend/shared/gen/signaling;signalingb\x06proto3"
+	"SendSignal\x12\x13.live.SignalMessage\x1a\v.live.EmptyBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/live;liveb\x06proto3"
 
 var (
-	file_signaling_proto_rawDescOnce sync.Once
-	file_signaling_proto_rawDescData []byte
+	file_live_proto_rawDescOnce sync.Once
+	file_live_proto_rawDescData []byte
 )
 
-func file_signaling_proto_rawDescGZIP() []byte {
-	file_signaling_proto_rawDescOnce.Do(func() {
-		file_signaling_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_signaling_proto_rawDesc), len(file_signaling_proto_rawDesc)))
+func file_live_proto_rawDescGZIP() []byte {
+	file_live_proto_rawDescOnce.Do(func() {
+		file_live_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_live_proto_rawDesc), len(file_live_proto_rawDesc)))
 	})
-	return file_signaling_proto_rawDescData
+	return file_live_proto_rawDescData
 }
 
-var file_signaling_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_signaling_proto_goTypes = []any{
-	(*JoinRequest)(nil),   // 0: signaling.JoinRequest
-	(*SignalMessage)(nil), // 1: signaling.SignalMessage
-	(*Empty)(nil),         // 2: signaling.Empty
+var file_live_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_live_proto_goTypes = []any{
+	(*JoinRequest)(nil),   // 0: live.JoinRequest
+	(*SignalMessage)(nil), // 1: live.SignalMessage
+	(*Empty)(nil),         // 2: live.Empty
 }
-var file_signaling_proto_depIdxs = []int32{
-	0, // 0: signaling.SignalingService.JoinRoom:input_type -> signaling.JoinRequest
-	1, // 1: signaling.SignalingService.SendSignal:input_type -> signaling.SignalMessage
-	1, // 2: signaling.SignalingService.JoinRoom:output_type -> signaling.SignalMessage
-	2, // 3: signaling.SignalingService.SendSignal:output_type -> signaling.Empty
+var file_live_proto_depIdxs = []int32{
+	0, // 0: live.LiveService.JoinRoom:input_type -> live.JoinRequest
+	1, // 1: live.LiveService.SendSignal:input_type -> live.SignalMessage
+	1, // 2: live.LiveService.JoinRoom:output_type -> live.SignalMessage
+	2, // 3: live.LiveService.SendSignal:output_type -> live.Empty
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -217,26 +218,26 @@ var file_signaling_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_signaling_proto_init() }
-func file_signaling_proto_init() {
-	if File_signaling_proto != nil {
+func init() { file_live_proto_init() }
+func file_live_proto_init() {
+	if File_live_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_signaling_proto_rawDesc), len(file_signaling_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_live_proto_rawDesc), len(file_live_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_signaling_proto_goTypes,
-		DependencyIndexes: file_signaling_proto_depIdxs,
-		MessageInfos:      file_signaling_proto_msgTypes,
+		GoTypes:           file_live_proto_goTypes,
+		DependencyIndexes: file_live_proto_depIdxs,
+		MessageInfos:      file_live_proto_msgTypes,
 	}.Build()
-	File_signaling_proto = out.File
-	file_signaling_proto_goTypes = nil
-	file_signaling_proto_depIdxs = nil
+	File_live_proto = out.File
+	file_live_proto_goTypes = nil
+	file_live_proto_depIdxs = nil
 }

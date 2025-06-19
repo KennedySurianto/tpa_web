@@ -59,10 +59,10 @@ proto:
 		proto/chat.proto
 
 	protoc -Iproto \
-		--go_out=backend/shared/gen/signaling --go_opt=paths=source_relative \
-		--go-grpc_out=backend/shared/gen/signaling --go-grpc_opt=paths=source_relative \
-		--grpc-gateway_out=backend/shared/gen/signaling --grpc-gateway_opt=paths=source_relative \
-		proto/signaling.proto
+		--go_out=backend/shared/gen/live --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/live --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/live --grpc-gateway_opt=paths=source_relative \
+		proto/live.proto
 
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."

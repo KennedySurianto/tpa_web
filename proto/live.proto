@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package signaling;
+package live;
 
-option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/signaling;signaling";
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/live;live";
 
-service SignalingService {
+service LiveService {
   rpc JoinRoom (JoinRequest) returns (stream SignalMessage);
   rpc SendSignal (SignalMessage) returns (Empty);
 }

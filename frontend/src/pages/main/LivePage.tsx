@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { signalingClient } from "../../api/grpc/signalingClient";
-import { JoinRequest, SignalMessage } from "../../api/gen/signaling";
+import { liveClient } from "../../api/grpc/liveClient";
+import { JoinRequest, SignalMessage } from "../../api/gen/live";
 import { useAuth } from "../../utils/AuthProvider";
 
 const LiveStreamerPage: React.FC = () => {
@@ -31,7 +31,7 @@ const LiveStreamerPage: React.FC = () => {
     const joinRoom = () => {
         const req = JoinRequest.fromPartial({ userId: localUserId });
 
-        signalingClient.JoinRoom(req).subscribe({
+        liveClient.JoinRoom(req).subscribe({
         next: async (message: SignalMessage) => {
             const type = message.type;
             const viewerId = Number(message.sender);
@@ -54,7 +54,7 @@ const LiveStreamerPage: React.FC = () => {
                     type: "candidate",
                     sdpOrCandidate: JSON.stringify(event.candidate),
                 });
-                signalingClient.SendSignal(candidateMsg);
+                liveClient.SendSignal(candidateMsg);
                 }
             };
 
@@ -67,7 +67,7 @@ const LiveStreamerPage: React.FC = () => {
                 type: "offer",
                 sdpOrCandidate: JSON.stringify(offer),
             });
-            signalingClient.SendSignal(offerMsg);
+            liveClient.SendSignal(offerMsg);
             }
 
             if (type === "answer") {
