@@ -12,6 +12,8 @@ message Chat {
     string type = 4;
     string message = 5;
     string created_at = 6;
+    string updated_at = 7;
+    string deleted_at = 8;
 }
 
 // Request to send a message
@@ -46,9 +48,18 @@ message GetChatsWithUserResponse {
     repeated Chat chats = 1;
 }
 
+message UnsendMessageRequest {
+    uint32 chat_id = 1;
+    uint32 sender_id = 2;
+    uint32 receiver_id = 3;
+}
+
+message Empty {}
+
 // Chat service definition
 service ChatService {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+    rpc UnsendMessage(UnsendMessageRequest) returns (Empty);
     rpc GetChatsByUserID(GetChatsByUserIDRequest) returns (GetChatsByUserIDResponse);
     rpc GetChatsWithUser(GetChatsWithUserRequest) returns (GetChatsWithUserResponse);
 }

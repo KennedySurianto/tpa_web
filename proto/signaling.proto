@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package signaling;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/signaling;signaling";
+
+service SignalingService {
+  rpc JoinRoom (JoinRequest) returns (stream SignalMessage);
+  rpc SendSignal (SignalMessage) returns (Empty);
+}
+
+message JoinRequest {
+  uint32 user_id = 1;
+}
+
+message SignalMessage {
+  uint32 sender = 1;
+  uint32 receiver = 2;
+  string type = 3;
+  string sdp_or_candidate = 4;
+}
+
+message Empty {}

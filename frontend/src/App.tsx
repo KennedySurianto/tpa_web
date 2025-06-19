@@ -12,6 +12,8 @@ import ProfilePage from './pages/main/ProfilePage'
 import EditProfilePage from './pages/main/EditProfilePage'
 import PrivateRoute from './routes/PrivateRoute'
 import ChatPage from './pages/main/ChatPage'
+import LivePage from './pages/main/LivePage'
+import LiveViewerPage from './pages/main/LiveViewerPage'
 
 const App = () => {
   return (
@@ -32,12 +34,14 @@ const App = () => {
           <Route element={<Layout />} >
             <Route path="/home" element={<VideoFeed />} />
             <Route path="/:username" element={<ProfilePage />} />
-
+            
             {/* Private routes */}
             <Route element={<PrivateRoute />}>
               <Route path="/upload" element={<UploadVideoPage />} />
               <Route path="/edit-profile" element={<EditProfilePage />} />
               <Route path="/:receiverUsername/message" element={<ChatPage />} />
+              <Route path="/live" element={<LivePage />} />
+              <Route path="/live/:remoteUsername" element={<LiveViewerPage />} />
             </Route>
           </Route>
         </Routes>

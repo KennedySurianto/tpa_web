@@ -166,7 +166,7 @@ const RegisterPage: React.FC = () => {
                 confirmPassword: formData.confirmPassword,
                 displayName: formData.displayName || formData.username,
                 bio: formData.bio,
-                avatarUrl: "",
+                avatar: new Uint8Array(),
                 country: formData.country,
                 isPrivate: formData.isPrivate,
                 preferences: preferences,

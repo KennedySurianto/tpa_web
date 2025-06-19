@@ -24,3 +24,7 @@ func (s *ChatServiceImpl) GetChatsByUserID(userID uint64) ([]*model.Chat, error)
 func (s *ChatServiceImpl) GetChatsBetweenUsers(user1, user2 uint64) ([]*model.Chat, error) {
 	return s.repo.GetBetweenUsers(user1, user2)
 }
+
+func (s *ChatServiceImpl) UnsendMessage(messageId uint32) error {
+  return s.repo.SoftDeleteMessage(messageId)
+}

@@ -13,8 +13,10 @@ type Hub struct {
 }
 
 type IncomingMessage struct {
-	ReceiverID uint64 `json:"receiver_id"`
-	Message    string `json:"message"`
+	Type       string `json:"type"`        // "text" or "unsend"
+	ReceiverID uint64 `json:"receiver_id"` // Required
+	Message    string `json:"message"`     // Only for text
+	MessageID  string `json:"message_id"`  // Only for unsend
 }
 
 func NewHub() *Hub {
@@ -57,18 +59,27 @@ func (h *Hub) HandleMessage(rawMsg []byte, senderID uint64) {
 		return
 	}
 
-	outgoing := map[string]interface{}{
-		"sender_id":  senderID,
-		"message":    incoming.Message,
-	}
-	jsonMsg, err := json.Marshal(outgoing)
-	if err != nil {
-		return
-	}
+	switch incoming.Type {
+	case "text":
+		outgoing := map[string]interface{}{
+			"type":       "text",
+			"sender_id":  senderID,
+			"message":    incoming.Message,
+		}
+		jsonMsg, _ := json.Marshal(outgoing)
+		h.Broadcast(incoming.ReceiverID, jsonMsg)
+		h.Broadcast(senderID, jsonMsg)
 
-	// Send to receiver
-	h.Broadcast(incoming.ReceiverID, jsonMsg)
+	case "unsend":
+		// Soft delete from DB (use service if DI is used)
+		// Example: _ = chatService.UnsendMessage(incoming.MessageID)
 
-	// Send to sender
-	h.Broadcast(senderID, jsonMsg)
+		outgoing := map[string]interface{}{
+			"type":       "unsend",
+			"messageId":  incoming.MessageID,
+		}
+		jsonMsg, _ := json.Marshal(outgoing)
+		h.Broadcast(incoming.ReceiverID, jsonMsg)
+		h.Broadcast(senderID, jsonMsg)
+	}
 }

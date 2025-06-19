@@ -30,9 +30,14 @@ func (r *ChatRepositoryImpl) GetByUserID(userID uint64) ([]*model.Chat, error) {
 func (r *ChatRepositoryImpl) GetBetweenUsers(user1, user2 uint64) ([]*model.Chat, error) {
 	var chats []*model.Chat
 	err := r.db.
+		Unscoped(). // this disables GORM's default `WHERE deleted_at IS NULL`
 		Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
 			user1, user2, user2, user1).
 		Order("created_at ASC").
 		Find(&chats).Error
 	return chats, err
+}
+
+func (r *ChatRepositoryImpl) SoftDeleteMessage(messageId uint32) error {
+	return r.db.Delete(&model.Chat{}, messageId).Error
 }

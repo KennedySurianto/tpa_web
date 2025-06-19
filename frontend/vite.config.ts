@@ -15,7 +15,7 @@ export default defineConfig({
     'process.env': {},
   },
   optimizeDeps: {
-    include: ['grpc-web', 'google-protobuf'],
+    include: ['grpc-web', 'google-protobuf', 'rxjs'],
     esbuildOptions: {
       define: {
         global: 'globalThis',

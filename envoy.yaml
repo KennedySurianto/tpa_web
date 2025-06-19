@@ -89,6 +89,13 @@ static_resources:
                               - upgrade_type: websocket
                                 enabled: true
 
+                        # Route signaling-service gRPC calls
+                        - match:
+                            prefix: "/signaling.SignalingService/"
+                          route:
+                            cluster: signaling-service
+                            timeout: 300s
+
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -195,6 +202,22 @@ static_resources:
                     socket_address:
                       address: chat-service
                       port_value: 8081
+    
+    # Signaling Service cluster
+    - name: signaling-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}  # Enable HTTP/2 for gRPC
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: signaling-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: signaling-service
+                      port_value: 50056
 
 admin:
   access_log_path: "/tmp/admin_access.log"

@@ -88,9 +88,37 @@ func (h *ChatController) GetChatsWithUser(ctx context.Context, req *chatpb.GetCh
 			Type:       string(c.Type),
 			Message:    c.Message,
 			CreatedAt:  c.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:  c.UpdatedAt.Format(time.RFC3339),
+			DeletedAt:  func() string {
+				if c.DeletedAt.Valid {
+					return c.DeletedAt.Time.Format(time.RFC3339)
+				}
+				return ""
+			}(),
 		})
 	}
 
 	fmt.Println("[CHAT_CONTROLLER] Length of chats with user:", len(pbChats))
 	return &chatpb.GetChatsWithUserResponse{Chats: pbChats}, nil
+}
+
+func (c *ChatController) UnsendMessage(ctx context.Context, req *chatpb.UnsendMessageRequest) (*chatpb.Empty, error) {
+	err := c.service.UnsendMessage(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Real-time broadcast to both sender and receiver
+	payload := map[string]interface{}{
+		"type":      "unsend",
+		"messageId": fmt.Sprintf("%d", req.ChatId),
+	}
+
+	jsonBytes, _ := json.Marshal(payload)
+
+	// Broadcast to both users
+	c.hub.Broadcast(uint64(req.ReceiverId), jsonBytes)
+	c.hub.Broadcast(uint64(req.SenderId), jsonBytes)
+
+	return &chatpb.Empty{}, nil
 }

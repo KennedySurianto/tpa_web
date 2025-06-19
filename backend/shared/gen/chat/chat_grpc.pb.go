@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ChatService_SendMessage_FullMethodName      = "/chat.ChatService/SendMessage"
+	ChatService_UnsendMessage_FullMethodName    = "/chat.ChatService/UnsendMessage"
 	ChatService_GetChatsByUserID_FullMethodName = "/chat.ChatService/GetChatsByUserID"
 	ChatService_GetChatsWithUser_FullMethodName = "/chat.ChatService/GetChatsWithUser"
 )
@@ -31,6 +32,7 @@ const (
 // Chat service definition
 type ChatServiceClient interface {
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	UnsendMessage(ctx context.Context, in *UnsendMessageRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetChatsByUserID(ctx context.Context, in *GetChatsByUserIDRequest, opts ...grpc.CallOption) (*GetChatsByUserIDResponse, error)
 	GetChatsWithUser(ctx context.Context, in *GetChatsWithUserRequest, opts ...grpc.CallOption) (*GetChatsWithUserResponse, error)
 }
@@ -47,6 +49,16 @@ func (c *chatServiceClient) SendMessage(ctx context.Context, in *SendMessageRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendMessageResponse)
 	err := c.cc.Invoke(ctx, ChatService_SendMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) UnsendMessage(ctx context.Context, in *UnsendMessageRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, ChatService_UnsendMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +92,7 @@ func (c *chatServiceClient) GetChatsWithUser(ctx context.Context, in *GetChatsWi
 // Chat service definition
 type ChatServiceServer interface {
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	UnsendMessage(context.Context, *UnsendMessageRequest) (*Empty, error)
 	GetChatsByUserID(context.Context, *GetChatsByUserIDRequest) (*GetChatsByUserIDResponse, error)
 	GetChatsWithUser(context.Context, *GetChatsWithUserRequest) (*GetChatsWithUserResponse, error)
 	mustEmbedUnimplementedChatServiceServer()
@@ -94,6 +107,9 @@ type UnimplementedChatServiceServer struct{}
 
 func (UnimplementedChatServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedChatServiceServer) UnsendMessage(context.Context, *UnsendMessageRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnsendMessage not implemented")
 }
 func (UnimplementedChatServiceServer) GetChatsByUserID(context.Context, *GetChatsByUserIDRequest) (*GetChatsByUserIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChatsByUserID not implemented")
@@ -136,6 +152,24 @@ func _ChatService_SendMessage_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServiceServer).SendMessage(ctx, req.(*SendMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_UnsendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsendMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).UnsendMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_UnsendMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).UnsendMessage(ctx, req.(*UnsendMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -186,6 +220,10 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMessage",
 			Handler:    _ChatService_SendMessage_Handler,
+		},
+		{
+			MethodName: "UnsendMessage",
+			Handler:    _ChatService_UnsendMessage_Handler,
 		},
 		{
 			MethodName: "GetChatsByUserID",

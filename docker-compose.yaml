@@ -262,7 +262,7 @@ services:
       context: ./backend
       dockerfile: chat-service/Dockerfile
     expose:
-      - "50051"   # gRPC
+      - "50055"   # gRPC
       - "8081"    # WebSocket/HTTP
     ports:
       - 50055:50055
@@ -281,6 +281,26 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "/bin/grpc_health_probe", "-addr=:50055"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  signaling-service:
+    container_name: signaling-service
+    build: 
+      context: ./backend
+      dockerfile: signaling-service/Dockerfile
+    expose:
+      - "50056"
+    ports:
+      - 50056:50056
+    environment:
+      PORT: 50056
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50056"]
       interval: 30s
       timeout: 5s
       retries: 3

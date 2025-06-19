@@ -19,6 +19,8 @@ export interface Chat {
   type: string;
   message: string;
   createdAt: string;
+  updatedAt: string;
+  deletedAt: string;
 }
 
 /** Request to send a message */
@@ -54,8 +56,26 @@ export interface GetChatsWithUserResponse {
   chats: Chat[];
 }
 
+export interface UnsendMessageRequest {
+  chatId: number;
+  senderId: number;
+  receiverId: number;
+}
+
+export interface Empty {
+}
+
 function createBaseChat(): Chat {
-  return { id: "0", senderId: "0", receiverId: "0", type: "", message: "", createdAt: "" };
+  return {
+    id: "0",
+    senderId: "0",
+    receiverId: "0",
+    type: "",
+    message: "",
+    createdAt: "",
+    updatedAt: "",
+    deletedAt: "",
+  };
 }
 
 export const Chat: MessageFns<Chat> = {
@@ -77,6 +97,12 @@ export const Chat: MessageFns<Chat> = {
     }
     if (message.createdAt !== "") {
       writer.uint32(50).string(message.createdAt);
+    }
+    if (message.updatedAt !== "") {
+      writer.uint32(58).string(message.updatedAt);
+    }
+    if (message.deletedAt !== "") {
+      writer.uint32(66).string(message.deletedAt);
     }
     return writer;
   },
@@ -136,6 +162,22 @@ export const Chat: MessageFns<Chat> = {
           message.createdAt = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.deletedAt = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -153,6 +195,8 @@ export const Chat: MessageFns<Chat> = {
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+      deletedAt: isSet(object.deletedAt) ? globalThis.String(object.deletedAt) : "",
     };
   },
 
@@ -176,6 +220,12 @@ export const Chat: MessageFns<Chat> = {
     if (message.createdAt !== "") {
       obj.createdAt = message.createdAt;
     }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    if (message.deletedAt !== "") {
+      obj.deletedAt = message.deletedAt;
+    }
     return obj;
   },
 
@@ -190,6 +240,8 @@ export const Chat: MessageFns<Chat> = {
     message.type = object.type ?? "";
     message.message = object.message ?? "";
     message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
+    message.deletedAt = object.deletedAt ?? "";
     return message;
   },
 };
@@ -610,9 +662,145 @@ export const GetChatsWithUserResponse: MessageFns<GetChatsWithUserResponse> = {
   },
 };
 
+function createBaseUnsendMessageRequest(): UnsendMessageRequest {
+  return { chatId: 0, senderId: 0, receiverId: 0 };
+}
+
+export const UnsendMessageRequest: MessageFns<UnsendMessageRequest> = {
+  encode(message: UnsendMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.chatId !== 0) {
+      writer.uint32(8).uint32(message.chatId);
+    }
+    if (message.senderId !== 0) {
+      writer.uint32(16).uint32(message.senderId);
+    }
+    if (message.receiverId !== 0) {
+      writer.uint32(24).uint32(message.receiverId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UnsendMessageRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUnsendMessageRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.chatId = reader.uint32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.senderId = reader.uint32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.receiverId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UnsendMessageRequest {
+    return {
+      chatId: isSet(object.chatId) ? globalThis.Number(object.chatId) : 0,
+      senderId: isSet(object.senderId) ? globalThis.Number(object.senderId) : 0,
+      receiverId: isSet(object.receiverId) ? globalThis.Number(object.receiverId) : 0,
+    };
+  },
+
+  toJSON(message: UnsendMessageRequest): unknown {
+    const obj: any = {};
+    if (message.chatId !== 0) {
+      obj.chatId = Math.round(message.chatId);
+    }
+    if (message.senderId !== 0) {
+      obj.senderId = Math.round(message.senderId);
+    }
+    if (message.receiverId !== 0) {
+      obj.receiverId = Math.round(message.receiverId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UnsendMessageRequest>, I>>(base?: I): UnsendMessageRequest {
+    return UnsendMessageRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UnsendMessageRequest>, I>>(object: I): UnsendMessageRequest {
+    const message = createBaseUnsendMessageRequest();
+    message.chatId = object.chatId ?? 0;
+    message.senderId = object.senderId ?? 0;
+    message.receiverId = object.receiverId ?? 0;
+    return message;
+  },
+};
+
+function createBaseEmpty(): Empty {
+  return {};
+}
+
+export const Empty: MessageFns<Empty> = {
+  encode(_: Empty, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Empty {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEmpty();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Empty {
+    return {};
+  },
+
+  toJSON(_: Empty): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Empty>, I>>(base?: I): Empty {
+    return Empty.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
+    const message = createBaseEmpty();
+    return message;
+  },
+};
+
 /** Chat service definition */
 export interface ChatService {
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse>;
+  UnsendMessage(request: DeepPartial<UnsendMessageRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   GetChatsByUserID(
     request: DeepPartial<GetChatsByUserIDRequest>,
     metadata?: grpc.Metadata,
@@ -629,12 +817,17 @@ export class ChatServiceClientImpl implements ChatService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SendMessage = this.SendMessage.bind(this);
+    this.UnsendMessage = this.UnsendMessage.bind(this);
     this.GetChatsByUserID = this.GetChatsByUserID.bind(this);
     this.GetChatsWithUser = this.GetChatsWithUser.bind(this);
   }
 
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse> {
     return this.rpc.unary(ChatServiceSendMessageDesc, SendMessageRequest.fromPartial(request), metadata);
+  }
+
+  UnsendMessage(request: DeepPartial<UnsendMessageRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(ChatServiceUnsendMessageDesc, UnsendMessageRequest.fromPartial(request), metadata);
   }
 
   GetChatsByUserID(
@@ -667,6 +860,29 @@ export const ChatServiceSendMessageDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = SendMessageResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ChatServiceUnsendMessageDesc: UnaryMethodDefinitionish = {
+  methodName: "UnsendMessage",
+  service: ChatServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return UnsendMessageRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {

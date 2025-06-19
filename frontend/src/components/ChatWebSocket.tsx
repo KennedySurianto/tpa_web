@@ -1,4 +1,3 @@
-// src/components/ws/ChatWebSocket.tsx
 import { useEffect } from "react";
 import type { Chat } from "../api/gen/chat";
 

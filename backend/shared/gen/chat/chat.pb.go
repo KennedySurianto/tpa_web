@@ -30,6 +30,8 @@ type Chat struct {
 	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
 	Message       string                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     string                 `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -102,6 +104,20 @@ func (x *Chat) GetMessage() string {
 func (x *Chat) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Chat) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Chat) GetDeletedAt() string {
+	if x != nil {
+		return x.DeletedAt
 	}
 	return ""
 }
@@ -406,12 +422,108 @@ func (x *GetChatsWithUserResponse) GetChats() []*Chat {
 	return nil
 }
 
+type UnsendMessageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChatId        uint32                 `protobuf:"varint,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	SenderId      uint32                 `protobuf:"varint,2,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
+	ReceiverId    uint32                 `protobuf:"varint,3,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnsendMessageRequest) Reset() {
+	*x = UnsendMessageRequest{}
+	mi := &file_chat_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnsendMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnsendMessageRequest) ProtoMessage() {}
+
+func (x *UnsendMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnsendMessageRequest.ProtoReflect.Descriptor instead.
+func (*UnsendMessageRequest) Descriptor() ([]byte, []int) {
+	return file_chat_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UnsendMessageRequest) GetChatId() uint32 {
+	if x != nil {
+		return x.ChatId
+	}
+	return 0
+}
+
+func (x *UnsendMessageRequest) GetSenderId() uint32 {
+	if x != nil {
+		return x.SenderId
+	}
+	return 0
+}
+
+func (x *UnsendMessageRequest) GetReceiverId() uint32 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+type Empty struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Empty) Reset() {
+	*x = Empty{}
+	mi := &file_chat_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Empty) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Empty) ProtoMessage() {}
+
+func (x *Empty) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
+func (*Empty) Descriptor() ([]byte, []int) {
+	return file_chat_proto_rawDescGZIP(), []int{8}
+}
+
 var File_chat_proto protoreflect.FileDescriptor
 
 const file_chat_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"chat.proto\x12\x04chat\"\xa1\x01\n" +
+	"chat.proto\x12\x04chat\"\xdf\x01\n" +
 	"\x04Chat\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1b\n" +
 	"\tsender_id\x18\x02 \x01(\x04R\bsenderId\x12\x1f\n" +
@@ -420,7 +532,11 @@ const file_chat_proto_rawDesc = "" +
 	"\x04type\x18\x04 \x01(\tR\x04type\x12\x18\n" +
 	"\amessage\x18\x05 \x01(\tR\amessage\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\"\x80\x01\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"deleted_at\x18\b \x01(\tR\tdeletedAt\"\x80\x01\n" +
 	"\x12SendMessageRequest\x12\x1b\n" +
 	"\tsender_id\x18\x01 \x01(\x04R\bsenderId\x12\x1f\n" +
 	"\vreceiver_id\x18\x02 \x01(\x04R\n" +
@@ -440,9 +556,16 @@ const file_chat_proto_rawDesc = "" +
 	"\buser2_id\x18\x02 \x01(\x04R\auser2Id\"<\n" +
 	"\x18GetChatsWithUserResponse\x12 \n" +
 	"\x05chats\x18\x01 \x03(\v2\n" +
-	".chat.ChatR\x05chats2\xf7\x01\n" +
+	".chat.ChatR\x05chats\"m\n" +
+	"\x14UnsendMessageRequest\x12\x17\n" +
+	"\achat_id\x18\x01 \x01(\rR\x06chatId\x12\x1b\n" +
+	"\tsender_id\x18\x02 \x01(\rR\bsenderId\x12\x1f\n" +
+	"\vreceiver_id\x18\x03 \x01(\rR\n" +
+	"receiverId\"\a\n" +
+	"\x05Empty2\xb1\x02\n" +
 	"\vChatService\x12B\n" +
-	"\vSendMessage\x12\x18.chat.SendMessageRequest\x1a\x19.chat.SendMessageResponse\x12Q\n" +
+	"\vSendMessage\x12\x18.chat.SendMessageRequest\x1a\x19.chat.SendMessageResponse\x128\n" +
+	"\rUnsendMessage\x12\x1a.chat.UnsendMessageRequest\x1a\v.chat.Empty\x12Q\n" +
 	"\x10GetChatsByUserID\x12\x1d.chat.GetChatsByUserIDRequest\x1a\x1e.chat.GetChatsByUserIDResponse\x12Q\n" +
 	"\x10GetChatsWithUser\x12\x1d.chat.GetChatsWithUserRequest\x1a\x1e.chat.GetChatsWithUserResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/chat;chatb\x06proto3"
 
@@ -458,7 +581,7 @@ func file_chat_proto_rawDescGZIP() []byte {
 	return file_chat_proto_rawDescData
 }
 
-var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_chat_proto_goTypes = []any{
 	(*Chat)(nil),                     // 0: chat.Chat
 	(*SendMessageRequest)(nil),       // 1: chat.SendMessageRequest
@@ -467,19 +590,23 @@ var file_chat_proto_goTypes = []any{
 	(*GetChatsByUserIDResponse)(nil), // 4: chat.GetChatsByUserIDResponse
 	(*GetChatsWithUserRequest)(nil),  // 5: chat.GetChatsWithUserRequest
 	(*GetChatsWithUserResponse)(nil), // 6: chat.GetChatsWithUserResponse
+	(*UnsendMessageRequest)(nil),     // 7: chat.UnsendMessageRequest
+	(*Empty)(nil),                    // 8: chat.Empty
 }
 var file_chat_proto_depIdxs = []int32{
 	0, // 0: chat.SendMessageResponse.chat:type_name -> chat.Chat
 	0, // 1: chat.GetChatsByUserIDResponse.chats:type_name -> chat.Chat
 	0, // 2: chat.GetChatsWithUserResponse.chats:type_name -> chat.Chat
 	1, // 3: chat.ChatService.SendMessage:input_type -> chat.SendMessageRequest
-	3, // 4: chat.ChatService.GetChatsByUserID:input_type -> chat.GetChatsByUserIDRequest
-	5, // 5: chat.ChatService.GetChatsWithUser:input_type -> chat.GetChatsWithUserRequest
-	2, // 6: chat.ChatService.SendMessage:output_type -> chat.SendMessageResponse
-	4, // 7: chat.ChatService.GetChatsByUserID:output_type -> chat.GetChatsByUserIDResponse
-	6, // 8: chat.ChatService.GetChatsWithUser:output_type -> chat.GetChatsWithUserResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
+	7, // 4: chat.ChatService.UnsendMessage:input_type -> chat.UnsendMessageRequest
+	3, // 5: chat.ChatService.GetChatsByUserID:input_type -> chat.GetChatsByUserIDRequest
+	5, // 6: chat.ChatService.GetChatsWithUser:input_type -> chat.GetChatsWithUserRequest
+	2, // 7: chat.ChatService.SendMessage:output_type -> chat.SendMessageResponse
+	8, // 8: chat.ChatService.UnsendMessage:output_type -> chat.Empty
+	4, // 9: chat.ChatService.GetChatsByUserID:output_type -> chat.GetChatsByUserIDResponse
+	6, // 10: chat.ChatService.GetChatsWithUser:output_type -> chat.GetChatsWithUserResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -496,7 +623,7 @@ func file_chat_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chat_proto_rawDesc), len(file_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

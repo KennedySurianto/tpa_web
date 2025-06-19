@@ -6,6 +6,7 @@ import (
 
 type ChatService interface {
 	SendMessage(chat *model.Chat) (*model.Chat, error)
+	UnsendMessage(messageId uint32) error
 	GetChatsByUserID(userID uint64) ([]*model.Chat, error)
 	GetChatsBetweenUsers(user1, user2 uint64) ([]*model.Chat, error)
 }

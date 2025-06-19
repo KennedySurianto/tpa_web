@@ -18,7 +18,7 @@ type OTPServiceImpl struct {
 	Cache *memcache.Client
 }
 
-func NewOTPService(Cache *memcache.Client) *OTPServiceImpl {
+func NewOTPService(Cache *memcache.Client) OTPService {
 	return &OTPServiceImpl{
 		Cache: Cache,
 	}

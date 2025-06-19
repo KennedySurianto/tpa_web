@@ -23,4 +23,8 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/grpc v1.73.0
 	gorm.io/driver/postgres v1.6.0
+	github.com/KennedySurianto/tpa_web/backend/shared v0.0.0
 )
+
+
+replace github.com/KennedySurianto/tpa_web/backend/shared => ../shared

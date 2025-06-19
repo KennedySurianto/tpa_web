@@ -28,7 +28,7 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
-# Install OS dependencies for faster-whisper + PyAV
+# Install OS dependencies for faster-whisper + PyAV + MinIO
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libavdevice-dev \
@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install -y \
     libswresample-dev \
     build-essential \
     wget \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy grpc_health_probe binary
@@ -55,9 +56,18 @@ RUN pip install --upgrade pip && \
 COPY --from=builder /app/video-service/app .
 COPY video-service/internal/ai/caption_generator.py ./internal/ai/
 
+# Install MinIO client
+RUN curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && \
+    chmod +x mc && \
+    mv mc /usr/local/bin/mc
+
 # Create temp directory for generated files
 RUN mkdir -p /app/temp
 
+# Copy entrypoint script
+COPY video-service/scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 50053
 
-ENTRYPOINT ["/app/app"]
+ENTRYPOINT ["/entrypoint.sh"]
