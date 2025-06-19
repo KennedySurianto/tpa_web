@@ -5,15 +5,20 @@ import (
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
+	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 )
 
 type FollowController struct {
 	pb.UnimplementedFollowServiceServer
 	svc service.FollowService
+	userClient userpb.UserServiceClient
 }
 
-func NewFollowController(svc service.FollowService) *FollowController {
-	return &FollowController{svc: svc}
+func NewFollowController(svc service.FollowService, userClient userpb.UserServiceClient) *FollowController {
+	return &FollowController{
+		svc: svc,
+		userClient: userClient,
+	}
 }
 
 func (c *FollowController) Follow(ctx context.Context, req *pb.FollowRequest) (*pb.Empty, error) {
@@ -34,9 +39,14 @@ func (c *FollowController) GetFollowers(ctx context.Context, req *pb.UserRequest
 
 	var items []*pb.FollowItem
 	for _, f := range follows {
+		userResp, err := c.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(f.FollowerID)})
+		if err != nil {
+			continue // or handle error appropriately
+		}
 		items = append(items, &pb.FollowItem{
 			FollowerId: uint32(f.FollowerID),
 			FollowedId: uint32(f.FollowedID),
+			User:       userResp,
 		})
 	}
 
@@ -51,9 +61,14 @@ func (c *FollowController) GetFollowing(ctx context.Context, req *pb.UserRequest
 
 	var items []*pb.FollowItem
 	for _, f := range follows {
+		userResp, err := c.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(f.FollowedID)})
+		if err != nil {
+			continue // or handle error appropriately
+		}
 		items = append(items, &pb.FollowItem{
 			FollowerId: uint32(f.FollowerID),
 			FollowedId: uint32(f.FollowedID),
+			User:       userResp,
 		})
 	}
 

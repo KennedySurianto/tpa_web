@@ -1,8 +1,11 @@
+
 syntax = "proto3";
 
 package activity;
 
 option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow;follow";
+
+import "user.proto";
 
 service FollowService {
     rpc Follow(FollowRequest) returns (Empty) {}
@@ -23,6 +26,8 @@ message UserRequest {
 message FollowItem {
     uint32 follower_id = 1;
     uint32 followed_id = 2;
+
+    user.User user = 3; // kalo get followers, kasi follower. kalo get following, kasi following.
 }
 
 message FollowList {

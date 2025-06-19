@@ -9,6 +9,8 @@ import { avatarBytesToUrl } from '../../utils/avatarConverter';
 import type { GetVideosByUserIdRequest, GetVideosByUserIdResponse, Video } from '../../api/gen/video';
 import { videoClient } from '../../api/grpc/videoClient';
 import { VideoDetailModal } from './VideoDetailModal';
+import { FollowerListModal } from '../FollowerListModal';
+import { FollowingListModal } from '../FollowingListModal';
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -24,38 +26,44 @@ const ProfilePage: React.FC = () => {
     const [videos, setVideos] = useState<Video[]>([]);
     const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isFollowerModalOpen, setFollowerModalOpen] = useState(false);
+    const [isFollowingModalOpen, setFollowingModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
             if (!username) {
-                setError('Username is missing.');
-                setLoading(false);
-                return;
+            setError('Username is missing.');
+            setLoading(false);
+            return;
             }
 
             try {
-                const req: GetUserByUsernameRequest = { username };
-                const res: User = await userClient.GetUserByUsername(req);
-                console.log(res);
-                setSelectedUser(res);
-                
-                // Check if current user is following this user and get follower counts
-                if (user && res.id) {
-                    await Promise.all([
-                        checkFollowStatus(Number(user.id), Number(res.id)),
-                        getFollowCounts(Number(res.id))
-                    ]);
-                }
+            const req: GetUserByUsernameRequest = { username };
+            const res: User = await userClient.GetUserByUsername(req);
+            setSelectedUser(res);
             } catch (err) {
-                console.error('Error fetching user:', err);
-                setError('Failed to fetch user data.');
+            console.error('Error fetching user:', err);
+            setError('Failed to fetch user data.');
             } finally {
-                setLoading(false);
+            setLoading(false);
             }
         };
 
         fetchUser();
     }, [username]);
+
+    useEffect(() => {
+        if (!selectedUser?.id) return;
+
+        const runFollowChecks = async () => {
+            if (user?.id) {
+            await checkFollowStatus(Number(user.id), Number(selectedUser.id));
+            }
+            await getFollowCounts(Number(selectedUser.id));
+        };
+
+        runFollowChecks();
+    }, [selectedUser, user?.id]);
 
     useEffect(() => {
         const fetchVideos = async () => {
@@ -308,33 +316,19 @@ const ProfilePage: React.FC = () => {
                     marginBottom: '2rem',
                     textAlign: 'center'
                 }}>
-                    <div>
-                        <div style={{ 
-                            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
-                            fontWeight: 'bold', 
-                            color: '#fff' 
-                        }}>
+                    <div style={{ cursor: 'pointer' }} onClick={() => setFollowingModalOpen(true)}>
+                        <div style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#fff' }}>
                             {followingCount}
                         </div>
-                        <div style={{ 
-                            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
-                            color: '#ccc' 
-                        }}>
+                        <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: '#ccc' }}>
                             Following
                         </div>
                     </div>
-                    <div>
-                        <div style={{ 
-                            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
-                            fontWeight: 'bold', 
-                            color: '#fff' 
-                        }}>
+                    <div style={{ cursor: 'pointer' }} onClick={() => setFollowerModalOpen(true)}>
+                        <div style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#fff' }}>
                             {followersCount}
                         </div>
-                        <div style={{ 
-                            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
-                            color: '#ccc' 
-                        }}>
+                        <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: '#ccc' }}>
                             Followers
                         </div>
                     </div>
@@ -630,6 +624,8 @@ const ProfilePage: React.FC = () => {
                     </>
                 )}
             </div>
+
+            {/* Modals */}
             <VideoDetailModal
                 video={selectedVideo}
                 isOpen={modalOpen}
@@ -637,6 +633,16 @@ const ProfilePage: React.FC = () => {
                     setSelectedVideo(null);
                     setModalOpen(false);
                 }}
+            />
+            <FollowerListModal
+                userId={Number(selectedUser.id)}
+                isOpen={isFollowerModalOpen}
+                onClose={() => setFollowerModalOpen(false)}
+            />
+            <FollowingListModal
+                userId={Number(selectedUser.id)}
+                isOpen={isFollowingModalOpen}
+                onClose={() => setFollowingModalOpen(false)}
             />
         </div>
     );

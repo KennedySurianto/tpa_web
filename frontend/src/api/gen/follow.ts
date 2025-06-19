@@ -8,6 +8,7 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
+import { User } from "./user";
 
 export const protobufPackage = "activity";
 
@@ -23,6 +24,8 @@ export interface UserRequest {
 export interface FollowItem {
   followerId: number;
   followedId: number;
+  /** kalo get followers, kasi follower. kalo get following, kasi following. */
+  user?: User | undefined;
 }
 
 export interface FollowList {
@@ -167,7 +170,7 @@ export const UserRequest: MessageFns<UserRequest> = {
 };
 
 function createBaseFollowItem(): FollowItem {
-  return { followerId: 0, followedId: 0 };
+  return { followerId: 0, followedId: 0, user: undefined };
 }
 
 export const FollowItem: MessageFns<FollowItem> = {
@@ -177,6 +180,9 @@ export const FollowItem: MessageFns<FollowItem> = {
     }
     if (message.followedId !== 0) {
       writer.uint32(16).uint32(message.followedId);
+    }
+    if (message.user !== undefined) {
+      User.encode(message.user, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -204,6 +210,14 @@ export const FollowItem: MessageFns<FollowItem> = {
           message.followedId = reader.uint32();
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.user = User.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -217,6 +231,7 @@ export const FollowItem: MessageFns<FollowItem> = {
     return {
       followerId: isSet(object.followerId) ? globalThis.Number(object.followerId) : 0,
       followedId: isSet(object.followedId) ? globalThis.Number(object.followedId) : 0,
+      user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
     };
   },
 
@@ -228,6 +243,9 @@ export const FollowItem: MessageFns<FollowItem> = {
     if (message.followedId !== 0) {
       obj.followedId = Math.round(message.followedId);
     }
+    if (message.user !== undefined) {
+      obj.user = User.toJSON(message.user);
+    }
     return obj;
   },
 
@@ -238,6 +256,7 @@ export const FollowItem: MessageFns<FollowItem> = {
     const message = createBaseFollowItem();
     message.followerId = object.followerId ?? 0;
     message.followedId = object.followedId ?? 0;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     return message;
   },
 };

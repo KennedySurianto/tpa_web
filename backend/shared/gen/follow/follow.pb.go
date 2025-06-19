@@ -7,6 +7,7 @@
 package follow
 
 import (
+	user "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -121,6 +122,7 @@ type FollowItem struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FollowerId    uint32                 `protobuf:"varint,1,opt,name=follower_id,json=followerId,proto3" json:"follower_id,omitempty"`
 	FollowedId    uint32                 `protobuf:"varint,2,opt,name=followed_id,json=followedId,proto3" json:"followed_id,omitempty"`
+	User          *user.User             `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"` // kalo get followers, kasi follower. kalo get following, kasi following.
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -167,6 +169,13 @@ func (x *FollowItem) GetFollowedId() uint32 {
 		return x.FollowedId
 	}
 	return 0
+}
+
+func (x *FollowItem) GetUser() *user.User {
+	if x != nil {
+		return x.User
+	}
+	return nil
 }
 
 type FollowList struct {
@@ -253,20 +262,23 @@ var File_follow_proto protoreflect.FileDescriptor
 
 const file_follow_proto_rawDesc = "" +
 	"\n" +
-	"\ffollow.proto\x12\bactivity\"Q\n" +
+	"\ffollow.proto\x12\bactivity\x1a\n" +
+	"user.proto\"Q\n" +
 	"\rFollowRequest\x12\x1f\n" +
 	"\vfollower_id\x18\x01 \x01(\rR\n" +
 	"followerId\x12\x1f\n" +
 	"\vfollowed_id\x18\x02 \x01(\rR\n" +
 	"followedId\"&\n" +
 	"\vUserRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\rR\x06userId\"N\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\"n\n" +
 	"\n" +
 	"FollowItem\x12\x1f\n" +
 	"\vfollower_id\x18\x01 \x01(\rR\n" +
 	"followerId\x12\x1f\n" +
 	"\vfollowed_id\x18\x02 \x01(\rR\n" +
-	"followedId\"<\n" +
+	"followedId\x12\x1e\n" +
+	"\x04user\x18\x03 \x01(\v2\n" +
+	".user.UserR\x04user\"<\n" +
 	"\n" +
 	"FollowList\x12.\n" +
 	"\afollows\x18\x01 \x03(\v2\x14.activity.FollowItemR\afollows\"\a\n" +
@@ -296,22 +308,24 @@ var file_follow_proto_goTypes = []any{
 	(*FollowItem)(nil),    // 2: activity.FollowItem
 	(*FollowList)(nil),    // 3: activity.FollowList
 	(*Empty)(nil),         // 4: activity.Empty
+	(*user.User)(nil),     // 5: user.User
 }
 var file_follow_proto_depIdxs = []int32{
-	2, // 0: activity.FollowList.follows:type_name -> activity.FollowItem
-	0, // 1: activity.FollowService.Follow:input_type -> activity.FollowRequest
-	0, // 2: activity.FollowService.Unfollow:input_type -> activity.FollowRequest
-	1, // 3: activity.FollowService.GetFollowers:input_type -> activity.UserRequest
-	1, // 4: activity.FollowService.GetFollowing:input_type -> activity.UserRequest
-	4, // 5: activity.FollowService.Follow:output_type -> activity.Empty
-	4, // 6: activity.FollowService.Unfollow:output_type -> activity.Empty
-	3, // 7: activity.FollowService.GetFollowers:output_type -> activity.FollowList
-	3, // 8: activity.FollowService.GetFollowing:output_type -> activity.FollowList
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	5, // 0: activity.FollowItem.user:type_name -> user.User
+	2, // 1: activity.FollowList.follows:type_name -> activity.FollowItem
+	0, // 2: activity.FollowService.Follow:input_type -> activity.FollowRequest
+	0, // 3: activity.FollowService.Unfollow:input_type -> activity.FollowRequest
+	1, // 4: activity.FollowService.GetFollowers:input_type -> activity.UserRequest
+	1, // 5: activity.FollowService.GetFollowing:input_type -> activity.UserRequest
+	4, // 6: activity.FollowService.Follow:output_type -> activity.Empty
+	4, // 7: activity.FollowService.Unfollow:output_type -> activity.Empty
+	3, // 8: activity.FollowService.GetFollowers:output_type -> activity.FollowList
+	3, // 9: activity.FollowService.GetFollowing:output_type -> activity.FollowList
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_follow_proto_init() }

@@ -5,6 +5,8 @@ import { useAuth } from '../../../utils/AuthProvider';
 import { commentClient } from '../../../api/grpc/commentClient';
 import type { LikeCommentRequest, UnlikeCommentRequest } from '../../../api/gen/like_comment';
 import { likeCommentClient } from '../../../api/grpc/likeCommentClient';
+import { avatarBytesToUrl } from '../../../utils/avatarConverter';
+import defaultAvatar from "../../../assets/default.jpg";
 
 interface Props {
   videoId: number;
@@ -310,9 +312,9 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                       fontSize: '16px',
                       flexShrink: 0,
                     }}>
-                      {comment.user?.profileUrl ? (
+                      {comment.user?.avatar ? (
                         <img
-                          src={comment.user.profileUrl}
+                          src={comment.user.avatar ? avatarBytesToUrl(comment.user.avatar) || defaultAvatar : defaultAvatar}
                           alt={comment.user.username || 'User Avatar'}
                           style={{ width: '32px', height: '32px', borderRadius: '50%' }}
                         />
@@ -417,9 +419,9 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                   fontSize: '12px',
                                   flexShrink: 0,
                                 }}>
-                                  {reply.user?.profileUrl ? (
+                                  {reply.user?.avatar ? (
                                     <img
-                                      src={reply.user.profileUrl}
+                                      src={reply.user.avatar ? avatarBytesToUrl(reply.user.avatar) || defaultAvatar : defaultAvatar}
                                       alt={reply.user.username || 'User Avatar'}
                                       style={{ width: '24px', height: '24px', borderRadius: '50%' }}
                                     />

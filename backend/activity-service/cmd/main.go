@@ -57,7 +57,7 @@ func main() {
 	watchCtrl := controller.NewWatchController(watchSvc)
 	likeCommentCtrl := controller.NewLikeCommentController(likeCommentSvc)
 	commentCtrl := controller.NewCommentController(commentSvc, userClient, *likeCommentCtrl)
-	followCtrl := controller.NewFollowController(followSvc)
+	followCtrl := controller.NewFollowController(followSvc, userClient)
 	
 	// Register gRPC server
 	grpcServer := grpc.NewServer()
