@@ -171,8 +171,8 @@ func (s *VideoServiceImpl) DeleteVideo(id uint) error {
 	return s.videoRepo.DeleteVideo(id)
 }
 
-func (s *VideoServiceImpl) ListVideos(req *pb.ListVideosRequest) ([]model.Video, int64, error) {
-	return s.videoRepo.ListVideos(uint(req.UserId), int(req.Page), int(req.Limit))
+func (s *VideoServiceImpl) GetVideosByUserId(req *pb.GetVideosByUserIdRequest) ([]model.Video, int64, error) {
+	return s.videoRepo.GetVideosByUserId(uint(req.UserId))
 }
 
 func (s *VideoServiceImpl) UpdateMetrics(req *pb.UpdateMetricsRequest) (*model.Video, error) {

@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/signaling"
-	"github.com/KennedySurianto/tpa_web/backend/signaling-service/internal/model"
-	"github.com/KennedySurianto/tpa_web/backend/signaling-service/internal/service"
+	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/live"
+	"github.com/KennedySurianto/tpa_web/backend/live-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/live-service/internal/service"
 )
 
 type SignalingController struct {
-	pb.UnimplementedSignalingServiceServer
+	pb.UnimplementedLiveServiceServer
 	service service.SignalingService
 }
 
@@ -19,7 +19,7 @@ func NewSignalingController(s service.SignalingService) *SignalingController {
 	return &SignalingController{service: s}
 }
 
-func (c *SignalingController) JoinRoom(req *pb.JoinRequest, stream pb.SignalingService_JoinRoomServer) error {
+func (c *SignalingController) JoinRoom(req *pb.JoinRequest, stream pb.LiveService_JoinRoomServer) error {
 	ctx := stream.Context()
 	userID := req.UserId
 

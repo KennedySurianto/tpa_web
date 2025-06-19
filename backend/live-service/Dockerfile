@@ -4,16 +4,16 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 # Copy go.mod and go.sum
-COPY signaling-service/go.mod signaling-service/go.sum ./signaling-service/
+COPY live-service/go.mod live-service/go.sum ./live-service/
 
 # Copy shared package
 COPY shared ./shared
 
 # Copy the rest of the service code
-COPY signaling-service ./signaling-service
+COPY live-service ./live-service
 
 # Set working directory to service
-WORKDIR /app/signaling-service
+WORKDIR /app/live-service
 
 # Install git for Go module fetching
 RUN apk add --no-cache git
@@ -34,7 +34,7 @@ FROM gcr.io/distroless/base-debian11
 WORKDIR /app
 
 # Copy the binary and health probe
-COPY --from=builder /app/signaling-service/app .
+COPY --from=builder /app/live-service/app .
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 
 EXPOSE 50056

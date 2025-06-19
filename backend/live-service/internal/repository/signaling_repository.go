@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/KennedySurianto/tpa_web/backend/signaling-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/live-service/internal/model"
 )
 
 type SignalingRepository interface {

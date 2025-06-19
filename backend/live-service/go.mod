@@ -1,4 +1,4 @@
-module github.com/KennedySurianto/tpa_web/backend/signaling-service
+module github.com/KennedySurianto/tpa_web/backend/live-service
 
 go 1.24.3
 

@@ -102,13 +102,11 @@ export interface DeleteVideoResponse {
   success: boolean;
 }
 
-export interface ListVideosRequest {
+export interface GetVideosByUserIdRequest {
   userId: number;
-  page: number;
-  limit: number;
 }
 
-export interface ListVideosResponse {
+export interface GetVideosByUserIdResponse {
   videos: Video[];
   total: number;
 }
@@ -1431,28 +1429,22 @@ export const DeleteVideoResponse: MessageFns<DeleteVideoResponse> = {
   },
 };
 
-function createBaseListVideosRequest(): ListVideosRequest {
-  return { userId: 0, page: 0, limit: 0 };
+function createBaseGetVideosByUserIdRequest(): GetVideosByUserIdRequest {
+  return { userId: 0 };
 }
 
-export const ListVideosRequest: MessageFns<ListVideosRequest> = {
-  encode(message: ListVideosRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetVideosByUserIdRequest: MessageFns<GetVideosByUserIdRequest> = {
+  encode(message: GetVideosByUserIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.userId !== 0) {
       writer.uint32(8).uint32(message.userId);
-    }
-    if (message.page !== 0) {
-      writer.uint32(16).int32(message.page);
-    }
-    if (message.limit !== 0) {
-      writer.uint32(24).int32(message.limit);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ListVideosRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetVideosByUserIdRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListVideosRequest();
+    const message = createBaseGetVideosByUserIdRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1464,22 +1456,6 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
           message.userId = reader.uint32();
           continue;
         }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.page = reader.int32();
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.limit = reader.int32();
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1489,46 +1465,34 @@ export const ListVideosRequest: MessageFns<ListVideosRequest> = {
     return message;
   },
 
-  fromJSON(object: any): ListVideosRequest {
-    return {
-      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
-      page: isSet(object.page) ? globalThis.Number(object.page) : 0,
-      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
-    };
+  fromJSON(object: any): GetVideosByUserIdRequest {
+    return { userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0 };
   },
 
-  toJSON(message: ListVideosRequest): unknown {
+  toJSON(message: GetVideosByUserIdRequest): unknown {
     const obj: any = {};
     if (message.userId !== 0) {
       obj.userId = Math.round(message.userId);
     }
-    if (message.page !== 0) {
-      obj.page = Math.round(message.page);
-    }
-    if (message.limit !== 0) {
-      obj.limit = Math.round(message.limit);
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ListVideosRequest>, I>>(base?: I): ListVideosRequest {
-    return ListVideosRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(base?: I): GetVideosByUserIdRequest {
+    return GetVideosByUserIdRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ListVideosRequest>, I>>(object: I): ListVideosRequest {
-    const message = createBaseListVideosRequest();
+  fromPartial<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(object: I): GetVideosByUserIdRequest {
+    const message = createBaseGetVideosByUserIdRequest();
     message.userId = object.userId ?? 0;
-    message.page = object.page ?? 0;
-    message.limit = object.limit ?? 0;
     return message;
   },
 };
 
-function createBaseListVideosResponse(): ListVideosResponse {
+function createBaseGetVideosByUserIdResponse(): GetVideosByUserIdResponse {
   return { videos: [], total: 0 };
 }
 
-export const ListVideosResponse: MessageFns<ListVideosResponse> = {
-  encode(message: ListVideosResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetVideosByUserIdResponse: MessageFns<GetVideosByUserIdResponse> = {
+  encode(message: GetVideosByUserIdResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.videos) {
       Video.encode(v!, writer.uint32(10).fork()).join();
     }
@@ -1538,10 +1502,10 @@ export const ListVideosResponse: MessageFns<ListVideosResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ListVideosResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetVideosByUserIdResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListVideosResponse();
+    const message = createBaseGetVideosByUserIdResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1570,14 +1534,14 @@ export const ListVideosResponse: MessageFns<ListVideosResponse> = {
     return message;
   },
 
-  fromJSON(object: any): ListVideosResponse {
+  fromJSON(object: any): GetVideosByUserIdResponse {
     return {
       videos: globalThis.Array.isArray(object?.videos) ? object.videos.map((e: any) => Video.fromJSON(e)) : [],
       total: isSet(object.total) ? globalThis.Number(object.total) : 0,
     };
   },
 
-  toJSON(message: ListVideosResponse): unknown {
+  toJSON(message: GetVideosByUserIdResponse): unknown {
     const obj: any = {};
     if (message.videos?.length) {
       obj.videos = message.videos.map((e) => Video.toJSON(e));
@@ -1588,11 +1552,11 @@ export const ListVideosResponse: MessageFns<ListVideosResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ListVideosResponse>, I>>(base?: I): ListVideosResponse {
-    return ListVideosResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetVideosByUserIdResponse>, I>>(base?: I): GetVideosByUserIdResponse {
+    return GetVideosByUserIdResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ListVideosResponse>, I>>(object: I): ListVideosResponse {
-    const message = createBaseListVideosResponse();
+  fromPartial<I extends Exact<DeepPartial<GetVideosByUserIdResponse>, I>>(object: I): GetVideosByUserIdResponse {
+    const message = createBaseGetVideosByUserIdResponse();
     message.videos = object.videos?.map((e) => Video.fromPartial(e)) || [];
     message.total = object.total ?? 0;
     return message;
@@ -2233,7 +2197,10 @@ export interface VideoService {
   GetVideo(request: DeepPartial<GetVideoRequest>, metadata?: grpc.Metadata): Promise<GetVideoResponse>;
   UpdateVideo(request: DeepPartial<UpdateVideoRequest>, metadata?: grpc.Metadata): Promise<UpdateVideoResponse>;
   DeleteVideo(request: DeepPartial<DeleteVideoRequest>, metadata?: grpc.Metadata): Promise<DeleteVideoResponse>;
-  ListVideos(request: DeepPartial<ListVideosRequest>, metadata?: grpc.Metadata): Promise<ListVideosResponse>;
+  GetVideosByUserId(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse>;
   UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse>;
   GetRecommendedVideos(
     request: DeepPartial<GetRecommendedVideosRequest>,
@@ -2252,7 +2219,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.GetVideo = this.GetVideo.bind(this);
     this.UpdateVideo = this.UpdateVideo.bind(this);
     this.DeleteVideo = this.DeleteVideo.bind(this);
-    this.ListVideos = this.ListVideos.bind(this);
+    this.GetVideosByUserId = this.GetVideosByUserId.bind(this);
     this.UpdateMetrics = this.UpdateMetrics.bind(this);
     this.GetRecommendedVideos = this.GetRecommendedVideos.bind(this);
     this.GetCaptions = this.GetCaptions.bind(this);
@@ -2274,8 +2241,11 @@ export class VideoServiceClientImpl implements VideoService {
     return this.rpc.unary(VideoServiceDeleteVideoDesc, DeleteVideoRequest.fromPartial(request), metadata);
   }
 
-  ListVideos(request: DeepPartial<ListVideosRequest>, metadata?: grpc.Metadata): Promise<ListVideosResponse> {
-    return this.rpc.unary(VideoServiceListVideosDesc, ListVideosRequest.fromPartial(request), metadata);
+  GetVideosByUserId(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse> {
+    return this.rpc.unary(VideoServiceGetVideosByUserIdDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 
   UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse> {
@@ -2392,19 +2362,19 @@ export const VideoServiceDeleteVideoDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const VideoServiceListVideosDesc: UnaryMethodDefinitionish = {
-  methodName: "ListVideos",
+export const VideoServiceGetVideosByUserIdDesc: UnaryMethodDefinitionish = {
+  methodName: "GetVideosByUserId",
   service: VideoServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return ListVideosRequest.encode(this).finish();
+      return GetVideosByUserIdRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ListVideosResponse.decode(data);
+      const value = GetVideosByUserIdResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -23,7 +23,7 @@ const (
 	VideoService_GetVideo_FullMethodName             = "/video.VideoService/GetVideo"
 	VideoService_UpdateVideo_FullMethodName          = "/video.VideoService/UpdateVideo"
 	VideoService_DeleteVideo_FullMethodName          = "/video.VideoService/DeleteVideo"
-	VideoService_ListVideos_FullMethodName           = "/video.VideoService/ListVideos"
+	VideoService_GetVideosByUserId_FullMethodName    = "/video.VideoService/GetVideosByUserId"
 	VideoService_UpdateMetrics_FullMethodName        = "/video.VideoService/UpdateMetrics"
 	VideoService_GetRecommendedVideos_FullMethodName = "/video.VideoService/GetRecommendedVideos"
 	VideoService_GetCaptions_FullMethodName          = "/video.VideoService/GetCaptions"
@@ -39,7 +39,7 @@ type VideoServiceClient interface {
 	GetVideo(ctx context.Context, in *GetVideoRequest, opts ...grpc.CallOption) (*GetVideoResponse, error)
 	UpdateVideo(ctx context.Context, in *UpdateVideoRequest, opts ...grpc.CallOption) (*UpdateVideoResponse, error)
 	DeleteVideo(ctx context.Context, in *DeleteVideoRequest, opts ...grpc.CallOption) (*DeleteVideoResponse, error)
-	ListVideos(ctx context.Context, in *ListVideosRequest, opts ...grpc.CallOption) (*ListVideosResponse, error)
+	GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error)
 	UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error)
 	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error)
 	// caption generator
@@ -94,10 +94,10 @@ func (c *videoServiceClient) DeleteVideo(ctx context.Context, in *DeleteVideoReq
 	return out, nil
 }
 
-func (c *videoServiceClient) ListVideos(ctx context.Context, in *ListVideosRequest, opts ...grpc.CallOption) (*ListVideosResponse, error) {
+func (c *videoServiceClient) GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListVideosResponse)
-	err := c.cc.Invoke(ctx, VideoService_ListVideos_FullMethodName, in, out, cOpts...)
+	out := new(GetVideosByUserIdResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetVideosByUserId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ type VideoServiceServer interface {
 	GetVideo(context.Context, *GetVideoRequest) (*GetVideoResponse, error)
 	UpdateVideo(context.Context, *UpdateVideoRequest) (*UpdateVideoResponse, error)
 	DeleteVideo(context.Context, *DeleteVideoRequest) (*DeleteVideoResponse, error)
-	ListVideos(context.Context, *ListVideosRequest) (*ListVideosResponse, error)
+	GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error)
 	UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error)
 	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error)
 	// caption generator
@@ -171,8 +171,8 @@ func (UnimplementedVideoServiceServer) UpdateVideo(context.Context, *UpdateVideo
 func (UnimplementedVideoServiceServer) DeleteVideo(context.Context, *DeleteVideoRequest) (*DeleteVideoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteVideo not implemented")
 }
-func (UnimplementedVideoServiceServer) ListVideos(context.Context, *ListVideosRequest) (*ListVideosResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListVideos not implemented")
+func (UnimplementedVideoServiceServer) GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVideosByUserId not implemented")
 }
 func (UnimplementedVideoServiceServer) UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetrics not implemented")
@@ -276,20 +276,20 @@ func _VideoService_DeleteVideo_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VideoService_ListVideos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListVideosRequest)
+func _VideoService_GetVideosByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosByUserIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VideoServiceServer).ListVideos(ctx, in)
+		return srv.(VideoServiceServer).GetVideosByUserId(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: VideoService_ListVideos_FullMethodName,
+		FullMethod: VideoService_GetVideosByUserId_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VideoServiceServer).ListVideos(ctx, req.(*ListVideosRequest))
+		return srv.(VideoServiceServer).GetVideosByUserId(ctx, req.(*GetVideosByUserIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -372,8 +372,8 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _VideoService_DeleteVideo_Handler,
 		},
 		{
-			MethodName: "ListVideos",
-			Handler:    _VideoService_ListVideos_Handler,
+			MethodName: "GetVideosByUserId",
+			Handler:    _VideoService_GetVideosByUserId_Handler,
 		},
 		{
 			MethodName: "UpdateMetrics",

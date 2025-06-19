@@ -10,7 +10,7 @@ type VideoRepository interface {
 	GetVideoByID(id uint) (*model.Video, error)
 	UpdateVideo(video *model.Video) error
 	DeleteVideo(id uint) error
-	ListVideos(userID uint, page, limit int) ([]model.Video, int64, error)
+	GetVideosByUserId(userID uint) ([]model.Video, int64, error)
 	UpdateMetrics(id uint, views, likes, comments *uint) (*model.Video, error)
 	GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error)
 	SaveCaption(caption *model.Caption) error

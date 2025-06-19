@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/KennedySurianto/tpa_web/backend/signaling-service/internal/model"
-	"github.com/KennedySurianto/tpa_web/backend/signaling-service/internal/repository"
+	"github.com/KennedySurianto/tpa_web/backend/live-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/live-service/internal/repository"
 )
 
 type SignalingServiceImpl struct {

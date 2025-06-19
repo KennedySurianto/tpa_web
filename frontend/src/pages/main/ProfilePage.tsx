@@ -6,6 +6,9 @@ import { useAuth } from '../../utils/AuthProvider';
 import type { FollowRequest, UserRequest } from '../../api/gen/follow';
 import { followClient } from '../../api/grpc/followClient';
 import { avatarBytesToUrl } from '../../utils/avatarConverter';
+import type { GetVideosByUserIdRequest, GetVideosByUserIdResponse, Video } from '../../api/gen/video';
+import { videoClient } from '../../api/grpc/videoClient';
+import { VideoDetailModal } from './VideoDetailModal';
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -18,6 +21,9 @@ const ProfilePage: React.FC = () => {
     const [followLoading, setFollowLoading] = useState<boolean>(false);
     const [followersCount, setFollowersCount] = useState<number>(0);
     const [followingCount, setFollowingCount] = useState<number>(0);
+    const [videos, setVideos] = useState<Video[]>([]);
+    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -49,7 +55,30 @@ const ProfilePage: React.FC = () => {
         };
 
         fetchUser();
-    }, [username, user]);
+    }, [username]);
+
+    useEffect(() => {
+        const fetchVideos = async () => {
+            if (!selectedUser) return;
+
+            try {
+
+                const req: GetVideosByUserIdRequest = {
+                    userId: Number(selectedUser?.id) || 0,
+                }
+                
+                const res: GetVideosByUserIdResponse= await videoClient.GetVideosByUserId(req);
+                if (res && res.videos) {
+                    console.log("res.videos: ", res.videos);
+                    setVideos(res.videos);
+                } 
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        fetchVideos();
+    }, [selectedUser]);
 
     const checkFollowStatus = async (followerId: number, followedId: number) => {
         try {
@@ -519,32 +548,96 @@ const ProfilePage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Content Section */}
+                        {/* Videos Grid Section */}
+                        {videos.length === 0 ? (
                         <div style={{ textAlign: 'center' }}>
                             <div style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: '12px',
-                                padding: 'clamp(1.5rem, 5vw, 2rem)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px',
+                            padding: 'clamp(1.5rem, 5vw, 2rem)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
                             }}>
-                                <div style={{ 
-                                    fontSize: 'clamp(1.5rem, 5vw, 2rem)', 
-                                    marginBottom: '1rem' 
-                                }}>
-                                    📹
-                                </div>
-                                <p style={{ 
-                                    color: '#ccc', 
-                                    margin: 0,
-                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)'
-                                }}>
-                                    {isOwnProfile ? 'You haven\'t posted any videos yet' : 'No videos yet'}
-                                </p>
+                            <div style={{ 
+                                fontSize: 'clamp(1.5rem, 5vw, 2rem)', 
+                                marginBottom: '1rem' 
+                            }}>
+                                📹
+                            </div>
+                            <p style={{ 
+                                color: '#ccc', 
+                                margin: 0,
+                                fontSize: 'clamp(0.9rem, 3vw, 1rem)'
+                            }}>
+                                {isOwnProfile ? "You haven't posted any videos yet" : "No videos yet"}
+                            </p>
                             </div>
                         </div>
+                        ) : (
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                            gap: '12px',
+                            paddingBottom: '2rem'
+                        }}>
+                            {videos.map(video => (
+                            <div 
+                                key={video.id} 
+                                style={{ 
+                                position: 'relative', 
+                                borderRadius: '12px', 
+                                overflow: 'hidden', 
+                                background: '#000',
+                                cursor: 'pointer'
+                                }}
+                                onClick={() => {
+                                    setSelectedVideo(video);
+                                    setModalOpen(true);
+                                }}
+                            >
+                                <video
+                                src={video.thumbnailUrl || video.videoUrl}
+                                poster={video.thumbnailUrl}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                preload="metadata"
+                                muted
+                                playsInline
+                                />
+                                <div style={{
+                                position: 'absolute',
+                                bottom: '8px',
+                                left: '8px',
+                                right: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                color: '#fff',
+                                fontSize: '0.75rem',
+                                textShadow: '0 0 4px rgba(0,0,0,0.7)'
+                                }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span>👁</span>
+                                    <span>{video.viewsCount}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span>❤️</span>
+                                    <span>{video.likeCount}</span>
+                                </div>
+                                </div>
+                            </div>
+                            ))}
+                        </div>
+                        )}
+
                     </>
                 )}
             </div>
+            <VideoDetailModal
+                video={selectedVideo}
+                isOpen={modalOpen}
+                onClose={() => {
+                    setSelectedVideo(null);
+                    setModalOpen(false);
+                }}
+            />
         </div>
     );
 };

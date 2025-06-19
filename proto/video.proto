@@ -98,13 +98,11 @@ message DeleteVideoResponse {
   bool success = 1;
 }
 
-message ListVideosRequest {
+message GetVideosByUserIdRequest {
   uint32 user_id = 1;
-  int32 page = 2;
-  int32 limit = 3;
 }
 
-message ListVideosResponse {
+message GetVideosByUserIdResponse {
   repeated Video videos = 1;
   int32 total = 2;
 }
@@ -151,7 +149,7 @@ service VideoService {
   rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
   rpc UpdateVideo(UpdateVideoRequest) returns (UpdateVideoResponse);
   rpc DeleteVideo(DeleteVideoRequest) returns (DeleteVideoResponse);
-  rpc ListVideos(ListVideosRequest) returns (ListVideosResponse);
+  rpc GetVideosByUserId(GetVideosByUserIdRequest) returns (GetVideosByUserIdResponse);
   rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
   rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetRecommendedVideosResponse);
   // caption generator

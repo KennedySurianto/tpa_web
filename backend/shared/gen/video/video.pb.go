@@ -788,29 +788,27 @@ func (x *DeleteVideoResponse) GetSuccess() bool {
 	return false
 }
 
-type ListVideosRequest struct {
+type GetVideosByUserIdRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListVideosRequest) Reset() {
-	*x = ListVideosRequest{}
+func (x *GetVideosByUserIdRequest) Reset() {
+	*x = GetVideosByUserIdRequest{}
 	mi := &file_video_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListVideosRequest) String() string {
+func (x *GetVideosByUserIdRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListVideosRequest) ProtoMessage() {}
+func (*GetVideosByUserIdRequest) ProtoMessage() {}
 
-func (x *ListVideosRequest) ProtoReflect() protoreflect.Message {
+func (x *GetVideosByUserIdRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_video_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -822,33 +820,19 @@ func (x *ListVideosRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListVideosRequest.ProtoReflect.Descriptor instead.
-func (*ListVideosRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetVideosByUserIdRequest.ProtoReflect.Descriptor instead.
+func (*GetVideosByUserIdRequest) Descriptor() ([]byte, []int) {
 	return file_video_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *ListVideosRequest) GetUserId() uint32 {
+func (x *GetVideosByUserIdRequest) GetUserId() uint32 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-func (x *ListVideosRequest) GetPage() int32 {
-	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *ListVideosRequest) GetLimit() int32 {
-	if x != nil {
-		return x.Limit
-	}
-	return 0
-}
-
-type ListVideosResponse struct {
+type GetVideosByUserIdResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Videos        []*Video               `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
 	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
@@ -856,20 +840,20 @@ type ListVideosResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListVideosResponse) Reset() {
-	*x = ListVideosResponse{}
+func (x *GetVideosByUserIdResponse) Reset() {
+	*x = GetVideosByUserIdResponse{}
 	mi := &file_video_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListVideosResponse) String() string {
+func (x *GetVideosByUserIdResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListVideosResponse) ProtoMessage() {}
+func (*GetVideosByUserIdResponse) ProtoMessage() {}
 
-func (x *ListVideosResponse) ProtoReflect() protoreflect.Message {
+func (x *GetVideosByUserIdResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_video_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -881,19 +865,19 @@ func (x *ListVideosResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListVideosResponse.ProtoReflect.Descriptor instead.
-func (*ListVideosResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetVideosByUserIdResponse.ProtoReflect.Descriptor instead.
+func (*GetVideosByUserIdResponse) Descriptor() ([]byte, []int) {
 	return file_video_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *ListVideosResponse) GetVideos() []*Video {
+func (x *GetVideosByUserIdResponse) GetVideos() []*Video {
 	if x != nil {
 		return x.Videos
 	}
 	return nil
 }
 
-func (x *ListVideosResponse) GetTotal() int32 {
+func (x *GetVideosByUserIdResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
@@ -1353,12 +1337,10 @@ const file_video_proto_rawDesc = "" +
 	"\x12DeleteVideoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"/\n" +
 	"\x13DeleteVideoResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"V\n" +
-	"\x11ListVideosRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x12\n" +
-	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\"P\n" +
-	"\x12ListVideosResponse\x12$\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"3\n" +
+	"\x18GetVideosByUserIdRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\"W\n" +
+	"\x19GetVideosByUserIdResponse\x12$\n" +
 	"\x06videos\x18\x01 \x03(\v2\f.video.VideoR\x06videos\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"\xd1\x01\n" +
 	"\x14UpdateMetricsRequest\x12\x0e\n" +
@@ -1389,14 +1371,13 @@ const file_video_proto_rawDesc = "" +
 	"\bcaptions\x18\x01 \x03(\v2(.video.GetCaptionsResponse.CaptionsEntryR\bcaptions\x1aO\n" +
 	"\rCaptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12(\n" +
-	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\xd3\x04\n" +
+	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\xe8\x04\n" +
 	"\fVideoService\x12D\n" +
 	"\vCreateVideo\x12\x19.video.CreateVideoRequest\x1a\x1a.video.CreateVideoResponse\x12;\n" +
 	"\bGetVideo\x12\x16.video.GetVideoRequest\x1a\x17.video.GetVideoResponse\x12D\n" +
 	"\vUpdateVideo\x12\x19.video.UpdateVideoRequest\x1a\x1a.video.UpdateVideoResponse\x12D\n" +
-	"\vDeleteVideo\x12\x19.video.DeleteVideoRequest\x1a\x1a.video.DeleteVideoResponse\x12A\n" +
-	"\n" +
-	"ListVideos\x12\x18.video.ListVideosRequest\x1a\x19.video.ListVideosResponse\x12J\n" +
+	"\vDeleteVideo\x12\x19.video.DeleteVideoRequest\x1a\x1a.video.DeleteVideoResponse\x12V\n" +
+	"\x11GetVideosByUserId\x12\x1f.video.GetVideosByUserIdRequest\x1a .video.GetVideosByUserIdResponse\x12J\n" +
 	"\rUpdateMetrics\x12\x1b.video.UpdateMetricsRequest\x1a\x1c.video.UpdateMetricsResponse\x12_\n" +
 	"\x14GetRecommendedVideos\x12\".video.GetRecommendedVideosRequest\x1a#.video.GetRecommendedVideosResponse\x12D\n" +
 	"\vGetCaptions\x12\x19.video.GetCaptionsRequest\x1a\x1a.video.GetCaptionsResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
@@ -1425,8 +1406,8 @@ var file_video_proto_goTypes = []any{
 	(*UpdateVideoResponse)(nil),          // 7: video.UpdateVideoResponse
 	(*DeleteVideoRequest)(nil),           // 8: video.DeleteVideoRequest
 	(*DeleteVideoResponse)(nil),          // 9: video.DeleteVideoResponse
-	(*ListVideosRequest)(nil),            // 10: video.ListVideosRequest
-	(*ListVideosResponse)(nil),           // 11: video.ListVideosResponse
+	(*GetVideosByUserIdRequest)(nil),     // 10: video.GetVideosByUserIdRequest
+	(*GetVideosByUserIdResponse)(nil),    // 11: video.GetVideosByUserIdResponse
 	(*UpdateMetricsRequest)(nil),         // 12: video.UpdateMetricsRequest
 	(*UpdateMetricsResponse)(nil),        // 13: video.UpdateMetricsResponse
 	(*GetRecommendedVideosRequest)(nil),  // 14: video.GetRecommendedVideosRequest
@@ -1445,7 +1426,7 @@ var file_video_proto_depIdxs = []int32{
 	1,  // 4: video.CreateVideoResponse.video:type_name -> video.Video
 	1,  // 5: video.GetVideoResponse.video:type_name -> video.Video
 	1,  // 6: video.UpdateVideoResponse.video:type_name -> video.Video
-	1,  // 7: video.ListVideosResponse.videos:type_name -> video.Video
+	1,  // 7: video.GetVideosByUserIdResponse.videos:type_name -> video.Video
 	1,  // 8: video.UpdateMetricsResponse.video:type_name -> video.Video
 	1,  // 9: video.GetRecommendedVideosResponse.videos:type_name -> video.Video
 	19, // 10: video.GetCaptionsResponse.captions:type_name -> video.GetCaptionsResponse.CaptionsEntry
@@ -1454,7 +1435,7 @@ var file_video_proto_depIdxs = []int32{
 	4,  // 13: video.VideoService.GetVideo:input_type -> video.GetVideoRequest
 	6,  // 14: video.VideoService.UpdateVideo:input_type -> video.UpdateVideoRequest
 	8,  // 15: video.VideoService.DeleteVideo:input_type -> video.DeleteVideoRequest
-	10, // 16: video.VideoService.ListVideos:input_type -> video.ListVideosRequest
+	10, // 16: video.VideoService.GetVideosByUserId:input_type -> video.GetVideosByUserIdRequest
 	12, // 17: video.VideoService.UpdateMetrics:input_type -> video.UpdateMetricsRequest
 	14, // 18: video.VideoService.GetRecommendedVideos:input_type -> video.GetRecommendedVideosRequest
 	16, // 19: video.VideoService.GetCaptions:input_type -> video.GetCaptionsRequest
@@ -1462,7 +1443,7 @@ var file_video_proto_depIdxs = []int32{
 	5,  // 21: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
 	7,  // 22: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
 	9,  // 23: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
-	11, // 24: video.VideoService.ListVideos:output_type -> video.ListVideosResponse
+	11, // 24: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosByUserIdResponse
 	13, // 25: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
 	15, // 26: video.VideoService.GetRecommendedVideos:output_type -> video.GetRecommendedVideosResponse
 	18, // 27: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse

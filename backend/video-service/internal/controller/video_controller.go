@@ -140,21 +140,12 @@ func (s *VideoController) DeleteVideo(ctx context.Context, req *pb.DeleteVideoRe
 	return &pb.DeleteVideoResponse{Success: true}, nil
 }
 
-func (s *VideoController) ListVideos(ctx context.Context, req *pb.ListVideosRequest) (*pb.ListVideosResponse, error) {
-	req = &pb.ListVideosRequest{
+func (s *VideoController) GetVideosByUserId(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+	req = &pb.GetVideosByUserIdRequest{
 		UserId:  req.UserId,
-		Page:    req.Page,
-		Limit:   req.Limit,
 	}
 
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	if req.Limit <= 0 {
-		req.Limit = 20
-	}
-
-	videos, total, err := s.videoService.ListVideos(req)
+	videos, total, err := s.videoService.GetVideosByUserId(req)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +155,7 @@ func (s *VideoController) ListVideos(ctx context.Context, req *pb.ListVideosRequ
 		pbVideos[i] = s.modelToProto(&video)
 	}
 
-	return &pb.ListVideosResponse{
+	return &pb.GetVideosByUserIdResponse{
 		Videos: pbVideos,
 		Total:  int32(total),
 	}, nil
