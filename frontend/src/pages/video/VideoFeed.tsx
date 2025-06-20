@@ -26,8 +26,28 @@ const VideoFeed: React.FC = () => {
     const [canComment, setCanComment] = useState<boolean>(true);
     const [captionsMap, setCaptionsMap] = useState<{ [videoId: number]: { en: string[], id: string[] } }>({});
     const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
-    const [showCaptions, setShowCaptions] = useState<boolean>(true);
+    const [showCaptions, setShowCaptions] = useState<boolean>(false);
     const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({});
+    const [expandedCaptions, setExpandedCaptions] = useState<{ [videoId: number]: boolean }>({});
+    const [expandedDescriptions, setExpandedDescriptions] = useState<{ [videoId: number]: boolean }>({});
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
+    const scrollToVideo = (index: number) => {
+    const targetVideo = videoRefs.current[index];
+        if (targetVideo) {
+            targetVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setCurrentVideoIndex(index);
+            setSelectedVideoId(videos[index]?.id);
+        }
+    };
+
+    const toggleCaption = (videoId: number) => {
+        setExpandedCaptions(prev => ({ ...prev, [videoId]: !prev[videoId] }));
+    };
+
+    const toggleDescription = (videoId: number) => {
+        setExpandedDescriptions(prev => ({ ...prev, [videoId]: !prev[videoId] }));
+    };
 
     const fetchFollowers = async (userId: number) => {
         try {
@@ -223,6 +243,9 @@ const VideoFeed: React.FC = () => {
                     video.play().catch(console.error);
                     currentVideoId = videos[index]?.id || null;
                     setCanComment(videos[index]?.allowComments ?? true);
+                    if (currentVideoIndex !== index) {
+                        setCurrentVideoIndex(index);
+                    }
                 } else {
                     video.pause();
                     video.currentTime = 0;
@@ -682,20 +705,79 @@ const VideoFeed: React.FC = () => {
                                     lineHeight: '1.4',
                                     marginBottom: '1.5rem',
                                     color: 'rgba(255, 255, 255, 0.85)',
-                                    maxHeight: '3em',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
                                 }}>
-                                    {video.description}
+                                    {(() => {
+                                        const desc = video.description;
+                                        const isExpanded = expandedDescriptions[video.id];
+                                        const maxLength = 120;
+
+                                        if (desc.length <= maxLength || isExpanded) {
+                                            return (
+                                                <>
+                                                    {desc}
+                                                    {desc.length > maxLength && (
+                                                        <span
+                                                            style={{ color: '#aaa', cursor: 'pointer', marginLeft: '8px' }}
+                                                            onClick={() => toggleDescription(video.id)}
+                                                        >
+                                                            See less
+                                                        </span>
+                                                    )}
+                                                </>
+                                            );
+                                        }
+
+                                        return (
+                                            <>
+                                                {desc.slice(0, maxLength)}...
+                                                <span
+                                                    style={{ color: '#aaa', cursor: 'pointer', marginLeft: '8px' }}
+                                                    onClick={() => toggleDescription(video.id)}
+                                                >
+                                                    See more
+                                                </span>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             )}
 
                             {showCaptions && (
                                 <div style={{ fontSize: '1rem', lineHeight: '1.4', marginBottom: '0.75rem', fontWeight: '500', color: 'white' }}>
-                                    {captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption}
+                                    {(() => {
+                                        const fullCaption = captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption || "";
+                                        const isExpanded = expandedCaptions[video.id];
+                                        const maxLength = 100;
+
+                                        if (!fullCaption) return null;
+                                        if (fullCaption.length <= maxLength || isExpanded) {
+                                            return (
+                                                <>
+                                                    {fullCaption}
+                                                    {fullCaption.length > maxLength && (
+                                                        <span
+                                                            style={{ color: '#bbb', cursor: 'pointer', marginLeft: '8px' }}
+                                                            onClick={() => toggleCaption(video.id)}
+                                                        >
+                                                            See less
+                                                        </span>
+                                                    )}
+                                                </>
+                                            );
+                                        }
+
+                                        return (
+                                            <>
+                                                {fullCaption.slice(0, maxLength)}...
+                                                <span
+                                                    style={{ color: '#bbb', cursor: 'pointer', marginLeft: '8px' }}
+                                                    onClick={() => toggleCaption(video.id)}
+                                                >
+                                                    See more
+                                                </span>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             )}
 
@@ -890,25 +972,51 @@ const VideoFeed: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-
-                        {/* Video Navigation Hint */}
-                        {index === 0 && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '50%',
-                                right: '1rem',
-                                transform: 'translateY(-50%)',
-                                color: 'rgba(255, 255, 255, 0.7)',
-                                fontSize: '0.8rem',
-                                textAlign: 'center',
-                                animation: 'fadeInOut 3s ease-in-out infinite',
-                            }}>
-                                <div style={{ marginBottom: '0.5rem' }}>↕</div>
-                                <div>Scroll</div>
-                            </div>
-                        )}
                     </div>
                 ))}
+            </div>
+
+            {/* Scroll upwards or downwards */}
+            <div style={{
+                position: 'fixed',
+                top: '50%',
+                right: '1rem',
+                transform: 'translateY(-50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                zIndex: 9999,
+            }}>
+                <button
+                    onClick={() => scrollToVideo(Math.max(0, currentVideoIndex - 1))}
+                    disabled={currentVideoIndex === 0}
+                    style={{
+                        backgroundColor: '#fff',
+                        border: 'none',
+                        borderRadius: '5%',
+                        padding: '0.6rem',
+                        fontSize: '1.2rem',
+                        cursor: currentVideoIndex > 0 ? 'pointer' : 'not-allowed',
+                        opacity: currentVideoIndex > 0 ? 1 : 0.5,
+                    }}
+                >
+                    ⬆
+                </button>
+                <button
+                    onClick={() => scrollToVideo(Math.min(videos.length - 1, currentVideoIndex + 1))}
+                    disabled={currentVideoIndex === videos.length - 1}
+                    style={{
+                        backgroundColor: '#fff',
+                        border: 'none',
+                        borderRadius: '5%',
+                        padding: '0.6rem',
+                        fontSize: '1.2rem',
+                        cursor: currentVideoIndex < videos.length - 1 ? 'pointer' : 'not-allowed',
+                        opacity: currentVideoIndex < videos.length - 1 ? 1 : 0.5,
+                    }}
+                >
+                    ⬇
+                </button>
             </div>
 
             {/* Comment Sidebar */}
