@@ -33,12 +33,15 @@ const VideoFeed: React.FC = () => {
     const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
     const scrollToVideo = (index: number) => {
-    const targetVideo = videoRefs.current[index];
-        if (targetVideo) {
-            targetVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setCurrentVideoIndex(index);
-            setSelectedVideoId(videos[index]?.id);
-        }
+        setCurrentVideoIndex(index);
+        setSelectedVideoId(videos[index]?.id);
+
+        requestAnimationFrame(() => {
+            const targetVideo = videoRefs.current[index];
+            if (targetVideo) {
+                targetVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
     };
 
     const toggleCaption = (videoId: number) => {
@@ -972,51 +975,53 @@ const VideoFeed: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Video Navigation Hint */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            right: '1rem',
+                            transform: 'translateY(-50%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-end',
+                            gap: '1rem',
+                            zIndex: 10,
+                        }}>
+                            <button
+                                onClick={() => scrollToVideo(Math.max(0, currentVideoIndex - 1))}
+                                disabled={currentVideoIndex === 0}
+                                style={{
+                                    backgroundColor: '#fff',
+                                    border: 'none',
+                                    borderRadius: '5%',
+                                    padding: '0.6rem',
+                                    fontSize: '1.2rem',
+                                    cursor: currentVideoIndex > 0 ? 'pointer' : 'not-allowed',
+                                    opacity: currentVideoIndex > 0 ? 1 : 0.5,
+                                }}
+                            >
+                                ⬆
+                            </button>
+                            <button
+                                onClick={() => scrollToVideo(Math.min(videos.length - 1, currentVideoIndex + 1))}
+                                disabled={currentVideoIndex === videos.length - 1}
+                                style={{
+                                    backgroundColor: '#fff',
+                                    border: 'none',
+                                    borderRadius: '5%',
+                                    padding: '0.6rem',
+                                    fontSize: '1.2rem',
+                                    cursor: currentVideoIndex < videos.length - 1 ? 'pointer' : 'not-allowed',
+                                    opacity: currentVideoIndex < videos.length - 1 ? 1 : 0.5,
+                                }}
+                            >
+                                ⬇
+                            </button>
+                        </div>
+                        
                     </div>
                 ))}
-            </div>
-
-            {/* Scroll upwards or downwards */}
-            <div style={{
-                position: 'fixed',
-                top: '50%',
-                right: '1rem',
-                transform: 'translateY(-50%)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                zIndex: 9999,
-            }}>
-                <button
-                    onClick={() => scrollToVideo(Math.max(0, currentVideoIndex - 1))}
-                    disabled={currentVideoIndex === 0}
-                    style={{
-                        backgroundColor: '#fff',
-                        border: 'none',
-                        borderRadius: '5%',
-                        padding: '0.6rem',
-                        fontSize: '1.2rem',
-                        cursor: currentVideoIndex > 0 ? 'pointer' : 'not-allowed',
-                        opacity: currentVideoIndex > 0 ? 1 : 0.5,
-                    }}
-                >
-                    ⬆
-                </button>
-                <button
-                    onClick={() => scrollToVideo(Math.min(videos.length - 1, currentVideoIndex + 1))}
-                    disabled={currentVideoIndex === videos.length - 1}
-                    style={{
-                        backgroundColor: '#fff',
-                        border: 'none',
-                        borderRadius: '5%',
-                        padding: '0.6rem',
-                        fontSize: '1.2rem',
-                        cursor: currentVideoIndex < videos.length - 1 ? 'pointer' : 'not-allowed',
-                        opacity: currentVideoIndex < videos.length - 1 ? 1 : 0.5,
-                    }}
-                >
-                    ⬇
-                </button>
             </div>
 
             {/* Comment Sidebar */}
