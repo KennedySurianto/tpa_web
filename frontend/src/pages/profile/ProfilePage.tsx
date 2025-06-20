@@ -8,9 +8,9 @@ import { followClient } from '../../api/grpc/followClient';
 import { avatarBytesToUrl } from '../../utils/avatarConverter';
 import type { GetVideosByUserIdRequest, GetVideosByUserIdResponse, Video } from '../../api/gen/video';
 import { videoClient } from '../../api/grpc/videoClient';
-import { VideoDetailModal } from './VideoDetailModal';
-import { FollowerListModal } from '../FollowerListModal';
-import { FollowingListModal } from '../FollowingListModal';
+import { VideoDetailModal } from '../modals/VideoDetailModal';
+import { FollowerListModal } from '../modals/FollowerListModal';
+import { FollowingListModal } from '../modals/FollowingListModal';
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();

@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import for navigation
-import CommentBar from "./components/CommentBar";
+import CommentBar from "../ui/CommentBar";
 import { useVideos } from "../../hooks/useVideos";
 import { likeClient } from "../../api/grpc/likeClient";
 import { videoClient } from "../../api/grpc/videoClient";
 import type { LikeRequest, UnlikeRequest } from "../../api/gen/like";
 import { useAuth } from "../../utils/AuthProvider";
 import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import { followClient } from "../../api/grpc/followClient";
+import defaultAvatar from "../../assets/default.jpg";
 
 const VideoFeed: React.FC = () => {
     const user = useAuth().user;
@@ -25,6 +27,17 @@ const VideoFeed: React.FC = () => {
     const [captionsMap, setCaptionsMap] = useState<{ [videoId: number]: { en: string[], id: string[] } }>({});
     const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
     const [showCaptions, setShowCaptions] = useState<boolean>(true);
+    const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({});
+
+    const fetchFollowers = async (userId: number) => {
+        try {
+            const res = await followClient.GetFollowers({ userId });
+            const followerIds = res.follows.map(f => f.followerId);
+            setFollowersMap(prev => ({ ...prev, [userId]: followerIds }));
+        } catch (err) {
+            console.error("Failed to fetch followers", err);
+        }
+    };
 
     const fetchCaptions = async (videoId: number) => {
         try {
@@ -219,6 +232,10 @@ const VideoFeed: React.FC = () => {
             // Update selectedVideoId only if it has changed
             if (currentVideoId !== null && currentVideoId !== selectedVideoId) {
                 setSelectedVideoId(currentVideoId);
+                const videoOwnerId = videos.find(v => v.id === currentVideoId)?.user?.id;
+                if (videoOwnerId && !(videoOwnerId in followersMap)) {
+                    fetchFollowers(Number(videoOwnerId));
+                }
             }
         };
 
@@ -243,6 +260,20 @@ const VideoFeed: React.FC = () => {
             setSelectedVideoId(videos[0].id);
         }
     }, [videos]);
+
+    const handleFollow = async (videoOwnerId: number) => {
+        if (!user?.id) return;
+        try {
+            await followClient.Follow({ followerId: Number(user.id), followedId: videoOwnerId });
+            // Optional: re-fetch or optimistically update
+            setFollowersMap(prev => ({
+                ...prev,
+                [videoOwnerId]: [...(prev[videoOwnerId] || []), Number(user.id)],
+            }));
+        } catch (err) {
+            console.error("Failed to follow", err);
+        }
+    };
 
     if (loading) {
         return (
@@ -560,16 +591,21 @@ const VideoFeed: React.FC = () => {
                                 gap: '0.75rem',
                             }}>
                                 {/* Profile Picture */}
-                                <div
-                                    onClick={() => video.user?.username && handleUserClick(video.user.username)}
-                                    style={{
+                                <div style={{
                                         cursor: 'pointer',
                                         flexShrink: 0,
                                     }}
                                 >
                                     {video.user?.avatar ? (
-                                        <img
-                                            src={avatarBytesToUrl(video.user.avatar) || '👤'}
+                                        <div 
+                                        style={{ 
+                                            display: 'flex', 
+                                            flexDirection: 'column', 
+                                            alignItems: 'center' 
+                                        }}
+                                        >
+                                            <img
+                                            src={avatarBytesToUrl(video.user.avatar) || defaultAvatar}
                                             alt={`${video.user.username || 'User'}'s profile`}
                                             style={{
                                                 width: '40px',
@@ -577,41 +613,31 @@ const VideoFeed: React.FC = () => {
                                                 borderRadius: '50%',
                                                 objectFit: 'cover',
                                                 border: '2px solid rgba(255, 255, 255, 0.2)',
+                                                cursor: 'pointer',
                                             }}
-                                            onError={(e) => {
-                                                // If image fails to load, replace with emoji
-                                                e.currentTarget.style.display = 'none';
-                                                const emojiDiv = document.createElement('div');
-                                                emojiDiv.innerHTML = '👤';
-                                                emojiDiv.style.cssText = `
-                                                    width: 40px;
-                                                    height: 40px;
-                                                    border-radius: 50%;
-                                                    background: rgba(255, 255, 255, 0.1);
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    font-size: 20px;
-                                                    border: 2px solid rgba(255, 255, 255, 0.2);
-                                                `;
-                                                e.currentTarget.parentNode?.replaceChild(emojiDiv, e.currentTarget);
-                                            }}
-                                        />
-                                    ) : (
-                                        <div style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            background: 'rgba(255, 255, 255, 0.1)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '20px',
-                                            border: '2px solid rgba(255, 255, 255, 0.2)',
-                                        }}>
-                                            👤
+                                            onClick={() => video.user?.username && handleUserClick(video.user.username)}
+                                            />
+                                            {video.user?.id !== user?.id && !followersMap[Number(video.user.id)]?.includes(Number(user?.id)) && (
+                                            <button
+                                                onClick={() => handleFollow(Number(video.user?.id))}
+                                                style={{
+                                                marginTop: '4px',
+                                                fontSize: '0.7rem',
+                                                borderRadius: '20px',
+                                                padding: '2px 8px',
+                                                backgroundColor: '#ff2d55',
+                                                color: 'white',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                }}
+                                            >
+                                                +
+                                            </button>
+                                            )}
                                         </div>
-                                    )}
+                                        ) : (
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'gray' }}>👤</div>
+                                        )}
                                 </div>
 
                                 {/* Username */}

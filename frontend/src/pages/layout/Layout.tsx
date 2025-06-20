@@ -1,5 +1,5 @@
 import React from "react";
-import NavigationBar from "./components/NavigationBar";
+import NavigationBar from "../ui/NavigationBar";
 import { Outlet } from "react-router-dom";
 
 const Layout: React.FC = () => {

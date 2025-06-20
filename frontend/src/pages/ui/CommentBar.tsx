@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useComments } from '../../../hooks/useComments';
-import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../../api/gen/comment';
-import { useAuth } from '../../../utils/AuthProvider';
-import { commentClient } from '../../../api/grpc/commentClient';
-import type { LikeCommentRequest, UnlikeCommentRequest } from '../../../api/gen/like_comment';
-import { likeCommentClient } from '../../../api/grpc/likeCommentClient';
-import { avatarBytesToUrl } from '../../../utils/avatarConverter';
-import defaultAvatar from "../../../assets/default.jpg";
+import { useComments } from '../../hooks/useComments';
+import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../api/gen/comment';
+import { useAuth } from '../../utils/AuthProvider';
+import { commentClient } from '../../api/grpc/commentClient';
+import type { LikeCommentRequest, UnlikeCommentRequest } from '../../api/gen/like_comment';
+import { likeCommentClient } from '../../api/grpc/likeCommentClient';
+import { avatarBytesToUrl } from '../../utils/avatarConverter';
+import defaultAvatar from "../../assets/default.jpg";
 
 interface Props {
   videoId: number;

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { FollowItem, FollowList } from '../api/gen/follow';
-import { followClient } from '../api/grpc/followClient';
-import { avatarBytesToUrl } from '../utils/avatarConverter';
-import defaultAvatar from "../assets/default.jpg";
+import type { FollowItem, FollowList } from '../../api/gen/follow';
+import { followClient } from '../../api/grpc/followClient';
+import { avatarBytesToUrl } from '../../utils/avatarConverter';
+import defaultAvatar from "../../assets/default.jpg";
 
 interface FollowerListModalProps {
     userId: number;
