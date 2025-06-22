@@ -14,6 +14,7 @@ import PrivateRoute from './routes/PrivateRoute'
 import ChatPage from './pages/chat/ChatPage'
 import LivePage from './pages/video/LivePage'
 import LiveViewerPage from './pages/video/LiveViewerPage'
+import FriendPage from './pages/video/FriendPage'
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
               <Route path="/:receiverUsername/message" element={<ChatPage />} />
               <Route path="/live" element={<LivePage />} />
               <Route path="/live/:remoteUsername" element={<LiveViewerPage />} />
+              <Route path="/friends" element={<FriendPage />} />
             </Route>
           </Route>
         </Routes>

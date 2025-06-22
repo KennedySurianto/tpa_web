@@ -3,11 +3,13 @@ package controller
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
+	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
@@ -18,13 +20,19 @@ type VideoController struct {
 	videoService service.VideoService
 	userClient userpb.UserServiceClient
 	likeClient likepb.LikeServiceClient
+	followClient followpb.FollowServiceClient
 }
 
-func NewVideoController(videoService service.VideoService, userClient userpb.UserServiceClient, likeClient likepb.LikeServiceClient) *VideoController {
+func NewVideoController(
+	videoService service.VideoService, 
+	userClient userpb.UserServiceClient, 
+	likeClient likepb.LikeServiceClient,
+	followClient followpb.FollowServiceClient) *VideoController {
 	return &VideoController{
 		videoService: videoService,
 		userClient:   userClient,
 		likeClient:   likeClient,
+		followClient: followClient,
 	}
 }
 
@@ -274,3 +282,88 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 	}
 	return &response, nil
 }
+
+func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+	userId := req.UserId
+
+	// Step 1: Get followers
+	followersResp, err := vc.followClient.GetFollowers(ctx, &followpb.UserRequest{UserId: userId})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get followers: %w", err)
+	}
+
+	// Step 2: Get following
+	followingResp, err := vc.followClient.GetFollowing(ctx, &followpb.UserRequest{UserId: userId})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get following: %w", err)
+	}
+
+	// Step 3: Identify mutual friends
+	followerMap := make(map[uint64]bool)
+	for _, f := range followersResp.Follows {
+		followerMap[uint64(f.FollowerId)] = true
+	}
+
+	var friendIds []uint64
+	for _, f := range followingResp.Follows {
+		if followerMap[uint64(f.FollowedId)] {
+			friendIds = append(friendIds, uint64(f.FollowedId))
+		}
+	}
+
+	// Step 4: Fetch all friend videos
+	var allVideos []model.Video
+	friendUserMap := make(map[uint64]*userpb.User) // cache users
+
+	for _, friendID := range friendIds {
+		// Fetch videos
+		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{
+			UserId: uint32(friendID),
+		})
+		if err != nil {
+			continue
+		}
+		allVideos = append(allVideos, videos...)
+
+		// Fetch user metadata
+		if _, exists := friendUserMap[friendID]; !exists {
+			userResp, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: friendID})
+			if err != nil {
+				friendUserMap[friendID] = &userpb.User{
+					Id:       friendID,
+					Username: "Unknown",
+					Avatar:   nil,
+				}
+			} else {
+				friendUserMap[friendID] = userResp
+			}
+		}
+	}
+
+	// Step 5: Sort by creation time
+	sort.Slice(allVideos, func(i, j int) bool {
+		return allVideos[i].CreatedAt.After(allVideos[j].CreatedAt)
+	})
+
+	// Step 6: Convert to proto
+	var pbVideos []*pb.Video
+	for _, v := range allVideos {
+		p := vc.modelToProto(&v)
+
+		if user, ok := friendUserMap[uint64(v.UserID)]; ok {
+			p.User = &pb.User{
+				Id:       user.Id,
+				Username: user.Username,
+				Avatar:   user.Avatar,
+			}
+		}
+
+		pbVideos = append(pbVideos, p)
+	}
+
+	return &pb.GetVideosByUserIdResponse{
+		Videos: pbVideos,
+		Total:  int32(len(pbVideos)),
+	}, nil
+}
+

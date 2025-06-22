@@ -220,6 +220,8 @@ services:
       MINIO_BUCKET: videos
       USER_SERVICE_HOST: user-service
       USER_SERVICE_PORT: 50051
+      ACTIVITY_SERVICE_HOST: activity-service
+      ACTIVITY_SERVICE_PORT: 50054
     networks:
       - app-network
     healthcheck:

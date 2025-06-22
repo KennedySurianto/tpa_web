@@ -2208,6 +2208,11 @@ export interface VideoService {
   ): Promise<GetRecommendedVideosResponse>;
   /** caption generator */
   GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse>;
+  /** friends videos */
+  GetFriendVideos(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -2223,6 +2228,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.UpdateMetrics = this.UpdateMetrics.bind(this);
     this.GetRecommendedVideos = this.GetRecommendedVideos.bind(this);
     this.GetCaptions = this.GetCaptions.bind(this);
+    this.GetFriendVideos = this.GetFriendVideos.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -2265,6 +2271,13 @@ export class VideoServiceClientImpl implements VideoService {
 
   GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse> {
     return this.rpc.unary(VideoServiceGetCaptionsDesc, GetCaptionsRequest.fromPartial(request), metadata);
+  }
+
+  GetFriendVideos(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse> {
+    return this.rpc.unary(VideoServiceGetFriendVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2444,6 +2457,29 @@ export const VideoServiceGetCaptionsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetCaptionsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const VideoServiceGetFriendVideosDesc: UnaryMethodDefinitionish = {
+  methodName: "GetFriendVideos",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetVideosByUserIdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetVideosByUserIdResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -154,4 +154,6 @@ service VideoService {
   rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetRecommendedVideosResponse);
   // caption generator
   rpc GetCaptions(GetCaptionsRequest) returns (GetCaptionsResponse);
+  // friends videos
+  rpc GetFriendVideos(GetVideosByUserIdRequest) returns (GetVideosByUserIdResponse);
 }

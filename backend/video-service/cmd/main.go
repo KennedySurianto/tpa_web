@@ -11,6 +11,7 @@ import (
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
+	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
@@ -43,7 +44,7 @@ func main() {
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
 	videoService := service.NewVideoService(videoRepo, minioClient)
-	videoController := controller.NewVideoController(videoService, getUserClient(), getLikeClient())
+	videoController := controller.NewVideoController(videoService, getUserClient(), getLikeClient(), getFollowClient())
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
@@ -108,26 +109,33 @@ func getUserClient() userpb.UserServiceClient {
 }
 
 func getLikeClient() likepb.LikeServiceClient {
-	// Initialize services
-	likeServiceHost := os.Getenv("LIKE_SERVICE_HOST")
-    likeServicePort := os.Getenv("LIKE_SERVICE_PORT")
-    
-    if likeServiceHost == "" {
-        likeServiceHost = "activity-service"
-    }
-
-    if likeServicePort == "" {
-        likeServicePort = "50054"
-    }
+	activityServiceHost := os.Getenv("ACTIVITY_SERVICE_HOST")
+    activityServicePort := os.Getenv("ACTIVITY_SERVICE_PORT")
 
 	conn, err := grpc.NewClient(
-        fmt.Sprintf("%s:%s", likeServiceHost, likeServicePort),
+        fmt.Sprintf("%s:%s", activityServiceHost, activityServicePort),
         grpc.WithTransportCredentials(insecure.NewCredentials()),
     )
 
     if err != nil {
-        log.Fatalf("Failed to connect to user service: %v", err)
+        log.Fatalf("Failed to connect to activity service: %v", err)
     }
     
 	return likepb.NewLikeServiceClient(conn) 
+}
+
+func getFollowClient() followpb.FollowServiceClient {
+	followServiceHost := os.Getenv("ACTIVITY_SERVICE_HOST")
+	followServicePort := os.Getenv("ACTIVITY_SERVICE_PORT")
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", followServiceHost, followServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to activity service: %v", err)
+    }
+    
+	return followpb.NewFollowServiceClient(conn)
 }

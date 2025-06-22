@@ -27,6 +27,7 @@ const (
 	VideoService_UpdateMetrics_FullMethodName        = "/video.VideoService/UpdateMetrics"
 	VideoService_GetRecommendedVideos_FullMethodName = "/video.VideoService/GetRecommendedVideos"
 	VideoService_GetCaptions_FullMethodName          = "/video.VideoService/GetCaptions"
+	VideoService_GetFriendVideos_FullMethodName      = "/video.VideoService/GetFriendVideos"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -44,6 +45,8 @@ type VideoServiceClient interface {
 	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error)
 	// caption generator
 	GetCaptions(ctx context.Context, in *GetCaptionsRequest, opts ...grpc.CallOption) (*GetCaptionsResponse, error)
+	// friends videos
+	GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error)
 }
 
 type videoServiceClient struct {
@@ -134,6 +137,16 @@ func (c *videoServiceClient) GetCaptions(ctx context.Context, in *GetCaptionsReq
 	return out, nil
 }
 
+func (c *videoServiceClient) GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVideosByUserIdResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetFriendVideos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -149,6 +162,8 @@ type VideoServiceServer interface {
 	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error)
 	// caption generator
 	GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error)
+	// friends videos
+	GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -182,6 +197,9 @@ func (UnimplementedVideoServiceServer) GetRecommendedVideos(context.Context, *Ge
 }
 func (UnimplementedVideoServiceServer) GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCaptions not implemented")
+}
+func (UnimplementedVideoServiceServer) GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFriendVideos not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -348,6 +366,24 @@ func _VideoService_GetCaptions_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetFriendVideos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosByUserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetFriendVideos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetFriendVideos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetFriendVideos(ctx, req.(*GetVideosByUserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -386,6 +422,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCaptions",
 			Handler:    _VideoService_GetCaptions_Handler,
+		},
+		{
+			MethodName: "GetFriendVideos",
+			Handler:    _VideoService_GetFriendVideos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
