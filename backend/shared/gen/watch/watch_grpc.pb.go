@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WatchService_Watch_FullMethodName     = "/activity.WatchService/Watch"
-	WatchService_Unwatch_FullMethodName   = "/activity.WatchService/Unwatch"
-	WatchService_IsWatched_FullMethodName = "/activity.WatchService/IsWatched"
+	WatchService_Watch_FullMethodName        = "/activity.WatchService/Watch"
+	WatchService_Unwatch_FullMethodName      = "/activity.WatchService/Unwatch"
+	WatchService_IsWatched_FullMethodName    = "/activity.WatchService/IsWatched"
+	WatchService_GetViewCount_FullMethodName = "/activity.WatchService/GetViewCount"
 )
 
 // WatchServiceClient is the client API for WatchService service.
@@ -31,6 +32,7 @@ type WatchServiceClient interface {
 	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (*WatchResponse, error)
 	Unwatch(ctx context.Context, in *UnwatchRequest, opts ...grpc.CallOption) (*UnwatchResponse, error)
 	IsWatched(ctx context.Context, in *IsWatchedRequest, opts ...grpc.CallOption) (*IsWatchedResponse, error)
+	GetViewCount(ctx context.Context, in *GetViewCountRequest, opts ...grpc.CallOption) (*GetViewCountResponse, error)
 }
 
 type watchServiceClient struct {
@@ -71,6 +73,16 @@ func (c *watchServiceClient) IsWatched(ctx context.Context, in *IsWatchedRequest
 	return out, nil
 }
 
+func (c *watchServiceClient) GetViewCount(ctx context.Context, in *GetViewCountRequest, opts ...grpc.CallOption) (*GetViewCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetViewCountResponse)
+	err := c.cc.Invoke(ctx, WatchService_GetViewCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WatchServiceServer is the server API for WatchService service.
 // All implementations must embed UnimplementedWatchServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type WatchServiceServer interface {
 	Watch(context.Context, *WatchRequest) (*WatchResponse, error)
 	Unwatch(context.Context, *UnwatchRequest) (*UnwatchResponse, error)
 	IsWatched(context.Context, *IsWatchedRequest) (*IsWatchedResponse, error)
+	GetViewCount(context.Context, *GetViewCountRequest) (*GetViewCountResponse, error)
 	mustEmbedUnimplementedWatchServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedWatchServiceServer) Unwatch(context.Context, *UnwatchRequest)
 }
 func (UnimplementedWatchServiceServer) IsWatched(context.Context, *IsWatchedRequest) (*IsWatchedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsWatched not implemented")
+}
+func (UnimplementedWatchServiceServer) GetViewCount(context.Context, *GetViewCountRequest) (*GetViewCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetViewCount not implemented")
 }
 func (UnimplementedWatchServiceServer) mustEmbedUnimplementedWatchServiceServer() {}
 func (UnimplementedWatchServiceServer) testEmbeddedByValue()                      {}
@@ -172,6 +188,24 @@ func _WatchService_IsWatched_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WatchService_GetViewCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetViewCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchServiceServer).GetViewCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchService_GetViewCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchServiceServer).GetViewCount(ctx, req.(*GetViewCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WatchService_ServiceDesc is the grpc.ServiceDesc for WatchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var WatchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsWatched",
 			Handler:    _WatchService_IsWatched_Handler,
+		},
+		{
+			MethodName: "GetViewCount",
+			Handler:    _WatchService_GetViewCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

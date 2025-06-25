@@ -11,6 +11,14 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "activity";
 
+export interface GetViewCountRequest {
+  videoId: number;
+}
+
+export interface GetViewCountResponse {
+  count: string;
+}
+
 export interface WatchRequest {
   userId: number;
   videoId: number;
@@ -35,6 +43,122 @@ export interface IsWatchedRequest {
 export interface IsWatchedResponse {
   watched: boolean;
 }
+
+function createBaseGetViewCountRequest(): GetViewCountRequest {
+  return { videoId: 0 };
+}
+
+export const GetViewCountRequest: MessageFns<GetViewCountRequest> = {
+  encode(message: GetViewCountRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.videoId !== 0) {
+      writer.uint32(8).uint32(message.videoId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetViewCountRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetViewCountRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.videoId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetViewCountRequest {
+    return { videoId: isSet(object.videoId) ? globalThis.Number(object.videoId) : 0 };
+  },
+
+  toJSON(message: GetViewCountRequest): unknown {
+    const obj: any = {};
+    if (message.videoId !== 0) {
+      obj.videoId = Math.round(message.videoId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetViewCountRequest>, I>>(base?: I): GetViewCountRequest {
+    return GetViewCountRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetViewCountRequest>, I>>(object: I): GetViewCountRequest {
+    const message = createBaseGetViewCountRequest();
+    message.videoId = object.videoId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetViewCountResponse(): GetViewCountResponse {
+  return { count: "0" };
+}
+
+export const GetViewCountResponse: MessageFns<GetViewCountResponse> = {
+  encode(message: GetViewCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.count !== "0") {
+      writer.uint32(8).uint64(message.count);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetViewCountResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetViewCountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.count = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetViewCountResponse {
+    return { count: isSet(object.count) ? globalThis.String(object.count) : "0" };
+  },
+
+  toJSON(message: GetViewCountResponse): unknown {
+    const obj: any = {};
+    if (message.count !== "0") {
+      obj.count = message.count;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetViewCountResponse>, I>>(base?: I): GetViewCountResponse {
+    return GetViewCountResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetViewCountResponse>, I>>(object: I): GetViewCountResponse {
+    const message = createBaseGetViewCountResponse();
+    message.count = object.count ?? "0";
+    return message;
+  },
+};
 
 function createBaseWatchRequest(): WatchRequest {
   return { userId: 0, videoId: 0 };
@@ -412,6 +536,7 @@ export interface WatchService {
   Watch(request: DeepPartial<WatchRequest>, metadata?: grpc.Metadata): Promise<WatchResponse>;
   Unwatch(request: DeepPartial<UnwatchRequest>, metadata?: grpc.Metadata): Promise<UnwatchResponse>;
   IsWatched(request: DeepPartial<IsWatchedRequest>, metadata?: grpc.Metadata): Promise<IsWatchedResponse>;
+  GetViewCount(request: DeepPartial<GetViewCountRequest>, metadata?: grpc.Metadata): Promise<GetViewCountResponse>;
 }
 
 export class WatchServiceClientImpl implements WatchService {
@@ -422,6 +547,7 @@ export class WatchServiceClientImpl implements WatchService {
     this.Watch = this.Watch.bind(this);
     this.Unwatch = this.Unwatch.bind(this);
     this.IsWatched = this.IsWatched.bind(this);
+    this.GetViewCount = this.GetViewCount.bind(this);
   }
 
   Watch(request: DeepPartial<WatchRequest>, metadata?: grpc.Metadata): Promise<WatchResponse> {
@@ -434,6 +560,10 @@ export class WatchServiceClientImpl implements WatchService {
 
   IsWatched(request: DeepPartial<IsWatchedRequest>, metadata?: grpc.Metadata): Promise<IsWatchedResponse> {
     return this.rpc.unary(WatchServiceIsWatchedDesc, IsWatchedRequest.fromPartial(request), metadata);
+  }
+
+  GetViewCount(request: DeepPartial<GetViewCountRequest>, metadata?: grpc.Metadata): Promise<GetViewCountResponse> {
+    return this.rpc.unary(WatchServiceGetViewCountDesc, GetViewCountRequest.fromPartial(request), metadata);
   }
 }
 
@@ -498,6 +628,29 @@ export const WatchServiceIsWatchedDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = IsWatchedResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const WatchServiceGetViewCountDesc: UnaryMethodDefinitionish = {
+  methodName: "GetViewCount",
+  service: WatchServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetViewCountRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetViewCountResponse.decode(data);
       return {
         ...value,
         toObject() {

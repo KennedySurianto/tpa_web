@@ -171,3 +171,11 @@ func (h *CommentController) CreateComment(ctx context.Context, req *pb.CreateCom
 		},
 	}, nil
 }
+
+func (c *CommentController) GetCommentCount(ctx context.Context, req *pb.GetCommentCountRequest) (*pb.GetCommentCountResponse, error) {
+	count, err := c.svc.GetCommentCount(uint(req.VideoId))
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetCommentCountResponse{Count: uint64(count)}, nil
+}

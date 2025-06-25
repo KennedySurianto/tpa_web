@@ -2,18 +2,9 @@ import React, { useRef, useState } from "react";
 import {
     CreateVideoRequest,
     CreateVideoResponse,
-    GrpcWebImpl,
-    VideoServiceClientImpl
 } from "../../api/gen/video";
-import { BrowserHeaders } from "browser-headers";
 import { useAuth } from "../../utils/AuthProvider";
-
-const transport = new GrpcWebImpl("http://localhost:8080", {
-    transport: undefined,
-    metadata: new BrowserHeaders(),
-});
-
-const videoClient = new VideoServiceClientImpl(transport);
+import { videoClient } from "../../api/grpc/videoClient";
 
 const UploadVideoPage: React.FC = () => {
     const user = useAuth().user;
@@ -21,7 +12,8 @@ const UploadVideoPage: React.FC = () => {
     const [caption, setCaption] = useState("");
     const [description, setDescription] = useState("");
     const [privacy, setPrivacy] = useState("public");
-    const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
     const [allowComments, setAllowComments] = useState(true);
     const [allowDuet, setAllowDuet] = useState(true);
     const [allowStitch, setAllowStitch] = useState(true);
@@ -30,7 +22,7 @@ const UploadVideoPage: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const handleUpload = async () => {
-        if (!file) return;
+        if (!file || !user?.id) return;
 
         setLoading(true);
 
@@ -41,6 +33,10 @@ const UploadVideoPage: React.FC = () => {
             }
 
             const videoArrayBuffer = await file.arrayBuffer();
+            const thumbnailArrayBuffer = thumbnailFile
+            ? await thumbnailFile.arrayBuffer()
+            : null;
+
             const request: CreateVideoRequest = {
                 userId: Number(user?.id),
                 caption,
@@ -53,15 +49,12 @@ const UploadVideoPage: React.FC = () => {
                 videoData: new Uint8Array(videoArrayBuffer),
                 contentType: 'video/mp4',
                 videoUrl: "", // Will be generated server-side
-                thumbnailUrl,
+                thumbnail: thumbnailArrayBuffer ? new Uint8Array(thumbnailArrayBuffer) : undefined,
             };
 
             console.log("Uploading compressed video with request:", request);
 
-            const response: CreateVideoResponse = await videoClient.CreateVideo(
-                request,
-                new BrowserHeaders()
-            );
+            const response: CreateVideoResponse = await videoClient.CreateVideo(request);
 
             const url = response.video?.videoUrl ?? "";
             if (url) {
@@ -208,13 +201,16 @@ const UploadVideoPage: React.FC = () => {
 
                         <div className="mb-3">
                             <label className="d-block mb-1" style={{ fontWeight: 'bold' }}>
-                                Thumbnail URL (Optional)
+                                Thumbnail Image (Optional)
                             </label>
                             <input
-                                type="text"
-                                placeholder="https://example.com/thumbnail.jpg"
-                                value={thumbnailUrl}
-                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const image = e.target.files?.[0] || null;
+                                    setThumbnailFile(image);
+                                    setThumbnailPreview(image ? URL.createObjectURL(image) : "");
+                                }}
                                 className="w-100"
                                 style={{
                                     padding: '0.75rem',
@@ -223,6 +219,18 @@ const UploadVideoPage: React.FC = () => {
                                     fontSize: '1rem'
                                 }}
                             />
+                            {thumbnailPreview && (
+                                <img
+                                    src={thumbnailPreview}
+                                    alt="Thumbnail preview"
+                                    style={{
+                                        marginTop: '0.75rem',
+                                        maxHeight: '200px',
+                                        width: 'auto',
+                                        border: '1px solid #000'
+                                    }}
+                                />
+                            )}
                         </div>
 
                         {/* Permissions */}

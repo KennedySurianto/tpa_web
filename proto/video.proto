@@ -21,7 +21,7 @@ message Video {
   // Video metadata
   uint32 user_id = 5;
   string video_url = 6;
-  string thumbnail_url = 7;
+  bytes thumbnail = 7;
   string caption = 8;
   optional string description = 9;
   int32 duration = 10;
@@ -50,7 +50,7 @@ message Video {
 message CreateVideoRequest {
   uint32 user_id = 1;
   string video_url = 2;
-  string thumbnail_url = 3;
+  optional bytes thumbnail = 3;
   string caption = 4;
   optional string description = 5;
   int32 duration = 6;
@@ -78,7 +78,7 @@ message GetVideoResponse {
 
 message UpdateVideoRequest {
   uint32 id = 1;
-  optional string thumbnail_url = 2;
+  optional bytes thumbnail = 2;
   optional string caption = 3;
   optional string privacy = 4;
   optional bool allow_comments = 5;

@@ -8,6 +8,14 @@ service WatchService {
     rpc Watch(WatchRequest) returns (WatchResponse);
     rpc Unwatch(UnwatchRequest) returns (UnwatchResponse);
     rpc IsWatched(IsWatchedRequest) returns (IsWatchedResponse);
+    rpc GetViewCount(GetViewCountRequest) returns (GetViewCountResponse);
+}
+
+message GetViewCountRequest {
+    uint32 video_id = 1;
+}
+message GetViewCountResponse {
+    uint64 count = 1;
 }
 
 message WatchRequest {

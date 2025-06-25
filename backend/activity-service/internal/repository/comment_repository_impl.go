@@ -39,3 +39,9 @@ func (r *CommentRepositoryImpl) GetRepliesByCommentID(ctx context.Context, comme
 		Find(&replies).Error
 	return replies, err
 }
+
+func (s *CommentRepositoryImpl) GetCommentCount(videoID uint) (int64, error) {
+	var count int64
+	err := s.db.Model(&model.Comment{}).Where("video_id = ?", videoID).Count(&count).Error
+	return count, err
+}

@@ -13,6 +13,7 @@ type VideoRepository interface {
 	GetVideosByUserId(userID uint) ([]model.Video, int64, error)
 	UpdateMetrics(id uint, views, likes, comments *uint) (*model.Video, error)
 	GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error)
+	GetRandomPublicVideos(limit int32) ([]*model.Video, error)
 	SaveCaption(caption *model.Caption) error
 	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
 	BeginTx() *gorm.DB

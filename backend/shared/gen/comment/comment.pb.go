@@ -423,6 +423,94 @@ func (x *CreateCommentResponse) GetComment() *Comment {
 	return nil
 }
 
+type GetCommentCountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoId       uint32                 `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCommentCountRequest) Reset() {
+	*x = GetCommentCountRequest{}
+	mi := &file_comment_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCommentCountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCommentCountRequest) ProtoMessage() {}
+
+func (x *GetCommentCountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_comment_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCommentCountRequest.ProtoReflect.Descriptor instead.
+func (*GetCommentCountRequest) Descriptor() ([]byte, []int) {
+	return file_comment_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetCommentCountRequest) GetVideoId() uint32 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type GetCommentCountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         uint64                 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCommentCountResponse) Reset() {
+	*x = GetCommentCountResponse{}
+	mi := &file_comment_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCommentCountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCommentCountResponse) ProtoMessage() {}
+
+func (x *GetCommentCountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_comment_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCommentCountResponse.ProtoReflect.Descriptor instead.
+func (*GetCommentCountResponse) Descriptor() ([]byte, []int) {
+	return file_comment_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetCommentCountResponse) GetCount() uint64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 var File_comment_proto protoreflect.FileDescriptor
 
 const file_comment_proto_rawDesc = "" +
@@ -460,10 +548,15 @@ const file_comment_proto_rawDesc = "" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1e\n" +
 	"\vreply_to_id\x18\x04 \x01(\rR\treplyToId\"D\n" +
 	"\x15CreateCommentResponse\x12+\n" +
-	"\acomment\x18\x01 \x01(\v2\x11.activity.CommentR\acomment2\xae\x01\n" +
+	"\acomment\x18\x01 \x01(\v2\x11.activity.CommentR\acomment\"3\n" +
+	"\x16GetCommentCountRequest\x12\x19\n" +
+	"\bvideo_id\x18\x01 \x01(\rR\avideoId\"/\n" +
+	"\x17GetCommentCountResponse\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x04R\x05count2\x86\x02\n" +
 	"\x0eCommentService\x12J\n" +
 	"\vGetComments\x12\x1c.activity.GetCommentsRequest\x1a\x1d.activity.GetCommentsResponse\x12P\n" +
-	"\rCreateComment\x12\x1e.activity.CreateCommentRequest\x1a\x1f.activity.CreateCommentResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activityb\x06proto3"
+	"\rCreateComment\x12\x1e.activity.CreateCommentRequest\x1a\x1f.activity.CreateCommentResponse\x12V\n" +
+	"\x0fGetCommentCount\x12 .activity.GetCommentCountRequest\x1a!.activity.GetCommentCountResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activityb\x06proto3"
 
 var (
 	file_comment_proto_rawDescOnce sync.Once
@@ -477,14 +570,16 @@ func file_comment_proto_rawDescGZIP() []byte {
 	return file_comment_proto_rawDescData
 }
 
-var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_comment_proto_goTypes = []any{
-	(*User)(nil),                  // 0: activity.User
-	(*Comment)(nil),               // 1: activity.Comment
-	(*GetCommentsRequest)(nil),    // 2: activity.GetCommentsRequest
-	(*GetCommentsResponse)(nil),   // 3: activity.GetCommentsResponse
-	(*CreateCommentRequest)(nil),  // 4: activity.CreateCommentRequest
-	(*CreateCommentResponse)(nil), // 5: activity.CreateCommentResponse
+	(*User)(nil),                    // 0: activity.User
+	(*Comment)(nil),                 // 1: activity.Comment
+	(*GetCommentsRequest)(nil),      // 2: activity.GetCommentsRequest
+	(*GetCommentsResponse)(nil),     // 3: activity.GetCommentsResponse
+	(*CreateCommentRequest)(nil),    // 4: activity.CreateCommentRequest
+	(*CreateCommentResponse)(nil),   // 5: activity.CreateCommentResponse
+	(*GetCommentCountRequest)(nil),  // 6: activity.GetCommentCountRequest
+	(*GetCommentCountResponse)(nil), // 7: activity.GetCommentCountResponse
 }
 var file_comment_proto_depIdxs = []int32{
 	0, // 0: activity.Comment.user:type_name -> activity.User
@@ -494,10 +589,12 @@ var file_comment_proto_depIdxs = []int32{
 	1, // 4: activity.CreateCommentResponse.comment:type_name -> activity.Comment
 	2, // 5: activity.CommentService.GetComments:input_type -> activity.GetCommentsRequest
 	4, // 6: activity.CommentService.CreateComment:input_type -> activity.CreateCommentRequest
-	3, // 7: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
-	5, // 8: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
+	6, // 7: activity.CommentService.GetCommentCount:input_type -> activity.GetCommentCountRequest
+	3, // 8: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
+	5, // 9: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
+	7, // 10: activity.CommentService.GetCommentCount:output_type -> activity.GetCommentCountResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
 	5, // [5:5] is the sub-list for extension extendee
 	0, // [0:5] is the sub-list for field type_name
@@ -514,7 +611,7 @@ func file_comment_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comment_proto_rawDesc), len(file_comment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

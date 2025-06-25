@@ -12,6 +12,8 @@ import (
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
+	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
+	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
@@ -39,12 +41,19 @@ func main() {
 		grpc.MaxSendMsgSize(maxMsgSize),
 	)
 
+	// Clients
+	userClient := getUserClient()
+	likeClient := getLikeClient()
+	followClient := getFollowClient()
+	watchClient := getWatchClient()
+	commentClient := getCommentClient()
+
 	// Dependency Injection
 	db := database.ConnectDatabase()
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
-	videoService := service.NewVideoService(videoRepo, minioClient)
-	videoController := controller.NewVideoController(videoService, getUserClient(), getLikeClient(), getFollowClient())
+	videoService := service.NewVideoService(videoRepo, minioClient, likeClient, watchClient, commentClient)
+	videoController := controller.NewVideoController(videoService, userClient, likeClient, followClient)
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
@@ -138,4 +147,36 @@ func getFollowClient() followpb.FollowServiceClient {
     }
     
 	return followpb.NewFollowServiceClient(conn)
+}
+
+func getWatchClient() watchpb.WatchServiceClient {
+	watchServiceHost := os.Getenv("ACTIVITY_SERVICE_HOST")
+	watchServicePort := os.Getenv("ACTIVITY_SERVICE_PORT")
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", watchServiceHost, watchServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to activity service: %v", err)
+    }
+    
+	return watchpb.NewWatchServiceClient(conn)
+}
+
+func getCommentClient() commentpb.CommentServiceClient {
+	commentServiceHost := os.Getenv("ACTIVITY_SERVICE_HOST")
+	commentServicePort := os.Getenv("ACTIVITY_SERVICE_PORT")
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", commentServiceHost, commentServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to activity service: %v", err)
+    }
+    
+	return commentpb.NewCommentServiceClient(conn)
 }

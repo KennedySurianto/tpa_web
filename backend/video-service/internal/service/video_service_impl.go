@@ -4,11 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"os/exec"
+	"sort"
 	"time"
 
+	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
+	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
+	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
@@ -17,11 +22,30 @@ import (
 type VideoServiceImpl struct {
 	videoRepo repository.VideoRepository
 	minio *storage.MinIOClient
+
+	likeClient  likepb.LikeServiceClient
+	watchClient watchpb.WatchServiceClient
+	commentClient commentpb.CommentServiceClient
 }
 
 type Captions struct {
     EN []string `json:"en"`
     ID []string `json:"id"`
+}
+
+func NewVideoService(
+	videoRepo repository.VideoRepository, 
+	minio *storage.MinIOClient, 
+	likeClient likepb.LikeServiceClient, 
+	watchClient watchpb.WatchServiceClient,
+	commentClient commentpb.CommentServiceClient) *VideoServiceImpl {
+	return &VideoServiceImpl{
+		videoRepo: 	videoRepo,
+		minio: 		minio,
+		likeClient: likeClient,
+		watchClient: watchClient,
+		commentClient: commentClient,
+	}
 }
 
 func generateCaptions(videoPath string) (*Captions, error) {
@@ -37,13 +61,6 @@ func generateCaptions(videoPath string) (*Captions, error) {
     }
 
     return &captions, nil
-}
-
-func NewVideoService(videoRepo repository.VideoRepository, minio *storage.MinIOClient) *VideoServiceImpl {
-	return &VideoServiceImpl{
-		videoRepo: 	videoRepo,
-		minio: 		minio,
-	}
 }
 
 func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video, error) {
@@ -78,7 +95,7 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 	video := &model.Video{
 		UserID:        uint(req.UserId),
 		VideoURL:      videoURL,
-		ThumbnailURL:  req.ThumbnailUrl,
+		Thumbnail:     req.Thumbnail,
 		Caption:       req.Caption,
 		Description:   stringPtrToString(req.Description),
 		Duration:      int(req.Duration),
@@ -144,8 +161,8 @@ func (s *VideoServiceImpl) UpdateVideo(req *pb.UpdateVideoRequest) (*model.Video
 		return nil, err
 	}
 
-	if req.ThumbnailUrl != nil {
-		video.ThumbnailURL = *req.ThumbnailUrl
+	if req.Thumbnail != nil {
+		video.Thumbnail = req.Thumbnail
 	}
 	if req.Caption != nil {
 		video.Caption = *req.Caption
@@ -202,8 +219,84 @@ func stringPtrToString(s *string) string {
 }
 
 func (s *VideoServiceImpl) GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error) {
-	// business logic can go here (e.g. ML fallback or filtering)
-	return s.videoRepo.GetRecommendedVideos(userID, lastVideoID, deviceID, language, limit)
+	videos, err := s.videoRepo.GetRecommendedVideos(userID, lastVideoID, deviceID, language, limit*2) // fetch more for shuffling
+	if err != nil {
+		return nil, err
+	}
+
+	type scoredVideo struct {
+		video *model.Video
+		score float64
+	}
+
+	var scored []scoredVideo
+	for _, v := range videos {
+		var likeCount, commentCount, viewCount uint64
+		if userID != 0 {
+			watchedResp, err := s.watchClient.IsWatched(context.Background(), &watchpb.IsWatchedRequest{
+				UserId:  userID,
+				VideoId: uint32(v.ID),
+			})
+			if err == nil && watchedResp.Watched {
+				continue
+			}
+		}
+
+		if likeResp, err := s.likeClient.GetVideoLikeCount(context.Background(), &likepb.GetVideoLikeCountRequest{
+			VideoId: uint32(v.ID),
+		}); err == nil {
+			likeCount = likeResp.Count
+		}
+
+		if watchResp, err := s.watchClient.GetViewCount(context.Background(), &watchpb.GetViewCountRequest{
+			VideoId: uint32(v.ID),
+		}); err == nil {
+			viewCount = watchResp.Count
+		}
+
+		if commentResp, err := s.commentClient.GetCommentCount(context.Background(), &commentpb.GetCommentCountRequest{
+			VideoId: uint32(v.ID),
+		}); err == nil {
+			commentCount = commentResp.Count
+		}
+
+		score := 0.5*float64(likeCount) + 0.1*float64(viewCount) + 0.2*float64(commentCount) + 0.2*rand.Float64()
+		scored = append(scored, scoredVideo{video: v, score: score})
+	}
+
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].score > scored[j].score
+	})
+
+	var recommended []*model.Video
+	for _, s := range scored {
+		if len(recommended) >= int(limit) {
+			break
+		}
+		recommended = append(recommended, s.video)
+	}
+
+	if len(recommended) < int(limit) {
+		randoms, _ := s.videoRepo.GetRandomPublicVideos(limit - int32(len(recommended)))
+		recommended = append(recommended, randoms...)
+	}
+
+	// ✅ Deduplicate
+	seen := make(map[uint]bool)
+	var deduped []*model.Video
+	for _, v := range recommended {
+		if !seen[v.ID] {
+			seen[v.ID] = true
+			deduped = append(deduped, v)
+		}
+	}
+
+	// ✅ Log final deduplicated IDs
+	for _, v := range deduped {
+		fmt.Println("Final recommended video ID:", v.ID)
+	}
+
+	return deduped, nil
 }
 
 func (s *VideoServiceImpl) GetCaptionsByVideoID(videoID uint) ([]model.Caption, error) {

@@ -10,7 +10,7 @@ type Video struct {
 	// Video metadata
 	UserID       uint   `gorm:"not null;index" json:"user_id"` // Owner of the video
 	VideoURL     string `gorm:"not null" json:"video_url"`
-	ThumbnailURL string `json:"thumbnail_url"`
+	Thumbnail 	 []byte `gorm:"type:bytea" json:"-"`
 	Caption      string `gorm:"type:text" json:"caption"`
 	Description  string `gorm:"type:text" json:"description"`
 	Duration     int    `json:"duration"` // in seconds

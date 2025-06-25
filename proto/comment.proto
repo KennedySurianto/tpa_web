@@ -51,8 +51,16 @@ message CreateCommentResponse {
     Comment comment = 1;
 }
 
+message GetCommentCountRequest {
+    uint32 video_id = 1;
+}
+message GetCommentCountResponse {
+    uint64 count = 1;
+}
+
 // Service definition
 service CommentService {
     rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
     rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
+    rpc GetCommentCount(GetCommentCountRequest) returns (GetCommentCountResponse);
 }

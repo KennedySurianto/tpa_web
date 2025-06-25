@@ -30,3 +30,11 @@ func (s *WatchController) IsWatched(ctx context.Context, req *pb.IsWatchedReques
 	watched, err := s.service.IsWatched(uint(req.UserId), uint(req.VideoId))
 	return &pb.IsWatchedResponse{Watched: watched}, err
 }
+
+func (s *WatchController) GetViewCount(ctx context.Context, req *pb.GetViewCountRequest) (*pb.GetViewCountResponse, error) {
+	count, err := s.service.GetViewCount(uint(req.VideoId))
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetViewCountResponse{Count: uint64(count)}, nil
+}

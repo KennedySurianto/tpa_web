@@ -17,6 +17,7 @@
     "@protobuf-ts/grpcweb-transport": "^2.10.0",
     "google-protobuf": "^3.21.4",
     "grpc-web": "^1.5.0",
+    "lodash": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/lodash": "^4.17.18",
     "@types/node": "^22.15.32",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

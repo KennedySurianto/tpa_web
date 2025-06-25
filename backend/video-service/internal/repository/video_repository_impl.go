@@ -82,7 +82,7 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 	if lastVideoID != 0 {
 		var lastVideo model.Video
 		if err := r.db.First(&lastVideo, "id = ?", lastVideoID).Error; err == nil {
-			query = query.Where("created_at < ?", lastVideo.CreatedAt)
+			query = query.Where("(created_at < ?) OR (created_at = ? AND id < ?)", lastVideo.CreatedAt, lastVideo.CreatedAt, lastVideo.ID)
 		}
 	}
 
@@ -91,6 +91,12 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 	}
 
 	return videos, nil
+}
+
+func (r *VideoRepositoryImpl) GetRandomPublicVideos(limit int32) ([]*model.Video, error) {
+	var videos []*model.Video
+	err := r.db.Where("privacy = ?", "public").Order("RANDOM()").Limit(int(limit)).Find(&videos).Error
+	return videos, err
 }
 
 func (r *VideoRepositoryImpl) SaveCaption(c *model.Caption) error {

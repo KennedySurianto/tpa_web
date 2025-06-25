@@ -54,6 +54,14 @@ export interface CreateCommentResponse {
   comment?: Comment | undefined;
 }
 
+export interface GetCommentCountRequest {
+  videoId: number;
+}
+
+export interface GetCommentCountResponse {
+  count: string;
+}
+
 function createBaseUser(): User {
   return { id: "0", username: "", avatar: new Uint8Array(0) };
 }
@@ -701,10 +709,130 @@ export const CreateCommentResponse: MessageFns<CreateCommentResponse> = {
   },
 };
 
+function createBaseGetCommentCountRequest(): GetCommentCountRequest {
+  return { videoId: 0 };
+}
+
+export const GetCommentCountRequest: MessageFns<GetCommentCountRequest> = {
+  encode(message: GetCommentCountRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.videoId !== 0) {
+      writer.uint32(8).uint32(message.videoId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetCommentCountRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetCommentCountRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.videoId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetCommentCountRequest {
+    return { videoId: isSet(object.videoId) ? globalThis.Number(object.videoId) : 0 };
+  },
+
+  toJSON(message: GetCommentCountRequest): unknown {
+    const obj: any = {};
+    if (message.videoId !== 0) {
+      obj.videoId = Math.round(message.videoId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(base?: I): GetCommentCountRequest {
+    return GetCommentCountRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(object: I): GetCommentCountRequest {
+    const message = createBaseGetCommentCountRequest();
+    message.videoId = object.videoId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetCommentCountResponse(): GetCommentCountResponse {
+  return { count: "0" };
+}
+
+export const GetCommentCountResponse: MessageFns<GetCommentCountResponse> = {
+  encode(message: GetCommentCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.count !== "0") {
+      writer.uint32(8).uint64(message.count);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetCommentCountResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetCommentCountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.count = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetCommentCountResponse {
+    return { count: isSet(object.count) ? globalThis.String(object.count) : "0" };
+  },
+
+  toJSON(message: GetCommentCountResponse): unknown {
+    const obj: any = {};
+    if (message.count !== "0") {
+      obj.count = message.count;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(base?: I): GetCommentCountResponse {
+    return GetCommentCountResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(object: I): GetCommentCountResponse {
+    const message = createBaseGetCommentCountResponse();
+    message.count = object.count ?? "0";
+    return message;
+  },
+};
+
 /** Service definition */
 export interface CommentService {
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse>;
   CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse>;
+  GetCommentCount(
+    request: DeepPartial<GetCommentCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetCommentCountResponse>;
 }
 
 export class CommentServiceClientImpl implements CommentService {
@@ -714,6 +842,7 @@ export class CommentServiceClientImpl implements CommentService {
     this.rpc = rpc;
     this.GetComments = this.GetComments.bind(this);
     this.CreateComment = this.CreateComment.bind(this);
+    this.GetCommentCount = this.GetCommentCount.bind(this);
   }
 
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse> {
@@ -722,6 +851,13 @@ export class CommentServiceClientImpl implements CommentService {
 
   CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse> {
     return this.rpc.unary(CommentServiceCreateCommentDesc, CreateCommentRequest.fromPartial(request), metadata);
+  }
+
+  GetCommentCount(
+    request: DeepPartial<GetCommentCountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetCommentCountResponse> {
+    return this.rpc.unary(CommentServiceGetCommentCountDesc, GetCommentCountRequest.fromPartial(request), metadata);
   }
 }
 
@@ -763,6 +899,29 @@ export const CommentServiceCreateCommentDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = CreateCommentResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CommentServiceGetCommentCountDesc: UnaryMethodDefinitionish = {
+  methodName: "GetCommentCount",
+  service: CommentServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetCommentCountRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetCommentCountResponse.decode(data);
       return {
         ...value,
         toObject() {

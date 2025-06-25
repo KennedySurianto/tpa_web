@@ -29,7 +29,7 @@ export interface Video {
   /** Video metadata */
   userId: number;
   videoUrl: string;
-  thumbnailUrl: string;
+  thumbnail: Uint8Array;
   caption: string;
   description?: string | undefined;
   duration: number;
@@ -53,7 +53,7 @@ export interface Video {
 export interface CreateVideoRequest {
   userId: number;
   videoUrl: string;
-  thumbnailUrl: string;
+  thumbnail?: Uint8Array | undefined;
   caption: string;
   description?: string | undefined;
   duration: number;
@@ -82,7 +82,7 @@ export interface GetVideoResponse {
 
 export interface UpdateVideoRequest {
   id: number;
-  thumbnailUrl?: string | undefined;
+  thumbnail?: Uint8Array | undefined;
   caption?: string | undefined;
   privacy?: string | undefined;
   allowComments?: boolean | undefined;
@@ -257,7 +257,7 @@ function createBaseVideo(): Video {
     deletedAt: undefined,
     userId: 0,
     videoUrl: "",
-    thumbnailUrl: "",
+    thumbnail: new Uint8Array(0),
     caption: "",
     description: undefined,
     duration: 0,
@@ -295,8 +295,8 @@ export const Video: MessageFns<Video> = {
     if (message.videoUrl !== "") {
       writer.uint32(50).string(message.videoUrl);
     }
-    if (message.thumbnailUrl !== "") {
-      writer.uint32(58).string(message.thumbnailUrl);
+    if (message.thumbnail.length !== 0) {
+      writer.uint32(58).bytes(message.thumbnail);
     }
     if (message.caption !== "") {
       writer.uint32(66).string(message.caption);
@@ -403,7 +403,7 @@ export const Video: MessageFns<Video> = {
             break;
           }
 
-          message.thumbnailUrl = reader.string();
+          message.thumbnail = reader.bytes();
           continue;
         }
         case 8: {
@@ -535,7 +535,7 @@ export const Video: MessageFns<Video> = {
       deletedAt: isSet(object.deletedAt) ? fromJsonTimestamp(object.deletedAt) : undefined,
       userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
       videoUrl: isSet(object.videoUrl) ? globalThis.String(object.videoUrl) : "",
-      thumbnailUrl: isSet(object.thumbnailUrl) ? globalThis.String(object.thumbnailUrl) : "",
+      thumbnail: isSet(object.thumbnail) ? bytesFromBase64(object.thumbnail) : new Uint8Array(0),
       caption: isSet(object.caption) ? globalThis.String(object.caption) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
@@ -573,8 +573,8 @@ export const Video: MessageFns<Video> = {
     if (message.videoUrl !== "") {
       obj.videoUrl = message.videoUrl;
     }
-    if (message.thumbnailUrl !== "") {
-      obj.thumbnailUrl = message.thumbnailUrl;
+    if (message.thumbnail.length !== 0) {
+      obj.thumbnail = base64FromBytes(message.thumbnail);
     }
     if (message.caption !== "") {
       obj.caption = message.caption;
@@ -632,7 +632,7 @@ export const Video: MessageFns<Video> = {
     message.deletedAt = object.deletedAt ?? undefined;
     message.userId = object.userId ?? 0;
     message.videoUrl = object.videoUrl ?? "";
-    message.thumbnailUrl = object.thumbnailUrl ?? "";
+    message.thumbnail = object.thumbnail ?? new Uint8Array(0);
     message.caption = object.caption ?? "";
     message.description = object.description ?? undefined;
     message.duration = object.duration ?? 0;
@@ -655,7 +655,7 @@ function createBaseCreateVideoRequest(): CreateVideoRequest {
   return {
     userId: 0,
     videoUrl: "",
-    thumbnailUrl: "",
+    thumbnail: undefined,
     caption: "",
     description: undefined,
     duration: 0,
@@ -677,8 +677,8 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     if (message.videoUrl !== "") {
       writer.uint32(18).string(message.videoUrl);
     }
-    if (message.thumbnailUrl !== "") {
-      writer.uint32(26).string(message.thumbnailUrl);
+    if (message.thumbnail !== undefined) {
+      writer.uint32(26).bytes(message.thumbnail);
     }
     if (message.caption !== "") {
       writer.uint32(34).string(message.caption);
@@ -741,7 +741,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
             break;
           }
 
-          message.thumbnailUrl = reader.string();
+          message.thumbnail = reader.bytes();
           continue;
         }
         case 4: {
@@ -837,7 +837,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     return {
       userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
       videoUrl: isSet(object.videoUrl) ? globalThis.String(object.videoUrl) : "",
-      thumbnailUrl: isSet(object.thumbnailUrl) ? globalThis.String(object.thumbnailUrl) : "",
+      thumbnail: isSet(object.thumbnail) ? bytesFromBase64(object.thumbnail) : undefined,
       caption: isSet(object.caption) ? globalThis.String(object.caption) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
@@ -859,8 +859,8 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     if (message.videoUrl !== "") {
       obj.videoUrl = message.videoUrl;
     }
-    if (message.thumbnailUrl !== "") {
-      obj.thumbnailUrl = message.thumbnailUrl;
+    if (message.thumbnail !== undefined) {
+      obj.thumbnail = base64FromBytes(message.thumbnail);
     }
     if (message.caption !== "") {
       obj.caption = message.caption;
@@ -902,7 +902,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     const message = createBaseCreateVideoRequest();
     message.userId = object.userId ?? 0;
     message.videoUrl = object.videoUrl ?? "";
-    message.thumbnailUrl = object.thumbnailUrl ?? "";
+    message.thumbnail = object.thumbnail ?? undefined;
     message.caption = object.caption ?? "";
     message.description = object.description ?? undefined;
     message.duration = object.duration ?? 0;
@@ -1094,7 +1094,7 @@ export const GetVideoResponse: MessageFns<GetVideoResponse> = {
 function createBaseUpdateVideoRequest(): UpdateVideoRequest {
   return {
     id: 0,
-    thumbnailUrl: undefined,
+    thumbnail: undefined,
     caption: undefined,
     privacy: undefined,
     allowComments: undefined,
@@ -1108,8 +1108,8 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
     if (message.id !== 0) {
       writer.uint32(8).uint32(message.id);
     }
-    if (message.thumbnailUrl !== undefined) {
-      writer.uint32(18).string(message.thumbnailUrl);
+    if (message.thumbnail !== undefined) {
+      writer.uint32(18).bytes(message.thumbnail);
     }
     if (message.caption !== undefined) {
       writer.uint32(26).string(message.caption);
@@ -1149,7 +1149,7 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
             break;
           }
 
-          message.thumbnailUrl = reader.string();
+          message.thumbnail = reader.bytes();
           continue;
         }
         case 3: {
@@ -1204,7 +1204,7 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
   fromJSON(object: any): UpdateVideoRequest {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      thumbnailUrl: isSet(object.thumbnailUrl) ? globalThis.String(object.thumbnailUrl) : undefined,
+      thumbnail: isSet(object.thumbnail) ? bytesFromBase64(object.thumbnail) : undefined,
       caption: isSet(object.caption) ? globalThis.String(object.caption) : undefined,
       privacy: isSet(object.privacy) ? globalThis.String(object.privacy) : undefined,
       allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : undefined,
@@ -1218,8 +1218,8 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
     }
-    if (message.thumbnailUrl !== undefined) {
-      obj.thumbnailUrl = message.thumbnailUrl;
+    if (message.thumbnail !== undefined) {
+      obj.thumbnail = base64FromBytes(message.thumbnail);
     }
     if (message.caption !== undefined) {
       obj.caption = message.caption;
@@ -1245,7 +1245,7 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
   fromPartial<I extends Exact<DeepPartial<UpdateVideoRequest>, I>>(object: I): UpdateVideoRequest {
     const message = createBaseUpdateVideoRequest();
     message.id = object.id ?? 0;
-    message.thumbnailUrl = object.thumbnailUrl ?? undefined;
+    message.thumbnail = object.thumbnail ?? undefined;
     message.caption = object.caption ?? undefined;
     message.privacy = object.privacy ?? undefined;
     message.allowComments = object.allowComments ?? undefined;

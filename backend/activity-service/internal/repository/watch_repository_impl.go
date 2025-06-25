@@ -31,3 +31,10 @@ func (r *WatchRepositoryImpl) IsWatched(userID, videoID uint) (bool, error) {
 	}
 	return err == nil, err
 }
+
+func (s *WatchRepositoryImpl) GetViewCount(videoID uint) (int64, error) {
+	var count int64
+	err := s.db.Model(&model.Watch{}).Where("video_id = ?", videoID).Count(&count).Error
+	return count, err
+}
+

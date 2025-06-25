@@ -6,4 +6,5 @@ type WatchRepository interface {
 	AddWatch(watch *model.Watch) error
 	RemoveWatch(watch *model.Watch) error
 	IsWatched(userID, videoID uint) (bool, error)
+	GetViewCount(videoID uint) (int64, error)
 }

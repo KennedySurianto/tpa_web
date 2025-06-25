@@ -48,3 +48,7 @@ func (s *CommentServiceImpl) CreateComment(ctx context.Context, userID, videoID,
 func (s *CommentServiceImpl) GetReplies(ctx context.Context, commentID uint) ([]model.Comment, error) {
     return s.repo.GetRepliesByCommentID(ctx, commentID)
 }
+
+func (s *CommentServiceImpl) GetCommentCount(videoID uint) (int64, error) {
+    return s.repo.GetCommentCount(videoID)
+}

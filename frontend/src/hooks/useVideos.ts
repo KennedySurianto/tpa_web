@@ -13,31 +13,38 @@ export function useVideos(
 
     useEffect(() => {
         const fetchVideos = async () => {
-        // If no user id, pass empty string for anonymous
-        const userId = user?.id ? String(user.id) : "";
+            if (!user) return;
+            console.log("fetchVideos is called");
 
-        const request: GetRecommendedVideosRequest = {
-            userId: Number(userId),
-            limit,
-            lastVideoId: Number(lastVideoId),
-            deviceId: 0,
-            language: navigator.language || "",
-        };
+            // If no user id, pass empty string for anonymous
+            const userId = user?.id ? String(user.id) : "";
 
-        try {
-            const response = await videoClient.GetRecommendedVideos(request);
-            setVideos(response.videos);
-        } catch (err) {
-            console.error("Failed to fetch recommended videos", err);
-            setVideos([]);
-        } finally {
-            setLoading(false);
-        }
+            const request: GetRecommendedVideosRequest = {
+                userId: Number(userId),
+                limit,
+                lastVideoId: Number(lastVideoId),
+                deviceId: 0,
+                language: navigator.language || "",
+            };
+
+            try {
+                const response = await videoClient.GetRecommendedVideos(request);
+                setVideos(prev => {
+                    const existingIds = new Set(prev.map(v => v.id));
+                    const uniqueNewVideos = response.videos.filter(v => !existingIds.has(v.id));
+                    return [...prev, ...uniqueNewVideos];
+                });
+            } catch (err) {
+                console.error("Failed to fetch recommended videos", err);
+                setVideos([]);
+            } finally {
+                setLoading(false);
+            }
         };
 
         setLoading(true);
         fetchVideos();
-    }, [limit, lastVideoId, user?.id]);
+    }, [user]);
 
     return { videos, setVideos, loading };
 }

@@ -24,3 +24,7 @@ func (s *watchServiceImpl) Unwatch(userID, videoID uint) error {
 func (s *watchServiceImpl) IsWatched(userID, videoID uint) (bool, error) {
 	return s.repo.IsWatched(userID, videoID)
 }
+
+func (s *watchServiceImpl) GetViewCount(videoID uint) (int64, error) {
+	return s.repo.GetViewCount(videoID)
+}

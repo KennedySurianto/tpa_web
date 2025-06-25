@@ -90,12 +90,12 @@ type Video struct {
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	DeletedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	// Video metadata
-	UserId       uint32  `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	VideoUrl     string  `protobuf:"bytes,6,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
-	ThumbnailUrl string  `protobuf:"bytes,7,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
-	Caption      string  `protobuf:"bytes,8,opt,name=caption,proto3" json:"caption,omitempty"`
-	Description  *string `protobuf:"bytes,9,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	Duration     int32   `protobuf:"varint,10,opt,name=duration,proto3" json:"duration,omitempty"`
+	UserId      uint32  `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoUrl    string  `protobuf:"bytes,6,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
+	Thumbnail   []byte  `protobuf:"bytes,7,opt,name=thumbnail,proto3" json:"thumbnail,omitempty"`
+	Caption     string  `protobuf:"bytes,8,opt,name=caption,proto3" json:"caption,omitempty"`
+	Description *string `protobuf:"bytes,9,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Duration    int32   `protobuf:"varint,10,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Optional associations
 	SoundId *uint32 `protobuf:"varint,11,opt,name=sound_id,json=soundId,proto3,oneof" json:"sound_id,omitempty"`
 	Privacy string  `protobuf:"bytes,12,opt,name=privacy,proto3" json:"privacy,omitempty"`
@@ -186,11 +186,11 @@ func (x *Video) GetVideoUrl() string {
 	return ""
 }
 
-func (x *Video) GetThumbnailUrl() string {
+func (x *Video) GetThumbnail() []byte {
 	if x != nil {
-		return x.ThumbnailUrl
+		return x.Thumbnail
 	}
-	return ""
+	return nil
 }
 
 func (x *Video) GetCaption() string {
@@ -296,7 +296,7 @@ type CreateVideoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	VideoUrl      string                 `protobuf:"bytes,2,opt,name=video_url,json=videoUrl,proto3" json:"video_url,omitempty"`
-	ThumbnailUrl  string                 `protobuf:"bytes,3,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
+	Thumbnail     []byte                 `protobuf:"bytes,3,opt,name=thumbnail,proto3,oneof" json:"thumbnail,omitempty"`
 	Caption       string                 `protobuf:"bytes,4,opt,name=caption,proto3" json:"caption,omitempty"`
 	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	Duration      int32                  `protobuf:"varint,6,opt,name=duration,proto3" json:"duration,omitempty"`
@@ -355,11 +355,11 @@ func (x *CreateVideoRequest) GetVideoUrl() string {
 	return ""
 }
 
-func (x *CreateVideoRequest) GetThumbnailUrl() string {
+func (x *CreateVideoRequest) GetThumbnail() []byte {
 	if x != nil {
-		return x.ThumbnailUrl
+		return x.Thumbnail
 	}
-	return ""
+	return nil
 }
 
 func (x *CreateVideoRequest) GetCaption() string {
@@ -567,7 +567,7 @@ func (x *GetVideoResponse) GetVideo() *Video {
 type UpdateVideoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	ThumbnailUrl  *string                `protobuf:"bytes,2,opt,name=thumbnail_url,json=thumbnailUrl,proto3,oneof" json:"thumbnail_url,omitempty"`
+	Thumbnail     []byte                 `protobuf:"bytes,2,opt,name=thumbnail,proto3,oneof" json:"thumbnail,omitempty"`
 	Caption       *string                `protobuf:"bytes,3,opt,name=caption,proto3,oneof" json:"caption,omitempty"`
 	Privacy       *string                `protobuf:"bytes,4,opt,name=privacy,proto3,oneof" json:"privacy,omitempty"`
 	AllowComments *bool                  `protobuf:"varint,5,opt,name=allow_comments,json=allowComments,proto3,oneof" json:"allow_comments,omitempty"`
@@ -614,11 +614,11 @@ func (x *UpdateVideoRequest) GetId() uint32 {
 	return 0
 }
 
-func (x *UpdateVideoRequest) GetThumbnailUrl() string {
-	if x != nil && x.ThumbnailUrl != nil {
-		return *x.ThumbnailUrl
+func (x *UpdateVideoRequest) GetThumbnail() []byte {
+	if x != nil {
+		return x.Thumbnail
 	}
-	return ""
+	return nil
 }
 
 func (x *UpdateVideoRequest) GetCaption() string {
@@ -1257,7 +1257,7 @@ const file_video_proto_rawDesc = "" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\x84\x06\n" +
+	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xfd\x05\n" +
 	"\x05Video\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x129\n" +
 	"\n" +
@@ -1267,8 +1267,8 @@ const file_video_proto_rawDesc = "" +
 	"\n" +
 	"deleted_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x17\n" +
 	"\auser_id\x18\x05 \x01(\rR\x06userId\x12\x1b\n" +
-	"\tvideo_url\x18\x06 \x01(\tR\bvideoUrl\x12#\n" +
-	"\rthumbnail_url\x18\a \x01(\tR\fthumbnailUrl\x12\x18\n" +
+	"\tvideo_url\x18\x06 \x01(\tR\bvideoUrl\x12\x1c\n" +
+	"\tthumbnail\x18\a \x01(\fR\tthumbnail\x12\x18\n" +
 	"\acaption\x18\b \x01(\tR\acaption\x12%\n" +
 	"\vdescription\x18\t \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1a\n" +
 	"\bduration\x18\n" +
@@ -1289,15 +1289,15 @@ const file_video_proto_rawDesc = "" +
 	"\n" +
 	"like_count\x18\x15 \x01(\x04R\tlikeCountB\x0e\n" +
 	"\f_descriptionB\v\n" +
-	"\t_sound_id\"\xce\x03\n" +
+	"\t_sound_id\"\xda\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1b\n" +
-	"\tvideo_url\x18\x02 \x01(\tR\bvideoUrl\x12#\n" +
-	"\rthumbnail_url\x18\x03 \x01(\tR\fthumbnailUrl\x12\x18\n" +
+	"\tvideo_url\x18\x02 \x01(\tR\bvideoUrl\x12!\n" +
+	"\tthumbnail\x18\x03 \x01(\fH\x00R\tthumbnail\x88\x01\x01\x12\x18\n" +
 	"\acaption\x18\x04 \x01(\tR\acaption\x12%\n" +
-	"\vdescription\x18\x05 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1a\n" +
+	"\vdescription\x18\x05 \x01(\tH\x01R\vdescription\x88\x01\x01\x12\x1a\n" +
 	"\bduration\x18\x06 \x01(\x05R\bduration\x12\x1e\n" +
-	"\bsound_id\x18\a \x01(\rH\x01R\asoundId\x88\x01\x01\x12\x18\n" +
+	"\bsound_id\x18\a \x01(\rH\x02R\asoundId\x88\x01\x01\x12\x18\n" +
 	"\aprivacy\x18\b \x01(\tR\aprivacy\x12%\n" +
 	"\x0eallow_comments\x18\t \x01(\bR\rallowComments\x12\x1d\n" +
 	"\n" +
@@ -1306,7 +1306,9 @@ const file_video_proto_rawDesc = "" +
 	"\fallow_stitch\x18\v \x01(\bR\vallowStitch\x12\x1d\n" +
 	"\n" +
 	"video_data\x18\f \x01(\fR\tvideoData\x12!\n" +
-	"\fcontent_type\x18\r \x01(\tR\vcontentTypeB\x0e\n" +
+	"\fcontent_type\x18\r \x01(\tR\vcontentTypeB\f\n" +
+	"\n" +
+	"_thumbnailB\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_sound_id\"9\n" +
 	"\x13CreateVideoResponse\x12\"\n" +
@@ -1314,17 +1316,18 @@ const file_video_proto_rawDesc = "" +
 	"\x0fGetVideoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"6\n" +
 	"\x10GetVideoResponse\x12\"\n" +
-	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xe1\x02\n" +
+	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xd6\x02\n" +
 	"\x12UpdateVideoRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\x12(\n" +
-	"\rthumbnail_url\x18\x02 \x01(\tH\x00R\fthumbnailUrl\x88\x01\x01\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12!\n" +
+	"\tthumbnail\x18\x02 \x01(\fH\x00R\tthumbnail\x88\x01\x01\x12\x1d\n" +
 	"\acaption\x18\x03 \x01(\tH\x01R\acaption\x88\x01\x01\x12\x1d\n" +
 	"\aprivacy\x18\x04 \x01(\tH\x02R\aprivacy\x88\x01\x01\x12*\n" +
 	"\x0eallow_comments\x18\x05 \x01(\bH\x03R\rallowComments\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"allow_duet\x18\x06 \x01(\bH\x04R\tallowDuet\x88\x01\x01\x12&\n" +
-	"\fallow_stitch\x18\a \x01(\bH\x05R\vallowStitch\x88\x01\x01B\x10\n" +
-	"\x0e_thumbnail_urlB\n" +
+	"\fallow_stitch\x18\a \x01(\bH\x05R\vallowStitch\x88\x01\x01B\f\n" +
+	"\n" +
+	"_thumbnailB\n" +
 	"\n" +
 	"\b_captionB\n" +
 	"\n" +

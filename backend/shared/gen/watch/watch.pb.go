@@ -21,6 +21,94 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetViewCountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoId       uint32                 `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetViewCountRequest) Reset() {
+	*x = GetViewCountRequest{}
+	mi := &file_watch_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetViewCountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetViewCountRequest) ProtoMessage() {}
+
+func (x *GetViewCountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_watch_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetViewCountRequest.ProtoReflect.Descriptor instead.
+func (*GetViewCountRequest) Descriptor() ([]byte, []int) {
+	return file_watch_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetViewCountRequest) GetVideoId() uint32 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type GetViewCountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         uint64                 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetViewCountResponse) Reset() {
+	*x = GetViewCountResponse{}
+	mi := &file_watch_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetViewCountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetViewCountResponse) ProtoMessage() {}
+
+func (x *GetViewCountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_watch_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetViewCountResponse.ProtoReflect.Descriptor instead.
+func (*GetViewCountResponse) Descriptor() ([]byte, []int) {
+	return file_watch_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetViewCountResponse) GetCount() uint64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 type WatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -31,7 +119,7 @@ type WatchRequest struct {
 
 func (x *WatchRequest) Reset() {
 	*x = WatchRequest{}
-	mi := &file_watch_proto_msgTypes[0]
+	mi := &file_watch_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +131,7 @@ func (x *WatchRequest) String() string {
 func (*WatchRequest) ProtoMessage() {}
 
 func (x *WatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[0]
+	mi := &file_watch_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +144,7 @@ func (x *WatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchRequest.ProtoReflect.Descriptor instead.
 func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{0}
+	return file_watch_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *WatchRequest) GetUserId() uint32 {
@@ -81,7 +169,7 @@ type WatchResponse struct {
 
 func (x *WatchResponse) Reset() {
 	*x = WatchResponse{}
-	mi := &file_watch_proto_msgTypes[1]
+	mi := &file_watch_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -93,7 +181,7 @@ func (x *WatchResponse) String() string {
 func (*WatchResponse) ProtoMessage() {}
 
 func (x *WatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[1]
+	mi := &file_watch_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,7 +194,7 @@ func (x *WatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResponse.ProtoReflect.Descriptor instead.
 func (*WatchResponse) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{1}
+	return file_watch_proto_rawDescGZIP(), []int{3}
 }
 
 type UnwatchRequest struct {
@@ -119,7 +207,7 @@ type UnwatchRequest struct {
 
 func (x *UnwatchRequest) Reset() {
 	*x = UnwatchRequest{}
-	mi := &file_watch_proto_msgTypes[2]
+	mi := &file_watch_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +219,7 @@ func (x *UnwatchRequest) String() string {
 func (*UnwatchRequest) ProtoMessage() {}
 
 func (x *UnwatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[2]
+	mi := &file_watch_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +232,7 @@ func (x *UnwatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnwatchRequest.ProtoReflect.Descriptor instead.
 func (*UnwatchRequest) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{2}
+	return file_watch_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UnwatchRequest) GetUserId() uint32 {
@@ -169,7 +257,7 @@ type UnwatchResponse struct {
 
 func (x *UnwatchResponse) Reset() {
 	*x = UnwatchResponse{}
-	mi := &file_watch_proto_msgTypes[3]
+	mi := &file_watch_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +269,7 @@ func (x *UnwatchResponse) String() string {
 func (*UnwatchResponse) ProtoMessage() {}
 
 func (x *UnwatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[3]
+	mi := &file_watch_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,7 +282,7 @@ func (x *UnwatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnwatchResponse.ProtoReflect.Descriptor instead.
 func (*UnwatchResponse) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{3}
+	return file_watch_proto_rawDescGZIP(), []int{5}
 }
 
 type IsWatchedRequest struct {
@@ -207,7 +295,7 @@ type IsWatchedRequest struct {
 
 func (x *IsWatchedRequest) Reset() {
 	*x = IsWatchedRequest{}
-	mi := &file_watch_proto_msgTypes[4]
+	mi := &file_watch_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -219,7 +307,7 @@ func (x *IsWatchedRequest) String() string {
 func (*IsWatchedRequest) ProtoMessage() {}
 
 func (x *IsWatchedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[4]
+	mi := &file_watch_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -232,7 +320,7 @@ func (x *IsWatchedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsWatchedRequest.ProtoReflect.Descriptor instead.
 func (*IsWatchedRequest) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{4}
+	return file_watch_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *IsWatchedRequest) GetUserId() uint32 {
@@ -258,7 +346,7 @@ type IsWatchedResponse struct {
 
 func (x *IsWatchedResponse) Reset() {
 	*x = IsWatchedResponse{}
-	mi := &file_watch_proto_msgTypes[5]
+	mi := &file_watch_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +358,7 @@ func (x *IsWatchedResponse) String() string {
 func (*IsWatchedResponse) ProtoMessage() {}
 
 func (x *IsWatchedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_watch_proto_msgTypes[5]
+	mi := &file_watch_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +371,7 @@ func (x *IsWatchedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsWatchedResponse.ProtoReflect.Descriptor instead.
 func (*IsWatchedResponse) Descriptor() ([]byte, []int) {
-	return file_watch_proto_rawDescGZIP(), []int{5}
+	return file_watch_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *IsWatchedResponse) GetWatched() bool {
@@ -297,7 +385,11 @@ var File_watch_proto protoreflect.FileDescriptor
 
 const file_watch_proto_rawDesc = "" +
 	"\n" +
-	"\vwatch.proto\x12\bactivity\"B\n" +
+	"\vwatch.proto\x12\bactivity\"0\n" +
+	"\x13GetViewCountRequest\x12\x19\n" +
+	"\bvideo_id\x18\x01 \x01(\rR\avideoId\",\n" +
+	"\x14GetViewCountResponse\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x04R\x05count\"B\n" +
 	"\fWatchRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x19\n" +
 	"\bvideo_id\x18\x02 \x01(\rR\avideoId\"\x0f\n" +
@@ -310,11 +402,12 @@ const file_watch_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x19\n" +
 	"\bvideo_id\x18\x02 \x01(\rR\avideoId\"-\n" +
 	"\x11IsWatchedResponse\x12\x18\n" +
-	"\awatched\x18\x01 \x01(\bR\awatched2\xce\x01\n" +
+	"\awatched\x18\x01 \x01(\bR\awatched2\x9d\x02\n" +
 	"\fWatchService\x128\n" +
 	"\x05Watch\x12\x16.activity.WatchRequest\x1a\x17.activity.WatchResponse\x12>\n" +
 	"\aUnwatch\x12\x18.activity.UnwatchRequest\x1a\x19.activity.UnwatchResponse\x12D\n" +
-	"\tIsWatched\x12\x1a.activity.IsWatchedRequest\x1a\x1b.activity.IsWatchedResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/watch;watchb\x06proto3"
+	"\tIsWatched\x12\x1a.activity.IsWatchedRequest\x1a\x1b.activity.IsWatchedResponse\x12M\n" +
+	"\fGetViewCount\x12\x1d.activity.GetViewCountRequest\x1a\x1e.activity.GetViewCountResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/watch;watchb\x06proto3"
 
 var (
 	file_watch_proto_rawDescOnce sync.Once
@@ -328,24 +421,28 @@ func file_watch_proto_rawDescGZIP() []byte {
 	return file_watch_proto_rawDescData
 }
 
-var file_watch_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_watch_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_watch_proto_goTypes = []any{
-	(*WatchRequest)(nil),      // 0: activity.WatchRequest
-	(*WatchResponse)(nil),     // 1: activity.WatchResponse
-	(*UnwatchRequest)(nil),    // 2: activity.UnwatchRequest
-	(*UnwatchResponse)(nil),   // 3: activity.UnwatchResponse
-	(*IsWatchedRequest)(nil),  // 4: activity.IsWatchedRequest
-	(*IsWatchedResponse)(nil), // 5: activity.IsWatchedResponse
+	(*GetViewCountRequest)(nil),  // 0: activity.GetViewCountRequest
+	(*GetViewCountResponse)(nil), // 1: activity.GetViewCountResponse
+	(*WatchRequest)(nil),         // 2: activity.WatchRequest
+	(*WatchResponse)(nil),        // 3: activity.WatchResponse
+	(*UnwatchRequest)(nil),       // 4: activity.UnwatchRequest
+	(*UnwatchResponse)(nil),      // 5: activity.UnwatchResponse
+	(*IsWatchedRequest)(nil),     // 6: activity.IsWatchedRequest
+	(*IsWatchedResponse)(nil),    // 7: activity.IsWatchedResponse
 }
 var file_watch_proto_depIdxs = []int32{
-	0, // 0: activity.WatchService.Watch:input_type -> activity.WatchRequest
-	2, // 1: activity.WatchService.Unwatch:input_type -> activity.UnwatchRequest
-	4, // 2: activity.WatchService.IsWatched:input_type -> activity.IsWatchedRequest
-	1, // 3: activity.WatchService.Watch:output_type -> activity.WatchResponse
-	3, // 4: activity.WatchService.Unwatch:output_type -> activity.UnwatchResponse
-	5, // 5: activity.WatchService.IsWatched:output_type -> activity.IsWatchedResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	2, // 0: activity.WatchService.Watch:input_type -> activity.WatchRequest
+	4, // 1: activity.WatchService.Unwatch:input_type -> activity.UnwatchRequest
+	6, // 2: activity.WatchService.IsWatched:input_type -> activity.IsWatchedRequest
+	0, // 3: activity.WatchService.GetViewCount:input_type -> activity.GetViewCountRequest
+	3, // 4: activity.WatchService.Watch:output_type -> activity.WatchResponse
+	5, // 5: activity.WatchService.Unwatch:output_type -> activity.UnwatchResponse
+	7, // 6: activity.WatchService.IsWatched:output_type -> activity.IsWatchedResponse
+	1, // 7: activity.WatchService.GetViewCount:output_type -> activity.GetViewCountResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -362,7 +459,7 @@ func file_watch_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_watch_proto_rawDesc), len(file_watch_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CommentService_GetComments_FullMethodName   = "/activity.CommentService/GetComments"
-	CommentService_CreateComment_FullMethodName = "/activity.CommentService/CreateComment"
+	CommentService_GetComments_FullMethodName     = "/activity.CommentService/GetComments"
+	CommentService_CreateComment_FullMethodName   = "/activity.CommentService/CreateComment"
+	CommentService_GetCommentCount_FullMethodName = "/activity.CommentService/GetCommentCount"
 )
 
 // CommentServiceClient is the client API for CommentService service.
@@ -31,6 +32,7 @@ const (
 type CommentServiceClient interface {
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (*GetCommentsResponse, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error)
+	GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error)
 }
 
 type commentServiceClient struct {
@@ -61,6 +63,16 @@ func (c *commentServiceClient) CreateComment(ctx context.Context, in *CreateComm
 	return out, nil
 }
 
+func (c *commentServiceClient) GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCommentCountResponse)
+	err := c.cc.Invoke(ctx, CommentService_GetCommentCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CommentServiceServer is the server API for CommentService service.
 // All implementations must embed UnimplementedCommentServiceServer
 // for forward compatibility.
@@ -69,6 +81,7 @@ func (c *commentServiceClient) CreateComment(ctx context.Context, in *CreateComm
 type CommentServiceServer interface {
 	GetComments(context.Context, *GetCommentsRequest) (*GetCommentsResponse, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error)
+	GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error)
 	mustEmbedUnimplementedCommentServiceServer()
 }
 
@@ -84,6 +97,9 @@ func (UnimplementedCommentServiceServer) GetComments(context.Context, *GetCommen
 }
 func (UnimplementedCommentServiceServer) CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
+}
+func (UnimplementedCommentServiceServer) GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCommentCount not implemented")
 }
 func (UnimplementedCommentServiceServer) mustEmbedUnimplementedCommentServiceServer() {}
 func (UnimplementedCommentServiceServer) testEmbeddedByValue()                        {}
@@ -142,6 +158,24 @@ func _CommentService_CreateComment_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CommentService_GetCommentCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommentCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommentServiceServer).GetCommentCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommentService_GetCommentCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommentServiceServer).GetCommentCount(ctx, req.(*GetCommentCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CommentService_ServiceDesc is the grpc.ServiceDesc for CommentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -156,6 +190,10 @@ var CommentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateComment",
 			Handler:    _CommentService_CreateComment_Handler,
+		},
+		{
+			MethodName: "GetCommentCount",
+			Handler:    _CommentService_GetCommentCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -41,7 +41,7 @@ func (s *VideoController) modelToProto(video *model.Video) *pb.Video {
 		Id:            uint32(video.ID),
 		UserId:        uint32(video.UserID),
 		VideoUrl:      video.VideoURL,
-		ThumbnailUrl:  video.ThumbnailURL,
+		Thumbnail:     video.Thumbnail,
 		Caption:       video.Caption,
 		Duration:      int32(video.Duration),
 		Privacy:       video.Privacy,
@@ -111,8 +111,8 @@ func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest)
 func (s *VideoController) UpdateVideo(ctx context.Context, req *pb.UpdateVideoRequest) (*pb.UpdateVideoResponse, error) {
 	updateReq := &pb.UpdateVideoRequest{}
 
-	if req.ThumbnailUrl != nil {
-		updateReq.ThumbnailUrl = req.ThumbnailUrl
+	if req.Thumbnail != nil {
+		updateReq.Thumbnail = req.Thumbnail
 	}
 	if req.Caption != nil {
 		updateReq.Caption = req.Caption
@@ -235,7 +235,7 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 
 			UserId:       uint32(v.UserID),
 			VideoUrl:     v.VideoURL,
-			ThumbnailUrl: v.ThumbnailURL,
+			Thumbnail:    v.Thumbnail,
 			Caption:      v.Caption,
 			Description:  &v.Description,
 			Duration:     int32(v.Duration),
@@ -280,6 +280,7 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			}(),
 		})
 	}
+	
 	return &response, nil
 }
 
