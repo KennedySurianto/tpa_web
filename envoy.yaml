@@ -96,6 +96,12 @@ static_resources:
                             cluster: live-service
                             timeout: 300s
 
+                        # Route live-service gRPC calls
+                        - match:
+                            prefix: "/playlist.PlaylistService/"
+                          route:
+                            cluster: playlist-service
+
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -218,6 +224,22 @@ static_resources:
                     socket_address:
                       address: live-service
                       port_value: 50056
+
+    # Playlist Service cluster
+    - name: playlist-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}  # Enable HTTP/2 for gRPC
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: playlist-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: playlist-service
+                      port_value: 50057
 
 admin:
   access_log_path: "/tmp/admin_access.log"

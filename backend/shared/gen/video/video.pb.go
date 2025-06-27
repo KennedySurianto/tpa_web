@@ -1374,7 +1374,7 @@ const file_video_proto_rawDesc = "" +
 	"\bcaptions\x18\x01 \x03(\v2(.video.GetCaptionsResponse.CaptionsEntryR\bcaptions\x1aO\n" +
 	"\rCaptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12(\n" +
-	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\xbe\x05\n" +
+	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\x97\x06\n" +
 	"\fVideoService\x12D\n" +
 	"\vCreateVideo\x12\x19.video.CreateVideoRequest\x1a\x1a.video.CreateVideoResponse\x12;\n" +
 	"\bGetVideo\x12\x16.video.GetVideoRequest\x1a\x17.video.GetVideoResponse\x12D\n" +
@@ -1384,7 +1384,8 @@ const file_video_proto_rawDesc = "" +
 	"\rUpdateMetrics\x12\x1b.video.UpdateMetricsRequest\x1a\x1c.video.UpdateMetricsResponse\x12_\n" +
 	"\x14GetRecommendedVideos\x12\".video.GetRecommendedVideosRequest\x1a#.video.GetRecommendedVideosResponse\x12D\n" +
 	"\vGetCaptions\x12\x19.video.GetCaptionsRequest\x1a\x1a.video.GetCaptionsResponse\x12T\n" +
-	"\x0fGetFriendVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a .video.GetVideosByUserIdResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
+	"\x0fGetFriendVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a .video.GetVideosByUserIdResponse\x12W\n" +
+	"\x12GetFollowingVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a .video.GetVideosByUserIdResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
 
 var (
 	file_video_proto_rawDescOnce sync.Once
@@ -1444,17 +1445,19 @@ var file_video_proto_depIdxs = []int32{
 	14, // 18: video.VideoService.GetRecommendedVideos:input_type -> video.GetRecommendedVideosRequest
 	16, // 19: video.VideoService.GetCaptions:input_type -> video.GetCaptionsRequest
 	10, // 20: video.VideoService.GetFriendVideos:input_type -> video.GetVideosByUserIdRequest
-	3,  // 21: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
-	5,  // 22: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
-	7,  // 23: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
-	9,  // 24: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
-	11, // 25: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosByUserIdResponse
-	13, // 26: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
-	15, // 27: video.VideoService.GetRecommendedVideos:output_type -> video.GetRecommendedVideosResponse
-	18, // 28: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
-	11, // 29: video.VideoService.GetFriendVideos:output_type -> video.GetVideosByUserIdResponse
-	21, // [21:30] is the sub-list for method output_type
-	12, // [12:21] is the sub-list for method input_type
+	10, // 21: video.VideoService.GetFollowingVideos:input_type -> video.GetVideosByUserIdRequest
+	3,  // 22: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
+	5,  // 23: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
+	7,  // 24: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
+	9,  // 25: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
+	11, // 26: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosByUserIdResponse
+	13, // 27: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
+	15, // 28: video.VideoService.GetRecommendedVideos:output_type -> video.GetRecommendedVideosResponse
+	18, // 29: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
+	11, // 30: video.VideoService.GetFriendVideos:output_type -> video.GetVideosByUserIdResponse
+	11, // 31: video.VideoService.GetFollowingVideos:output_type -> video.GetVideosByUserIdResponse
+	22, // [22:32] is the sub-list for method output_type
+	12, // [12:22] is the sub-list for method input_type
 	12, // [12:12] is the sub-list for extension type_name
 	12, // [12:12] is the sub-list for extension extendee
 	0,  // [0:12] is the sub-list for field type_name

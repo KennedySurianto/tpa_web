@@ -82,6 +82,26 @@ services:
       retries: 3
       start_period: 10s
 
+  playlist-db:
+    container_name: playlist-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: playlist_service_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - playlist-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d playlist_service_db"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   envoy:
     container_name: envoy
     image: envoyproxy/envoy:v1.29-latest
@@ -308,6 +328,34 @@ services:
       retries: 3
       start_period: 20s
     
+  playlist-service:
+    container_name: playlist-service
+    build: 
+      context: ./backend
+      dockerfile: playlist-service/Dockerfile
+    expose:
+      - "50057"
+    ports:
+      - 50057:50057
+    environment:
+      PORT: 50057
+      DATABASE_URL: postgres://postgres:postgres@playlist-db:5432/playlist_service_db
+      VIDEO_SERVICE_HOST: video-service
+      VIDEO_SERVICE_PORT: 50053
+    networks:
+      - app-network
+    depends_on:
+      playlist-db: 
+        condition: service_healthy
+      video-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50057"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
   frontend:
     container_name: frontend
     build: ./frontend
@@ -330,6 +378,7 @@ volumes:
   video-db-data:
   activity-db-data:
   chat-db-data:
+  playlist-db-data:
   minio-data:
 
 networks:

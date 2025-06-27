@@ -209,6 +209,11 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 
 	var response pb.GetRecommendedVideosResponse
 	for _, v := range videos {
+		// ✅ Skip if this is the currently logged-in user's own video
+		if req.UserId != 0 && uint32(v.UserID) == req.UserId {
+			continue
+		}
+
 		var soundId *uint32
 		if v.SoundID != nil {
 			sid := uint32(*v.SoundID)
@@ -216,16 +221,10 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 		}
 
 		user, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(v.UserID)})
-        if err != nil {
-            // Handle error, maybe skip user or fill with default data
-            // For now, let's just log and continue with empty user
-            fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
-			user = &userpb.User{
-				Id:        0,
-				Username:  "Unknown",
-				Avatar: nil,
-			}
-        }
+		if err != nil {
+			fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
+			user = &userpb.User{Id: 0, Username: "Unknown", Avatar: nil}
+		}
 
 		response.Videos = append(response.Videos, &pb.Video{
 			Id:           uint32(v.ID),
@@ -239,22 +238,20 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			Caption:      v.Caption,
 			Description:  &v.Description,
 			Duration:     int32(v.Duration),
-
 			SoundId:      soundId,
 			Privacy:      v.Privacy,
 
 			ViewsCount:    uint32(v.ViewsCount),
 			LikesCount:    uint32(v.LikesCount),
 			CommentsCount: uint32(v.CommentsCount),
-
 			AllowComments: v.AllowComments,
 			AllowDuet:     v.AllowDuet,
 			AllowStitch:   v.AllowStitch,
 
 			User: &pb.User{
-				Id:        uint64(user.Id),
-				Username:  user.Username,
-				Avatar: user.Avatar,
+				Id:       uint64(user.Id),
+				Username: user.Username,
+				Avatar:   user.Avatar,
 			},
 
 			IsLiked: func() bool {
@@ -262,7 +259,7 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 					return false
 				}
 				resp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{
-					UserId: req.UserId,
+					UserId:  req.UserId,
 					VideoId: uint32(v.ID),
 				})
 				if err != nil || resp == nil {
@@ -280,91 +277,152 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 			}(),
 		})
 	}
-	
+
 	return &response, nil
 }
 
 func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
 	userId := req.UserId
 
-	// Step 1: Get followers
 	followersResp, err := vc.followClient.GetFollowers(ctx, &followpb.UserRequest{UserId: userId})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get followers: %w", err)
 	}
 
-	// Step 2: Get following
 	followingResp, err := vc.followClient.GetFollowing(ctx, &followpb.UserRequest{UserId: userId})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get following: %w", err)
 	}
 
-	// Step 3: Identify mutual friends
-	followerMap := make(map[uint64]bool)
+	followerMap := make(map[uint32]bool)
 	for _, f := range followersResp.Follows {
-		followerMap[uint64(f.FollowerId)] = true
+		followerMap[f.FollowerId] = true
 	}
 
-	var friendIds []uint64
+	var friendIds []uint32
+	friendIdMap := make(map[uint32]bool)
 	for _, f := range followingResp.Follows {
-		if followerMap[uint64(f.FollowedId)] {
-			friendIds = append(friendIds, uint64(f.FollowedId))
+		if followerMap[f.FollowedId] {
+			friendIds = append(friendIds, f.FollowedId)
+			friendIdMap[f.FollowedId] = true
 		}
 	}
 
-	// Step 4: Fetch all friend videos
 	var allVideos []model.Video
-	friendUserMap := make(map[uint64]*userpb.User) // cache users
-
 	for _, friendID := range friendIds {
-		// Fetch videos
-		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{
-			UserId: uint32(friendID),
-		})
-		if err != nil {
-			continue
+		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: friendID})
+		if err == nil {
+			allVideos = append(allVideos, videos...)
 		}
-		allVideos = append(allVideos, videos...)
+	}
 
-		// Fetch user metadata
-		if _, exists := friendUserMap[friendID]; !exists {
-			userResp, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: friendID})
-			if err != nil {
-				friendUserMap[friendID] = &userpb.User{
-					Id:       friendID,
-					Username: "Unknown",
-					Avatar:   nil,
-				}
-			} else {
-				friendUserMap[friendID] = userResp
+	if len(allVideos) == 0 {
+		recommended, _ := vc.videoService.GetRecommendedVideos(userId, 0, 0, "", 10)
+		for _, v := range recommended {
+			if !friendIdMap[uint32(v.UserID)] {
+				allVideos = append(allVideos, *v)
 			}
 		}
 	}
 
-	// Step 5: Sort by creation time
 	sort.Slice(allVideos, func(i, j int) bool {
 		return allVideos[i].CreatedAt.After(allVideos[j].CreatedAt)
 	})
 
-	// Step 6: Convert to proto
 	var pbVideos []*pb.Video
 	for _, v := range allVideos {
-		p := vc.modelToProto(&v)
+		user, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(v.UserID)})
+		if err != nil {
+			fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
+			user = &userpb.User{Id: 0, Username: "Unknown"}
+		}
 
-		if user, ok := friendUserMap[uint64(v.UserID)]; ok {
-			p.User = &pb.User{
-				Id:       user.Id,
-				Username: user.Username,
-				Avatar:   user.Avatar,
+		likeCount := uint64(0)
+		resp, err := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: uint32(v.ID)})
+		if err == nil && resp != nil {
+			likeCount = resp.Count
+		}
+
+		isLiked := false
+		if userId != 0 {
+			likeResp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{UserId: userId, VideoId: uint32(v.ID)})
+			if err == nil && likeResp != nil {
+				isLiked = likeResp.Liked
 			}
 		}
 
+		p := vc.modelToProto(&v)
+		p.User = &pb.User{Id: user.Id, Username: user.Username, Avatar: user.Avatar}
+		p.LikeCount = likeCount
+		p.IsLiked = isLiked
 		pbVideos = append(pbVideos, p)
 	}
 
-	return &pb.GetVideosByUserIdResponse{
-		Videos: pbVideos,
-		Total:  int32(len(pbVideos)),
-	}, nil
+	return &pb.GetVideosByUserIdResponse{Videos: pbVideos, Total: int32(len(pbVideos))}, nil
 }
 
+func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+	userId := req.UserId
+
+	followingResp, err := vc.followClient.GetFollowing(ctx, &followpb.UserRequest{UserId: userId})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get following: %w", err)
+	}
+
+	var allVideos []model.Video
+	followingIDs := make(map[uint64]bool)
+
+	for _, f := range followingResp.Follows {
+		followedId := uint64(f.FollowedId)
+		followingIDs[followedId] = true
+
+		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: uint32(f.FollowedId)})
+		if err == nil {
+			allVideos = append(allVideos, videos...)
+		}
+	}
+
+	if len(allVideos) == 0 {
+		randomVideos, _ := vc.videoService.GetRecommendedVideos(userId, 0, 0, "", 10)
+		for _, v := range randomVideos {
+			if !followingIDs[uint64(v.UserID)] {
+				allVideos = append(allVideos, *v)
+			}
+		}
+	}
+
+	sort.Slice(allVideos, func(i, j int) bool {
+		return allVideos[i].CreatedAt.After(allVideos[j].CreatedAt)
+	})
+
+	var pbVideos []*pb.Video
+	for _, v := range allVideos {
+		user, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(v.UserID)})
+		if err != nil {
+			fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
+			user = &userpb.User{Id: 0, Username: "Unknown"}
+		}
+
+		likeCount := uint64(0)
+		resp, err := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: uint32(v.ID)})
+		if err == nil && resp != nil {
+			likeCount = resp.Count
+		}
+
+		isLiked := false
+		if userId != 0 {
+			likeResp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{UserId: userId, VideoId: uint32(v.ID)})
+			if err == nil && likeResp != nil {
+				isLiked = likeResp.Liked
+			}
+		}
+
+		p := vc.modelToProto(&v)
+		p.User = &pb.User{Id: user.Id, Username: user.Username, Avatar: user.Avatar}
+		p.LikeCount = likeCount
+		p.IsLiked = isLiked
+		pbVideos = append(pbVideos, p)
+	}
+
+	return &pb.GetVideosByUserIdResponse{Videos: pbVideos, Total: int32(len(pbVideos))}, nil
+}

@@ -2213,6 +2213,10 @@ export interface VideoService {
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosByUserIdResponse>;
+  GetFollowingVideos(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -2229,6 +2233,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.GetRecommendedVideos = this.GetRecommendedVideos.bind(this);
     this.GetCaptions = this.GetCaptions.bind(this);
     this.GetFriendVideos = this.GetFriendVideos.bind(this);
+    this.GetFollowingVideos = this.GetFollowingVideos.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -2278,6 +2283,13 @@ export class VideoServiceClientImpl implements VideoService {
     metadata?: grpc.Metadata,
   ): Promise<GetVideosByUserIdResponse> {
     return this.rpc.unary(VideoServiceGetFriendVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
+  }
+
+  GetFollowingVideos(
+    request: DeepPartial<GetVideosByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetVideosByUserIdResponse> {
+    return this.rpc.unary(VideoServiceGetFollowingVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2469,6 +2481,29 @@ export const VideoServiceGetCaptionsDesc: UnaryMethodDefinitionish = {
 
 export const VideoServiceGetFriendVideosDesc: UnaryMethodDefinitionish = {
   methodName: "GetFriendVideos",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetVideosByUserIdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetVideosByUserIdResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const VideoServiceGetFollowingVideosDesc: UnaryMethodDefinitionish = {
+  methodName: "GetFollowingVideos",
   service: VideoServiceDesc,
   requestStream: false,
   responseStream: false,

@@ -63,6 +63,12 @@ proto:
 		--go-grpc_out=backend/shared/gen/live --go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=backend/shared/gen/live --grpc-gateway_opt=paths=source_relative \
 		proto/live.proto
+	
+	protoc -Iproto \
+		--go_out=backend/shared/gen/playlist --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/playlist --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/playlist --grpc-gateway_opt=paths=source_relative \
+		proto/playlist.proto
 
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
