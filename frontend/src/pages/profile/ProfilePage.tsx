@@ -6,7 +6,7 @@ import { useAuth } from '../../utils/AuthProvider';
 import type { FollowRequest, UserRequest } from '../../api/gen/follow';
 import { followClient } from '../../api/grpc/followClient';
 import { avatarBytesToUrl } from '../../utils/avatarConverter';
-import type { GetVideosByUserIdRequest, GetVideosByUserIdResponse, Video } from '../../api/gen/video';
+import type { GetVideosByUserIdRequest, GetVideosResponse, Video } from '../../api/gen/video';
 import { videoClient } from '../../api/grpc/videoClient';
 import { VideoDetailModal } from '../modals/VideoDetailModal';
 import { FollowerListModal } from '../modals/FollowerListModal';
@@ -31,6 +31,7 @@ const ProfilePage: React.FC = () => {
     const [isFollowerModalOpen, setFollowerModalOpen] = useState(false);
     const [isFollowingModalOpen, setFollowingModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('videos');
+    const [totalLikes, setTotalLikes] = useState<number>(0);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -80,9 +81,10 @@ const ProfilePage: React.FC = () => {
 
                 const req: GetVideosByUserIdRequest = {
                     userId: Number(selectedUser?.id) || 0,
+                    currentUserId: Number(user?.id) || 0
                 }
                 
-                const res: GetVideosByUserIdResponse= await videoClient.GetVideosByUserId(req);
+                const res: GetVideosResponse= await videoClient.GetVideosByUserId(req);
                 if (res && res.videos) {
                     console.log("res.videos: ", res.videos);
                     setVideos(res.videos);
@@ -122,6 +124,33 @@ const ProfilePage: React.FC = () => {
             console.error('Error fetching follow counts:', err);
         }
     };
+
+    useEffect(() => {
+        if (!selectedUser) return;
+
+        const fetchLikeCounts = async () => {
+            const totalLikes = await getLikeCounts(Number(selectedUser.id));
+            console.log("Total likes for user: ", totalLikes);
+            setTotalLikes(totalLikes);
+        };
+
+        fetchLikeCounts();
+    }, [selectedUser]);
+
+    const getLikeCounts = async(userId: number) => {
+        try {
+            const req: GetVideosByUserIdRequest = { userId, currentUserId: Number(user?.id) || 0 };
+            const res: GetVideosResponse = await videoClient.GetVideosByUserId(req);
+            if (res && res.videos) {
+                const totalLikes = res.videos.reduce((acc, video) => acc + Number(video.likeCount), 0);
+                return totalLikes;
+            }
+            return 0;
+        } catch (err) {
+            console.error('Error fetching like counts:', err);
+            return 0;
+        }
+    }
 
     const handleFollow = async () => {
         if (!user) {
@@ -345,7 +374,7 @@ const ProfilePage: React.FC = () => {
                             fontWeight: 'bold', 
                             color: '#fff' 
                         }}>
-                            0
+                            {totalLikes}
                         </div>
                         <div style={{ 
                             fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 

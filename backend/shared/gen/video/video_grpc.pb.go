@@ -41,14 +41,14 @@ type VideoServiceClient interface {
 	GetVideo(ctx context.Context, in *GetVideoRequest, opts ...grpc.CallOption) (*GetVideoResponse, error)
 	UpdateVideo(ctx context.Context, in *UpdateVideoRequest, opts ...grpc.CallOption) (*UpdateVideoResponse, error)
 	DeleteVideo(ctx context.Context, in *DeleteVideoRequest, opts ...grpc.CallOption) (*DeleteVideoResponse, error)
-	GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error)
+	GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error)
-	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error)
+	GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	// caption generator
 	GetCaptions(ctx context.Context, in *GetCaptionsRequest, opts ...grpc.CallOption) (*GetCaptionsResponse, error)
 	// friends videos
-	GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error)
-	GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error)
+	GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
+	GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 }
 
 type videoServiceClient struct {
@@ -99,9 +99,9 @@ func (c *videoServiceClient) DeleteVideo(ctx context.Context, in *DeleteVideoReq
 	return out, nil
 }
 
-func (c *videoServiceClient) GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error) {
+func (c *videoServiceClient) GetVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetVideosByUserIdResponse)
+	out := new(GetVideosResponse)
 	err := c.cc.Invoke(ctx, VideoService_GetVideosByUserId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -119,9 +119,9 @@ func (c *videoServiceClient) UpdateMetrics(ctx context.Context, in *UpdateMetric
 	return out, nil
 }
 
-func (c *videoServiceClient) GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetRecommendedVideosResponse, error) {
+func (c *videoServiceClient) GetRecommendedVideos(ctx context.Context, in *GetRecommendedVideosRequest, opts ...grpc.CallOption) (*GetVideosResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetRecommendedVideosResponse)
+	out := new(GetVideosResponse)
 	err := c.cc.Invoke(ctx, VideoService_GetRecommendedVideos_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -139,9 +139,9 @@ func (c *videoServiceClient) GetCaptions(ctx context.Context, in *GetCaptionsReq
 	return out, nil
 }
 
-func (c *videoServiceClient) GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error) {
+func (c *videoServiceClient) GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetVideosByUserIdResponse)
+	out := new(GetVideosResponse)
 	err := c.cc.Invoke(ctx, VideoService_GetFriendVideos_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -149,9 +149,9 @@ func (c *videoServiceClient) GetFriendVideos(ctx context.Context, in *GetVideosB
 	return out, nil
 }
 
-func (c *videoServiceClient) GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosByUserIdResponse, error) {
+func (c *videoServiceClient) GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetVideosByUserIdResponse)
+	out := new(GetVideosResponse)
 	err := c.cc.Invoke(ctx, VideoService_GetFollowingVideos_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -169,14 +169,14 @@ type VideoServiceServer interface {
 	GetVideo(context.Context, *GetVideoRequest) (*GetVideoResponse, error)
 	UpdateVideo(context.Context, *UpdateVideoRequest) (*UpdateVideoResponse, error)
 	DeleteVideo(context.Context, *DeleteVideoRequest) (*DeleteVideoResponse, error)
-	GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error)
+	GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error)
-	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error)
+	GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetVideosResponse, error)
 	// caption generator
 	GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error)
 	// friends videos
-	GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error)
-	GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error)
+	GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
+	GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -199,22 +199,22 @@ func (UnimplementedVideoServiceServer) UpdateVideo(context.Context, *UpdateVideo
 func (UnimplementedVideoServiceServer) DeleteVideo(context.Context, *DeleteVideoRequest) (*DeleteVideoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteVideo not implemented")
 }
-func (UnimplementedVideoServiceServer) GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error) {
+func (UnimplementedVideoServiceServer) GetVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVideosByUserId not implemented")
 }
 func (UnimplementedVideoServiceServer) UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetrics not implemented")
 }
-func (UnimplementedVideoServiceServer) GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetRecommendedVideosResponse, error) {
+func (UnimplementedVideoServiceServer) GetRecommendedVideos(context.Context, *GetRecommendedVideosRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendedVideos not implemented")
 }
 func (UnimplementedVideoServiceServer) GetCaptions(context.Context, *GetCaptionsRequest) (*GetCaptionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCaptions not implemented")
 }
-func (UnimplementedVideoServiceServer) GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error) {
+func (UnimplementedVideoServiceServer) GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFriendVideos not implemented")
 }
-func (UnimplementedVideoServiceServer) GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosByUserIdResponse, error) {
+func (UnimplementedVideoServiceServer) GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFollowingVideos not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}

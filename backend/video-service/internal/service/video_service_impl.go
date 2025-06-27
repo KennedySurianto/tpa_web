@@ -188,17 +188,8 @@ func (s *VideoServiceImpl) DeleteVideo(id uint) error {
 	return s.videoRepo.DeleteVideo(id)
 }
 
-func (s *VideoServiceImpl) GetVideosByUserId(req *pb.GetVideosByUserIdRequest) ([]model.Video, int64, error) {
+func (s *VideoServiceImpl) GetVideosByUserId(req *pb.GetVideosByUserIdRequest) ([]model.Video, error) {
 	return s.videoRepo.GetVideosByUserId(uint(req.UserId))
-}
-
-func (s *VideoServiceImpl) UpdateMetrics(req *pb.UpdateMetricsRequest) (*model.Video, error) {
-	return s.videoRepo.UpdateMetrics(
-		uint(req.Id), 
-		uint32PtrToUintPtr(req.ViewsCount), 
-		uint32PtrToUintPtr(req.LikesCount), 
-		uint32PtrToUintPtr(req.CommentsCount),
-	)
 }
 
 // uint32PtrToUintPtr converts a *uint32 to a *uint.

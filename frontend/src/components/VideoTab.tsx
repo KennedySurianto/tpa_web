@@ -86,14 +86,43 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, setSelectedV
                             setModalOpen(true);
                         }}
                     >
-                        <video
-                            src={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
-                            poster={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            preload="metadata"
-                            muted
-                            playsInline
-                        />
+                        {video.thumbnail.length !== 0 ? (
+                            <img
+                                key={video.id}
+                                src={avatarBytesToUrl(video.thumbnail) || undefined}
+                                alt={`Thumbnail ${video.id}`}
+                                style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                marginRight: '8px',
+                                borderRadius: '8px',
+                                }}
+                            />
+                            ) : (
+                            <video
+                                key={video.id}
+                                style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                marginRight: '8px',
+                                borderRadius: '8px',
+                                }}
+                                muted
+                                loop
+                                playsInline
+                                preload="metadata"
+                                onLoadedMetadata={(e) => {
+                                // Set the first frame of the video as the poster (thumbnail)
+                                (e.target as HTMLVideoElement).currentTime = 0;
+                                }}
+                            >
+                                <source src={video.videoUrl} type="video/mp4" />
+                                {/* Fallback text in case video is not playable */}
+                                Your browser does not support the video tag.
+                            </video>
+                        )}
                         <div style={{
                             position: 'absolute',
                             bottom: '8px',

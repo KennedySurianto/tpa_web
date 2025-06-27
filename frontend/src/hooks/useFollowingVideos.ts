@@ -11,7 +11,10 @@ export function useFollowingVideos() {
     useEffect(() => {
         const fetchFriendVideos = async () => {
             try {
-                const req: GetVideosByUserIdRequest = { userId: Number(user?.id) || 0 };
+                const req: GetVideosByUserIdRequest = { 
+                    userId: Number(user?.id) || 0, 
+                    currentUserId: Number(user?.id) || 0 
+                };
                 const res = await videoClient.GetFollowingVideos(req);
                 setVideos(res.videos);
             } catch (err) {

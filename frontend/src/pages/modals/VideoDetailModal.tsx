@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Video } from '../../api/gen/video';
-import { avatarBytesToUrl } from '../../utils/avatarConverter';
 
 interface VideoDetailModalProps {
     video: Video | null;
@@ -57,16 +56,20 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
             overflow: 'hidden',
             borderRadius: '8px',
             marginBottom: '12px',
+            marginTop: '30px',
             backgroundColor: '#000'
             }}>
             <video
                 src={video.videoUrl}
-                poster={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
+                poster={video.videoUrl}
+                autoPlay
                 controls
+                muted={false}
                 style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                borderRadius: '8px'
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '8px',
+                    objectFit: 'contain' // ensures the video fits within the container
                 }}
             />
             </div>

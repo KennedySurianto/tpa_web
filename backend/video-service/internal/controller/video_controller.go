@@ -45,8 +45,8 @@ func NewVideoController(
 	}
 }
 
-func (s *VideoController) modelToProto(ctx context.Context, video *model.Video) *pb.Video {
-	likesCount, commentsCount, viewsCount, isLiked, user, err := s.fetchVideoAttributes(ctx, uint32(video.ID), uint32(video.UserID))
+func (s *VideoController) modelToProto(ctx context.Context, video *model.Video, currentUserId uint64) *pb.Video {
+	likesCount, commentsCount, viewsCount, isLiked, user, err := s.fetchVideoAttributes(ctx, uint32(video.ID), uint32(video.UserID), uint32(currentUserId))
 	if err != nil {
 		fmt.Printf("Error fetching video attributes for video %d: %v\n", video.ID, err)
 	}
@@ -100,7 +100,7 @@ func (s *VideoController) CreateVideo(ctx context.Context, req *pb.CreateVideoRe
 	}
 
 	return &pb.CreateVideoResponse{
-		Video: s.modelToProto(ctx, video),
+		Video: s.modelToProto(ctx, video, uint64(req.UserId)),
 	}, nil
 }
 
@@ -125,7 +125,7 @@ func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest)
 	}
 
 	return &pb.GetVideoResponse{
-		Video: s.modelToProto(ctx, video),
+		Video: s.modelToProto(ctx, video, 0),
 	}, nil
 }
 
@@ -157,7 +157,7 @@ func (s *VideoController) UpdateVideo(ctx context.Context, req *pb.UpdateVideoRe
 	}
 
 	return &pb.UpdateVideoResponse{
-		Video: s.modelToProto(ctx, video),
+		Video: s.modelToProto(ctx, video, 0),
 	}, nil
 }
 
@@ -169,53 +169,25 @@ func (s *VideoController) DeleteVideo(ctx context.Context, req *pb.DeleteVideoRe
 	return &pb.DeleteVideoResponse{Success: true}, nil
 }
 
-func (s *VideoController) GetVideosByUserId(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+func (s *VideoController) GetVideosByUserId(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
 	req = &pb.GetVideosByUserIdRequest{
 		UserId:  req.UserId,
 	}
 
-	videos, total, err := s.videoService.GetVideosByUserId(req)
+	videos, err := s.videoService.GetVideosByUserId(req)
 	if err != nil {
 		return nil, err
 	}
 
 	pbVideos := make([]*pb.Video, len(videos))
 	for i, video := range videos {
-		pbVideos[i] = s.modelToProto(ctx, &video)
+		pbVideos[i] = s.modelToProto(ctx, &video, uint64(req.CurrentUserId))
 	}
 
-	return &pb.GetVideosByUserIdResponse{
-		Videos: pbVideos,
-		Total:  int32(total),
-	}, nil
+	return &pb.GetVideosResponse{ Videos: pbVideos }, nil
 }
 
-func (s *VideoController) UpdateMetrics(ctx context.Context, req *pb.UpdateMetricsRequest) (*pb.UpdateMetricsResponse, error) {
-	updateReq := &pb.UpdateMetricsRequest{}
-
-	if req.ViewsCount != nil {
-		val := uint32(*req.ViewsCount)
-		updateReq.ViewsCount = &val
-	}
-	if req.LikesCount != nil {
-		val := uint32(*req.LikesCount)
-		updateReq.LikesCount = &val
-	}
-	if req.CommentsCount != nil {
-		val := uint32(*req.CommentsCount)
-		updateReq.CommentsCount = &val
-	}
-
-	video, err := s.videoService.UpdateMetrics(updateReq)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.UpdateMetricsResponse{
-		Video: s.modelToProto(ctx, video),
-	}, nil
-}
-func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.GetRecommendedVideosRequest) (*pb.GetRecommendedVideosResponse, error) {
+func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.GetRecommendedVideosRequest) (*pb.GetVideosResponse, error) {
     videos, err := vc.videoService.GetRecommendedVideos(
         req.GetUserId(),
         req.GetLastVideoId(),
@@ -227,20 +199,20 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
         return nil, err
     }
 
-    var response pb.GetRecommendedVideosResponse
+    var response pb.GetVideosResponse
     for _, v := range videos {
         // Skip if this is the currently logged-in user's own video
         if req.UserId != 0 && uint32(v.UserID) == req.UserId {
             continue
         }
 
-		response.Videos = append(response.Videos, vc.modelToProto(ctx, v))
+		response.Videos = append(response.Videos, vc.modelToProto(ctx, v, uint64(req.UserId)))
     }
 
     return &response, nil
 }
 
-func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
 	userId := req.UserId
 
 	followersResp, err := vc.followClient.GetFollowers(ctx, &followpb.UserRequest{UserId: userId})
@@ -269,19 +241,20 @@ func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideo
 
 	var allVideos []model.Video
 	for _, friendID := range friendIds {
-		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: friendID})
+		videos, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: friendID})
 		if err == nil {
 			allVideos = append(allVideos, videos...)
 		}
 	}
 
 	if len(allVideos) == 0 {
-		recommended, _ := vc.videoService.GetRecommendedVideos(userId, 0, 0, "", 10)
-		for _, v := range recommended {
-			if !friendIdMap[uint32(v.UserID)] {
-				allVideos = append(allVideos, *v)
-			}
-		}
+		return vc.GetRecommendedVideos(ctx, &pb.GetRecommendedVideosRequest{
+            UserId: req.CurrentUserId,
+            LastVideoId: 0,
+            DeviceId: 0,
+            Language: "",
+            Limit: 10,
+        })
 	}
 
 	sort.Slice(allVideos, func(i, j int) bool {
@@ -290,21 +263,13 @@ func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideo
 
 	var pbVideos []*pb.Video
 	for _, v := range allVideos {
-		user, err := vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(v.UserID)})
-		if err != nil {
-			fmt.Printf("Error fetching user %d: %v\n", v.UserID, err)
-			user = &userpb.User{Id: 0, Username: "Unknown"}
-		}
-
-		p := vc.modelToProto(ctx, &v)
-		p.User = &pb.User{Id: user.Id, Username: user.Username, Avatar: user.Avatar}
-		pbVideos = append(pbVideos, p)
+		pbVideos = append(pbVideos, vc.modelToProto(ctx, &v, uint64(req.CurrentUserId)))
 	}
 
-	return &pb.GetVideosByUserIdResponse{Videos: pbVideos, Total: int32(len(pbVideos))}, nil
+	return &pb.GetVideosResponse{Videos: pbVideos }, nil
 }
 
-func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosByUserIdResponse, error) {
+func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
 	userId := req.UserId
 
 	followingResp, err := vc.followClient.GetFollowing(ctx, &followpb.UserRequest{UserId: userId})
@@ -319,19 +284,20 @@ func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVi
 		followedId := uint64(f.FollowedId)
 		followingIDs[followedId] = true
 
-		videos, _, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: uint32(f.FollowedId)})
+		videos, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: uint32(f.FollowedId)})
 		if err == nil {
 			allVideos = append(allVideos, videos...)
 		}
 	}
 
 	if len(allVideos) == 0 {
-		randomVideos, _ := vc.videoService.GetRecommendedVideos(userId, 0, 0, "", 10)
-		for _, v := range randomVideos {
-			if !followingIDs[uint64(v.UserID)] {
-				allVideos = append(allVideos, *v)
-			}
-		}
+		return vc.GetRecommendedVideos(ctx, &pb.GetRecommendedVideosRequest{
+            UserId: req.CurrentUserId,
+            LastVideoId: 0,
+            DeviceId: 0,
+            Language: "",
+            Limit: 10,
+        })
 	}
 
 	sort.Slice(allVideos, func(i, j int) bool {
@@ -346,18 +312,19 @@ func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVi
 			user = &userpb.User{Id: 0, Username: "Unknown"}
 		}
 
-		p := vc.modelToProto(ctx, &v)
+		p := vc.modelToProto(ctx, &v, uint64(req.CurrentUserId))
 		p.User = &pb.User{Id: user.Id, Username: user.Username, Avatar: user.Avatar}
 		pbVideos = append(pbVideos, p)
 	}
 
-	return &pb.GetVideosByUserIdResponse{Videos: pbVideos, Total: int32(len(pbVideos))}, nil
+	return &pb.GetVideosResponse{Videos: pbVideos }, nil
 }
 
 func (vc *VideoController) fetchVideoAttributes(
     ctx context.Context, 
-    videoId uint32, 
-    userId uint32,
+    videoId uint32,
+	userId uint32,
+    currentUserId uint32,
 ) (uint64, uint64, uint64, bool, *userpb.User, error) {
     // Fetch Likes Count
     likeResp, err := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: videoId})
@@ -386,15 +353,17 @@ func (vc *VideoController) fetchVideoAttributes(
 
     // Fetch IsLiked status for the user if userId is provided
     isLiked := false
-    if userId != 0 {
+    if currentUserId != 0 {
         likeResp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{
-            UserId:  userId,
+            UserId:  currentUserId,
             VideoId: videoId,
         })
         if err != nil || likeResp == nil {
             isLiked = false
+			fmt.Println("Error fetching like status:", err)
         } else {
             isLiked = likeResp.Liked
+			fmt.Println("Like status for video", videoId, "by user", currentUserId, "is", isLiked)
         }
     }
 

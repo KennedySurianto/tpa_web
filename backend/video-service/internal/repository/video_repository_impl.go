@@ -41,31 +41,13 @@ func (r *VideoRepositoryImpl) DeleteVideo(id uint) error {
 	return r.db.Delete(&model.Video{}, id).Error
 }
 
-func (r *VideoRepositoryImpl) GetVideosByUserId(userID uint) ([]model.Video, int64, error) {
+func (r *VideoRepositoryImpl) GetVideosByUserId(userID uint) ([]model.Video, error) {
 	var videos []model.Video
-	var count int64
 
 	query := r.db.Model(&model.Video{}).Where("user_id = ?", userID)
 
-	err := query.Count(&count).Find(&videos).Error
-	return videos, count, err
-}
-
-func (r *VideoRepositoryImpl) UpdateMetrics(id uint, views, likes, comments *uint) (*model.Video, error) {
-	updates := map[string]interface{}{}
-	if views != nil {
-		updates["views_count"] = *views
-	}
-	if likes != nil {
-		updates["likes_count"] = *likes
-	}
-	if comments != nil {
-		updates["comments_count"] = *comments
-	}
-	if err := r.db.Model(&model.Video{}).Where("id = ?", id).Updates(updates).Error; err != nil {
-		return nil, err
-	}
-	return r.GetVideoByID(id)
+	err := query.Find(&videos).Error
+	return videos, err
 }
 
 func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error) {

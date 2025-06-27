@@ -30,6 +30,7 @@ export function useVideos(
 
             try {
                 const response = await videoClient.GetRecommendedVideos(request);
+                console.log(response.videos);
                 setVideos(prev => {
                     const existingIds = new Set(prev.map(v => v.id));
                     const uniqueNewVideos = response.videos.filter(v => !existingIds.has(v.id));

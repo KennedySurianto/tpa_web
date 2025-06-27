@@ -99,12 +99,8 @@ message DeleteVideoResponse {
 }
 
 message GetVideosByUserIdRequest {
-  uint32 user_id = 1;
-}
-
-message GetVideosByUserIdResponse {
-  repeated Video videos = 1;
-  int32 total = 2;
+  uint32 current_user_id = 1;
+  uint32 user_id = 2;
 }
 
 message UpdateMetricsRequest {
@@ -126,7 +122,7 @@ message GetRecommendedVideosRequest {
   string language = 5;             // Optional: user or device language
 }
 
-message GetRecommendedVideosResponse {
+message GetVideosResponse {
   repeated Video videos = 1;
 }
 
@@ -149,12 +145,12 @@ service VideoService {
   rpc GetVideo(GetVideoRequest) returns (GetVideoResponse);
   rpc UpdateVideo(UpdateVideoRequest) returns (UpdateVideoResponse);
   rpc DeleteVideo(DeleteVideoRequest) returns (DeleteVideoResponse);
-  rpc GetVideosByUserId(GetVideosByUserIdRequest) returns (GetVideosByUserIdResponse);
+  rpc GetVideosByUserId(GetVideosByUserIdRequest) returns (GetVideosResponse);
   rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
-  rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetRecommendedVideosResponse);
+  rpc GetRecommendedVideos(GetRecommendedVideosRequest) returns (GetVideosResponse);
   // caption generator
   rpc GetCaptions(GetCaptionsRequest) returns (GetCaptionsResponse);
   // friends videos
-  rpc GetFriendVideos(GetVideosByUserIdRequest) returns (GetVideosByUserIdResponse);
-  rpc GetFollowingVideos(GetVideosByUserIdRequest) returns (GetVideosByUserIdResponse);
+  rpc GetFriendVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
+  rpc GetFollowingVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
 }
