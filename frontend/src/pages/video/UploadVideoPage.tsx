@@ -17,7 +17,7 @@ const UploadVideoPage: React.FC = () => {
     const [allowComments, setAllowComments] = useState(true);
     const [allowDuet, setAllowDuet] = useState(true);
     const [allowStitch, setAllowStitch] = useState(true);
-    const [videoURL, setVideoURL] = useState("");
+    const [videoURL, setVideoURL] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -34,8 +34,8 @@ const UploadVideoPage: React.FC = () => {
 
             const videoArrayBuffer = await file.arrayBuffer();
             const thumbnailArrayBuffer = thumbnailFile
-            ? await thumbnailFile.arrayBuffer()
-            : null;
+                ? await thumbnailFile.arrayBuffer()
+                : null;
 
             const request: CreateVideoRequest = {
                 userId: Number(user?.id),
@@ -82,7 +82,9 @@ const UploadVideoPage: React.FC = () => {
                 height: '100vh',
                 overflowY: 'auto',
                 padding: '2rem 1rem',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                backgroundColor: '#121212', // Dark background
+                color: '#e0e0e0' // Light text color for dark theme
             }}
         >
             <div className="container container-md">
@@ -93,7 +95,7 @@ const UploadVideoPage: React.FC = () => {
                         </h2>
                         
                         {/* Video Upload Section */}
-                        <div className="mb-4 p-3" style={{ border: '1px solid black' }}>
+                        <div className="mb-4 p-3" style={{ border: '1px solid #444', backgroundColor: '#333' }}>
                             <label className="d-block mb-2" style={{ fontWeight: 'bold' }}>
                                 Select Video File
                             </label>
@@ -103,13 +105,14 @@ const UploadVideoPage: React.FC = () => {
                                 onChange={(e) => {
                                     const selected = e.target.files?.[0] || null;
                                     setFile(selected);
-                                    setVideoURL("");
+                                    setVideoURL("");  // Clear URL when selecting a new file
                                 }}
                                 style={{
                                     width: '100%',
                                     padding: '0.5rem',
-                                    border: '1px solid black',
-                                    backgroundColor: 'white'
+                                    border: '1px solid #444',
+                                    backgroundColor: '#333',
+                                    color: '#e0e0e0'
                                 }}
                             />
                         </div>
@@ -125,7 +128,7 @@ const UploadVideoPage: React.FC = () => {
                                     className="w-100"
                                     style={{ 
                                         maxHeight: '300px',
-                                        border: '1px solid black',
+                                        border: '1px solid #444',
                                         backgroundColor: 'black'
                                     }}
                                     onLoadedMetadata={(e) => {
@@ -150,8 +153,9 @@ const UploadVideoPage: React.FC = () => {
                                     className="w-100"
                                     style={{
                                         padding: '0.75rem',
-                                        border: '1px solid black',
-                                        backgroundColor: 'white',
+                                        border: '1px solid #444',
+                                        backgroundColor: '#333',
+                                        color: '#e0e0e0',
                                         fontSize: '1rem'
                                     }}
                                 />
@@ -167,8 +171,9 @@ const UploadVideoPage: React.FC = () => {
                                     className="w-100"
                                     style={{
                                         padding: '0.75rem',
-                                        border: '1px solid black',
-                                        backgroundColor: 'white',
+                                        border: '1px solid #444',
+                                        backgroundColor: '#333',
+                                        color: '#e0e0e0',
                                         fontSize: '1rem'
                                     }}
                                 >
@@ -191,8 +196,9 @@ const UploadVideoPage: React.FC = () => {
                                 className="w-100"
                                 style={{
                                     padding: '0.75rem',
-                                    border: '1px solid black',
-                                    backgroundColor: 'white',
+                                    border: '1px solid #444',
+                                    backgroundColor: '#333',
+                                    color: '#e0e0e0',
                                     fontSize: '1rem',
                                     resize: 'vertical'
                                 }}
@@ -214,8 +220,9 @@ const UploadVideoPage: React.FC = () => {
                                 className="w-100"
                                 style={{
                                     padding: '0.75rem',
-                                    border: '1px solid black',
-                                    backgroundColor: 'white',
+                                    border: '1px solid #444',
+                                    backgroundColor: '#333',
+                                    color: '#e0e0e0',
                                     fontSize: '1rem'
                                 }}
                             />
@@ -227,14 +234,14 @@ const UploadVideoPage: React.FC = () => {
                                         marginTop: '0.75rem',
                                         maxHeight: '200px',
                                         width: 'auto',
-                                        border: '1px solid #000'
+                                        border: '1px solid #444'
                                     }}
                                 />
                             )}
                         </div>
 
                         {/* Permissions */}
-                        <div className="mb-4 p-3" style={{ border: '1px solid black', backgroundColor: '#f9f9f9' }}>
+                        <div className="mb-4 p-3" style={{ border: '1px solid #444', backgroundColor: '#222' }}>
                             <h4 className="mb-3" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
                                 Video Permissions
                             </h4>
@@ -293,7 +300,7 @@ const UploadVideoPage: React.FC = () => {
 
                         {/* Upload Result */}
                         {videoURL && (
-                            <div className="p-3 mb-4" style={{ border: '1px solid black', backgroundColor: '#f9f9f9' }}>
+                            <div className="p-3 mb-4" style={{ border: '1px solid #444', backgroundColor: '#222' }}>
                                 <h4 className="mb-3" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
                                     Upload Successful
                                 </h4>
@@ -302,14 +309,14 @@ const UploadVideoPage: React.FC = () => {
                                     controls 
                                     className="w-100 mb-3"
                                     style={{ 
-                                        border: '1px solid black',
+                                        border: '1px solid #444',
                                         backgroundColor: 'black'
                                     }}
                                 />
                                 <p className="text-center" style={{ 
                                     wordBreak: 'break-all',
                                     fontSize: '0.9rem',
-                                    color: '#666'
+                                    color: '#888'
                                 }}>
                                     {videoURL}
                                 </p>

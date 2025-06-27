@@ -444,7 +444,8 @@ const ProfilePage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
+
+
                         {!isOwnProfile ? (
                             <div style={{
                                 display: 'flex',
@@ -455,8 +456,8 @@ const ProfilePage: React.FC = () => {
                             }}>
                                 <button
                                     style={{
-                                        background: isFollowing 
-                                            ? 'rgba(255, 255, 255, 0.1)' 
+                                        background: isFollowing
+                                            ? 'rgba(255, 255, 255, 0.1)'
                                             : 'linear-gradient(45deg, #ff0050, #ff6b35)',
                                         color: 'white',
                                         border: isFollowing ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
@@ -484,28 +485,55 @@ const ProfilePage: React.FC = () => {
                                 >
                                     {followLoading ? 'Loading...' : (isFollowing ? 'Unfollow' : 'Follow')}
                                 </button>
-                                <button style={{
-                                    background: 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                                    padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
-                                    borderRadius: '8px',
-                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    minWidth: '100px',
-                                    flex: '1',
-                                    maxWidth: '150px'
-                                }}
-                                onMouseOver={(e) => {
-                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
-                                }}
-                                onMouseOut={(e) => {
-                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
-                                }}
-                                onClick={() => navigate(`/${username}/message`)}
+                                <button
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                        borderRadius: '8px',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        minWidth: '100px',
+                                        flex: '1',
+                                        maxWidth: '150px'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                    }}
+                                    onClick={() => navigate(`/${username}/message`)}
                                 >
                                     Message
+                                </button>
+
+                                {/* Playlists Button */}
+                                <button
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                        borderRadius: '8px',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        minWidth: '100px',
+                                        flex: '1',
+                                        maxWidth: '150px'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                    }}
+                                    onClick={() => navigate(`/${user?.username}/playlist`)} // Navigating to user's playlists
+                                >
+                                    Playlists
                                 </button>
                             </div>
                         ) : (
@@ -516,28 +544,55 @@ const ProfilePage: React.FC = () => {
                                 marginBottom: '2rem',
                                 flexWrap: 'wrap'
                             }}>
-                                <button style={{
-                                    background: 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                                    padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
-                                    borderRadius: '8px',
-                                    fontSize: 'clamp(0.9rem, 3vw, 1rem)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    minWidth: '100px',
-                                    flex: '1',
-                                    maxWidth: '150px'
-                                }}
-                                onMouseOver={(e) => {
-                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
-                                }}
-                                onMouseOut={(e) => {
-                                    (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
-                                }}
-                                onClick={handleEditProfile}
+                                <button
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                        borderRadius: '8px',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        minWidth: '100px',
+                                        flex: '1',
+                                        maxWidth: '150px'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                    }}
+                                    onClick={handleEditProfile}
                                 >
                                     Edit Profile
+                                </button>
+
+                                {/* Playlists Button */}
+                                <button
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
+                                        borderRadius: '8px',
+                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        minWidth: '100px',
+                                        flex: '1',
+                                        maxWidth: '150px'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                                    }}
+                                    onClick={() => navigate("/playlist")} // Navigating to PlaylistPage
+                                >
+                                    Edit Playlists
                                 </button>
                             </div>
                         )}

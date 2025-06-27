@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Video } from '../../api/gen/video';
+import { avatarBytesToUrl } from '../../utils/avatarConverter';
 
 interface VideoDetailModalProps {
     video: Video | null;
@@ -60,7 +61,7 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
             }}>
             <video
                 src={video.videoUrl}
-                poster={video.thumbnailUrl}
+                poster={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
                 controls
                 style={{
                 maxWidth: '100%',
