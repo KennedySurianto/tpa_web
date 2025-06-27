@@ -17,10 +17,11 @@ export function useVideos(
             console.log("fetchVideos is called");
 
             // If no user id, pass empty string for anonymous
-            const userId = user?.id ? String(user.id) : "";
+            const userId: number = Number(user.id) || 0;
+            console.log("[useVideos.ts] userId: ", userId);
 
             const request: GetRecommendedVideosRequest = {
-                userId: Number(userId),
+                userId: userId,
                 limit,
                 lastVideoId: Number(lastVideoId),
                 deviceId: 0,

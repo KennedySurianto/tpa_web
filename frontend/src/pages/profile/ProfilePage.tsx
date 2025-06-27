@@ -11,6 +11,8 @@ import { videoClient } from '../../api/grpc/videoClient';
 import { VideoDetailModal } from '../modals/VideoDetailModal';
 import { FollowerListModal } from '../modals/FollowerListModal';
 import { FollowingListModal } from '../modals/FollowingListModal';
+import VideoTab from '../../components/VideoTab';
+import PlaylistTab from '../../components/PlaylistTab';
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -28,6 +30,11 @@ const ProfilePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [isFollowerModalOpen, setFollowerModalOpen] = useState(false);
     const [isFollowingModalOpen, setFollowingModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('videos');
+
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab);
+    }
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -233,7 +240,7 @@ const ProfilePage: React.FC = () => {
         return `Joined ${joinDate.toLocaleDateString('en-US', options)}`;
     };
 
-    const isOwnProfile = user && selectedUser && user.id === selectedUser.id;
+    const isOwnProfile: boolean = !!(user && selectedUser && user.id === selectedUser.id);
 
     return (
         <div style={{ 
@@ -509,32 +516,6 @@ const ProfilePage: React.FC = () => {
                                 >
                                     Message
                                 </button>
-
-                                {/* Playlists Button */}
-                                <button
-                                    style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        color: 'white',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
-                                        borderRadius: '8px',
-                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        minWidth: '100px',
-                                        flex: '1',
-                                        maxWidth: '150px'
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
-                                    }}
-                                    onClick={() => navigate(`/${user?.username}/playlist`)} // Navigating to user's playlists
-                                >
-                                    Playlists
-                                </button>
                             </div>
                         ) : (
                             <div style={{
@@ -597,85 +578,64 @@ const ProfilePage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Videos Grid Section */}
-                        {videos.length === 0 ? (
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '12px',
-                            padding: 'clamp(1.5rem, 5vw, 2rem)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
-                            }}>
-                            <div style={{ 
-                                fontSize: 'clamp(1.5rem, 5vw, 2rem)', 
-                                marginBottom: '1rem' 
-                            }}>
-                                📹
-                            </div>
-                            <p style={{ 
-                                color: '#ccc', 
-                                margin: 0,
-                                fontSize: 'clamp(0.9rem, 3vw, 1rem)'
-                            }}>
-                                {isOwnProfile ? "You haven't posted any videos yet" : "No videos yet"}
-                            </p>
-                            </div>
-                        </div>
-                        ) : (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                            gap: '12px',
-                            paddingBottom: '2rem'
-                        }}>
-                            {videos.map(video => (
-                            <div 
-                                key={video.id} 
-                                style={{ 
-                                position: 'relative', 
-                                borderRadius: '12px', 
-                                overflow: 'hidden', 
-                                background: '#000',
-                                cursor: 'pointer'
-                                }}
-                                onClick={() => {
-                                    setSelectedVideo(video);
-                                    setModalOpen(true);
-                                }}
+                        <div className="tabs">
+                            <button 
+                                onClick={() => handleTabChange('videos')} 
+                                className={activeTab === 'videos' ? 'active' : ''}
                             >
-                                <video
-                                src={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
-                                poster={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                preload="metadata"
-                                muted
-                                playsInline
-                                />
-                                <div style={{
-                                position: 'absolute',
-                                bottom: '8px',
-                                left: '8px',
-                                right: '8px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                color: '#fff',
-                                fontSize: '0.75rem',
-                                textShadow: '0 0 4px rgba(0,0,0,0.7)'
-                                }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span>👁</span>
-                                    <span>{video.viewsCount}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span>❤️</span>
-                                    <span>{video.likeCount}</span>
-                                </div>
-                                </div>
-                            </div>
-                            ))}
+                                Videos
+                            </button>
+                            <button 
+                                onClick={() => handleTabChange('likedVideos')} 
+                                className={activeTab === 'likedVideos' ? 'active' : ''}
+                            >
+                                Liked Videos
+                            </button>
+                            <button 
+                                onClick={() => handleTabChange('playlists')} 
+                                className={activeTab === 'playlists' ? 'active' : ''}
+                            >
+                                Playlists
+                            </button>
+                            <button 
+                                onClick={() => handleTabChange('favouriteVideos')} 
+                                className={activeTab === 'favouriteVideos' ? 'active' : ''}
+                            >
+                                Favorite Videos
+                            </button>
                         </div>
-                        )}
 
+                        <div className="tab-content">
+                            {activeTab === 'videos' && 
+                                <VideoTab 
+                                    videos={videos} 
+                                    isOwnProfile={isOwnProfile}
+                                    isVideoTab={true}
+                                    setSelectedVideo={setSelectedVideo} 
+                                    setModalOpen={setModalOpen} 
+                                />}
+                            {activeTab === 'likedVideos' && 
+                                <VideoTab 
+                                    videos={videos} 
+                                    isOwnProfile={isOwnProfile}
+                                    isVideoTab={false}
+                                    setSelectedVideo={setSelectedVideo} 
+                                    setModalOpen={setModalOpen} 
+                                />}
+                            {activeTab === 'playlists' && 
+                                <PlaylistTab 
+                                    userId={selectedUser.id}
+                                    isOwnProfile={isOwnProfile}
+                                />}
+                            {activeTab === 'favouriteVideos' && 
+                                <VideoTab 
+                                    videos={videos} 
+                                    isOwnProfile={isOwnProfile} 
+                                    isVideoTab={false}
+                                    setSelectedVideo={setSelectedVideo} 
+                                    setModalOpen={setModalOpen} 
+                                />}
+                        </div>
                     </>
                 )}
             </div>
@@ -699,6 +659,46 @@ const ProfilePage: React.FC = () => {
                 isOpen={isFollowingModalOpen}
                 onClose={() => setFollowingModalOpen(false)}
             />
+
+            <style>
+            {`
+                .tabs {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    margin-bottom: 1rem;
+                }
+
+                .tabs button {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                    padding: 12px 24px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: background 0.2s ease, transform 0.2s ease;
+                    min-width: 100px;
+                    text-align: center;
+                }
+
+                .tabs button:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: scale(1.05);
+                }
+
+                .tabs button.active {
+                    background: linear-gradient(45deg, #ff0050, #ff6b35);
+                    color: white;
+                    border: none;
+                }
+
+                .tabs button:focus {
+                    outline: none;
+                }
+            `}
+            </style>
         </div>
     );
 };

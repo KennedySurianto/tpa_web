@@ -86,6 +86,10 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 		}
 	}
 
+	if userID != 0 {
+		query = query.Where("user_id != ?", userID) // exclude the user's own videos
+	}
+
 	if err := query.Find(&videos).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch recommended videos: %w", err)
 	}

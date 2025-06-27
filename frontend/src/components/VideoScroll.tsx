@@ -875,7 +875,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                                                 gap: '0.3rem',
                                             }}
                                         >
-                                            💬 Comment
+                                            💬 
+                                            <span style={{ fontWeight: '500' }}>
+                                                {video.commentsCount}
+                                            </span>
                                         </button>
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

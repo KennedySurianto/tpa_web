@@ -79,7 +79,8 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
             </p>
             <div style={{ marginTop: '0.75rem', display: 'flex', gap: '1.5rem' }}>
                 <span>👁 {video.viewsCount}</span>
-                <span>❤️ {video.likeCount}</span>
+                <span>🗨️ {video.commentsCount}</span>
+                <span><span>{video.isLiked ? '❤️' : '🤍'}</span> {video.likeCount}</span>
             </div>
             </div>
         </div>

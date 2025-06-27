@@ -53,7 +53,7 @@ func main() {
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
 	videoService := service.NewVideoService(videoRepo, minioClient, likeClient, watchClient, commentClient)
-	videoController := controller.NewVideoController(videoService, userClient, likeClient, followClient)
+	videoController := controller.NewVideoController(videoService, userClient, likeClient, followClient, watchClient, commentClient)
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
