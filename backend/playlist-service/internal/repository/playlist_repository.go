@@ -7,4 +7,5 @@ type PlaylistRepository interface {
 	GetByID(id uint) (*model.Playlist, error)
 	Delete(id uint) error
 	GetByUserId(userId uint) ([]*model.Playlist, error)
+	Update(playlistId uint64, playlist *model.Playlist) (*model.Playlist, error)
 }

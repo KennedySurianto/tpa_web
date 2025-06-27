@@ -589,8 +589,8 @@ const ProfilePage: React.FC = () => {
                                 }}
                             >
                                 <video
-                                src={video.thumbnailUrl || video.videoUrl}
-                                poster={video.thumbnailUrl}
+                                src={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
+                                poster={avatarBytesToUrl(video.thumbnail) || video.videoUrl}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 preload="metadata"
                                 muted

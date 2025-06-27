@@ -2,17 +2,16 @@ package repository
 
 import (
 	"fmt"
-
 	"github.com/KennedySurianto/tpa_web/backend/playlist-service/internal/model"
 	"gorm.io/gorm"
 )
 
 type playlistRepositoryImpl struct {
-  	db *gorm.DB
+	db *gorm.DB
 }
 
 func NewPlaylistRepository(db *gorm.DB) PlaylistRepository {
-	return &playlistRepositoryImpl{db}
+	return &playlistRepositoryImpl{db: db}
 }
 
 func (r *playlistRepositoryImpl) Create(p *model.Playlist) error {
@@ -60,4 +59,33 @@ func (r *playlistRepositoryImpl) GetByUserId(userId uint) ([]*model.Playlist, er
 
 	// Return the list of pointers
 	return result, nil
+}
+
+func (r *playlistRepositoryImpl) Update(playlistId uint64, playlist *model.Playlist) (*model.Playlist, error) {
+	var existingPlaylist model.Playlist
+	err := r.db.First(&existingPlaylist, playlistId).Error
+	if err != nil {
+		return nil, err // Error if playlist doesn't exist
+	}
+
+	// Debug: Log the existing playlist and the update fields
+	fmt.Printf("Debug: Updating playlist with ID %d\n", playlistId)
+	fmt.Printf("Debug: Existing Playlist Name: %s, New Playlist Name: %s\n", existingPlaylist.Name, playlist.Name)
+
+	// Update the playlist's name, video IDs, and video order
+	existingPlaylist.Name = playlist.Name
+	existingPlaylist.VideoIDs = playlist.VideoIDs
+
+	// Save the updated playlist
+	err = r.db.Save(&existingPlaylist).Error
+	if err != nil {
+		// Debug: Error saving the updated playlist
+		fmt.Printf("Debug: Error saving the updated playlist: %v\n", err)
+		return nil, err
+	}
+
+	// Debug: Successfully updated playlist
+	fmt.Printf("Debug: Successfully updated playlist with ID %d\n", playlistId)
+
+	return &existingPlaylist, nil
 }

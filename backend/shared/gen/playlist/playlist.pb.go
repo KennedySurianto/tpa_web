@@ -444,9 +444,9 @@ type Playlist struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	UserId        uint64                 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Videos        []*Video               `protobuf:"bytes,4,rep,name=videos,proto3" json:"videos,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -662,6 +662,111 @@ func (x *DeletePlaylistResponse) GetSuccess() bool {
 	return false
 }
 
+type UpdatePlaylistRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                    // The playlist ID to update
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                 // The new name of the playlist
+	VideoIds      []uint64               `protobuf:"varint,3,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"` // The updated video IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlaylistRequest) Reset() {
+	*x = UpdatePlaylistRequest{}
+	mi := &file_playlist_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlaylistRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlaylistRequest) ProtoMessage() {}
+
+func (x *UpdatePlaylistRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_playlist_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlaylistRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePlaylistRequest) Descriptor() ([]byte, []int) {
+	return file_playlist_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpdatePlaylistRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdatePlaylistRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdatePlaylistRequest) GetVideoIds() []uint64 {
+	if x != nil {
+		return x.VideoIds
+	}
+	return nil
+}
+
+// Added UpdatePlaylistResponse message to return updated playlist details
+type UpdatePlaylistResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlaylistId    uint64                 `protobuf:"varint,1,opt,name=playlist_id,json=playlistId,proto3" json:"playlist_id,omitempty"` // The ID of the updated playlist
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlaylistResponse) Reset() {
+	*x = UpdatePlaylistResponse{}
+	mi := &file_playlist_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlaylistResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlaylistResponse) ProtoMessage() {}
+
+func (x *UpdatePlaylistResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_playlist_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlaylistResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePlaylistResponse) Descriptor() ([]byte, []int) {
+	return file_playlist_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdatePlaylistResponse) GetPlaylistId() uint64 {
+	if x != nil {
+		return x.PlaylistId
+	}
+	return 0
+}
+
 var File_playlist_proto protoreflect.FileDescriptor
 
 const file_playlist_proto_rawDesc = "" +
@@ -718,22 +823,30 @@ const file_playlist_proto_rawDesc = "" +
 	"\auser_id\x18\x03 \x01(\x04R\x06userId\x12'\n" +
 	"\x06videos\x18\x04 \x03(\v2\x0f.playlist.VideoR\x06videos\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x129\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x129\n" +
 	"\n" +
-	"deleted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\"O\n" +
+	"deleted_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\"O\n" +
 	"\x1bGetPlaylistByUserIdResponse\x120\n" +
 	"\tplaylists\x18\x01 \x03(\v2\x12.playlist.PlaylistR\tplaylists\"'\n" +
 	"\x15DeletePlaylistRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\"2\n" +
 	"\x16DeletePlaylistResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xd9\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"X\n" +
+	"\x15UpdatePlaylistRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tvideo_ids\x18\x03 \x03(\x04R\bvideoIds\"9\n" +
+	"\x16UpdatePlaylistResponse\x12\x1f\n" +
+	"\vplaylist_id\x18\x01 \x01(\x04R\n" +
+	"playlistId2\xae\x03\n" +
 	"\x0fPlaylistService\x12S\n" +
 	"\x0eCreatePlaylist\x12\x1f.playlist.CreatePlaylistRequest\x1a .playlist.CreatePlaylistResponse\x12?\n" +
 	"\vGetPlaylist\x12\x1c.playlist.GetPlaylistRequest\x1a\x12.playlist.Playlist\x12[\n" +
 	"\x14GetPlaylistsByUserId\x12\x1c.playlist.GetPlaylistRequest\x1a%.playlist.GetPlaylistByUserIdResponse\x12S\n" +
-	"\x0eDeletePlaylist\x12\x1f.playlist.DeletePlaylistRequest\x1a .playlist.DeletePlaylistResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/playlist;playlistb\x06proto3"
+	"\x0eDeletePlaylist\x12\x1f.playlist.DeletePlaylistRequest\x1a .playlist.DeletePlaylistResponse\x12S\n" +
+	"\x0eUpdatePlaylist\x12\x1f.playlist.UpdatePlaylistRequest\x1a .playlist.UpdatePlaylistResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/playlist;playlistb\x06proto3"
 
 var (
 	file_playlist_proto_rawDescOnce sync.Once
@@ -747,7 +860,7 @@ func file_playlist_proto_rawDescGZIP() []byte {
 	return file_playlist_proto_rawDescData
 }
 
-var file_playlist_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_playlist_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_playlist_proto_goTypes = []any{
 	(*CreatePlaylistRequest)(nil),       // 0: playlist.CreatePlaylistRequest
 	(*CreatePlaylistResponse)(nil),      // 1: playlist.CreatePlaylistResponse
@@ -758,28 +871,32 @@ var file_playlist_proto_goTypes = []any{
 	(*GetPlaylistByUserIdResponse)(nil), // 6: playlist.GetPlaylistByUserIdResponse
 	(*DeletePlaylistRequest)(nil),       // 7: playlist.DeletePlaylistRequest
 	(*DeletePlaylistResponse)(nil),      // 8: playlist.DeletePlaylistResponse
-	(*timestamppb.Timestamp)(nil),       // 9: google.protobuf.Timestamp
+	(*UpdatePlaylistRequest)(nil),       // 9: playlist.UpdatePlaylistRequest
+	(*UpdatePlaylistResponse)(nil),      // 10: playlist.UpdatePlaylistResponse
+	(*timestamppb.Timestamp)(nil),       // 11: google.protobuf.Timestamp
 }
 var file_playlist_proto_depIdxs = []int32{
-	9,  // 0: playlist.Video.created_at:type_name -> google.protobuf.Timestamp
-	9,  // 1: playlist.Video.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 2: playlist.Video.deleted_at:type_name -> google.protobuf.Timestamp
+	11, // 0: playlist.Video.created_at:type_name -> google.protobuf.Timestamp
+	11, // 1: playlist.Video.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 2: playlist.Video.deleted_at:type_name -> google.protobuf.Timestamp
 	3,  // 3: playlist.Video.user:type_name -> playlist.User
 	4,  // 4: playlist.Playlist.videos:type_name -> playlist.Video
-	9,  // 5: playlist.Playlist.created_at:type_name -> google.protobuf.Timestamp
-	9,  // 6: playlist.Playlist.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 7: playlist.Playlist.deleted_at:type_name -> google.protobuf.Timestamp
+	11, // 5: playlist.Playlist.created_at:type_name -> google.protobuf.Timestamp
+	11, // 6: playlist.Playlist.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 7: playlist.Playlist.deleted_at:type_name -> google.protobuf.Timestamp
 	5,  // 8: playlist.GetPlaylistByUserIdResponse.playlists:type_name -> playlist.Playlist
 	0,  // 9: playlist.PlaylistService.CreatePlaylist:input_type -> playlist.CreatePlaylistRequest
 	2,  // 10: playlist.PlaylistService.GetPlaylist:input_type -> playlist.GetPlaylistRequest
 	2,  // 11: playlist.PlaylistService.GetPlaylistsByUserId:input_type -> playlist.GetPlaylistRequest
 	7,  // 12: playlist.PlaylistService.DeletePlaylist:input_type -> playlist.DeletePlaylistRequest
-	1,  // 13: playlist.PlaylistService.CreatePlaylist:output_type -> playlist.CreatePlaylistResponse
-	5,  // 14: playlist.PlaylistService.GetPlaylist:output_type -> playlist.Playlist
-	6,  // 15: playlist.PlaylistService.GetPlaylistsByUserId:output_type -> playlist.GetPlaylistByUserIdResponse
-	8,  // 16: playlist.PlaylistService.DeletePlaylist:output_type -> playlist.DeletePlaylistResponse
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
+	9,  // 13: playlist.PlaylistService.UpdatePlaylist:input_type -> playlist.UpdatePlaylistRequest
+	1,  // 14: playlist.PlaylistService.CreatePlaylist:output_type -> playlist.CreatePlaylistResponse
+	5,  // 15: playlist.PlaylistService.GetPlaylist:output_type -> playlist.Playlist
+	6,  // 16: playlist.PlaylistService.GetPlaylistsByUserId:output_type -> playlist.GetPlaylistByUserIdResponse
+	8,  // 17: playlist.PlaylistService.DeletePlaylist:output_type -> playlist.DeletePlaylistResponse
+	10, // 18: playlist.PlaylistService.UpdatePlaylist:output_type -> playlist.UpdatePlaylistResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -797,7 +914,7 @@ func file_playlist_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_playlist_proto_rawDesc), len(file_playlist_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

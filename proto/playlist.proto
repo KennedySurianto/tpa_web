@@ -11,6 +11,7 @@ service PlaylistService {
 	rpc GetPlaylist (GetPlaylistRequest) returns (Playlist);
 	rpc GetPlaylistsByUserId (GetPlaylistRequest) returns (GetPlaylistByUserIdResponse);
 	rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse);
+	rpc UpdatePlaylist (UpdatePlaylistRequest) returns (UpdatePlaylistResponse);
 }
 
 message CreatePlaylistRequest {
@@ -72,9 +73,9 @@ message Playlist {
     string name = 2;
     uint64 user_id = 3;
     repeated Video videos = 4;
-    google.protobuf.Timestamp created_at = 5;
-    google.protobuf.Timestamp updated_at = 6;
-    google.protobuf.Timestamp deleted_at = 7;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp updated_at = 7;
+    google.protobuf.Timestamp deleted_at = 8;
 }
 
 message GetPlaylistByUserIdResponse {
@@ -87,4 +88,15 @@ message DeletePlaylistRequest {
 
 message DeletePlaylistResponse {
 	bool success = 1;
+}
+
+message UpdatePlaylistRequest {
+    uint64 id = 1; // The playlist ID to update
+    string name = 2; // The new name of the playlist
+    repeated uint64 video_ids = 3; // The updated video IDs
+}
+
+// Added UpdatePlaylistResponse message to return updated playlist details
+message UpdatePlaylistResponse {
+    uint64 playlist_id = 1; // The ID of the updated playlist
 }

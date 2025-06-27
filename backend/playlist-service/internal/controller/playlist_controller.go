@@ -204,3 +204,21 @@ func (c *PlaylistController) GetPlaylistsByUserId(ctx context.Context, req *pb.G
 
 	return &pb.GetPlaylistByUserIdResponse{Playlists: result}, nil
 }
+
+func (c *PlaylistController) UpdatePlaylist(ctx context.Context, req *pb.UpdatePlaylistRequest) (*pb.UpdatePlaylistResponse, error) {
+	// Debugging: Print the incoming request for update
+	fmt.Printf("Debug: Received request to update playlist with ID %d\n", req.Id)
+
+	// Call the service to update the playlist
+	playlistID, err := c.svc.UpdatePlaylist(req)
+	if err != nil {
+		// Debugging: Error updating playlist
+		fmt.Printf("Debug: Error updating playlist with ID %d: %v\n", req.Id, err)
+		return nil, err
+	}
+
+	// Return the response with updated playlist ID
+	return &pb.UpdatePlaylistResponse{
+		PlaylistId: playlistID,
+	}, nil
+}

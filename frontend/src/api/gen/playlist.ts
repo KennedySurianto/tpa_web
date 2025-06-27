@@ -84,6 +84,21 @@ export interface DeletePlaylistResponse {
   success: boolean;
 }
 
+export interface UpdatePlaylistRequest {
+  /** The playlist ID to update */
+  id: string;
+  /** The new name of the playlist */
+  name: string;
+  /** The updated video IDs */
+  videoIds: string[];
+}
+
+/** Added UpdatePlaylistResponse message to return updated playlist details */
+export interface UpdatePlaylistResponse {
+  /** The ID of the updated playlist */
+  playlistId: string;
+}
+
 function createBaseCreatePlaylistRequest(): CreatePlaylistRequest {
   return { name: "", userId: "0", videoIds: [] };
 }
@@ -825,13 +840,13 @@ export const Playlist: MessageFns<Playlist> = {
       Video.encode(v!, writer.uint32(34).fork()).join();
     }
     if (message.createdAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(42).fork()).join();
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(50).fork()).join();
     }
     if (message.updatedAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(50).fork()).join();
+      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(58).fork()).join();
     }
     if (message.deletedAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.deletedAt), writer.uint32(58).fork()).join();
+      Timestamp.encode(toTimestamp(message.deletedAt), writer.uint32(66).fork()).join();
     }
     return writer;
   },
@@ -875,24 +890,24 @@ export const Playlist: MessageFns<Playlist> = {
           message.videos.push(Video.decode(reader, reader.uint32()));
           continue;
         }
-        case 5: {
-          if (tag !== 42) {
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
           message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
-        case 6: {
-          if (tag !== 50) {
+        case 7: {
+          if (tag !== 58) {
             break;
           }
 
           message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
-        case 7: {
-          if (tag !== 58) {
+        case 8: {
+          if (tag !== 66) {
             break;
           }
 
@@ -1140,6 +1155,168 @@ export const DeletePlaylistResponse: MessageFns<DeletePlaylistResponse> = {
   },
 };
 
+function createBaseUpdatePlaylistRequest(): UpdatePlaylistRequest {
+  return { id: "0", name: "", videoIds: [] };
+}
+
+export const UpdatePlaylistRequest: MessageFns<UpdatePlaylistRequest> = {
+  encode(message: UpdatePlaylistRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "0") {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    writer.uint32(26).fork();
+    for (const v of message.videoIds) {
+      writer.uint64(v);
+    }
+    writer.join();
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdatePlaylistRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdatePlaylistRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag === 24) {
+            message.videoIds.push(reader.uint64().toString());
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.videoIds.push(reader.uint64().toString());
+            }
+
+            continue;
+          }
+
+          break;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdatePlaylistRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      videoIds: globalThis.Array.isArray(object?.videoIds) ? object.videoIds.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: UpdatePlaylistRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "0") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.videoIds?.length) {
+      obj.videoIds = message.videoIds;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdatePlaylistRequest>, I>>(base?: I): UpdatePlaylistRequest {
+    return UpdatePlaylistRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistRequest>, I>>(object: I): UpdatePlaylistRequest {
+    const message = createBaseUpdatePlaylistRequest();
+    message.id = object.id ?? "0";
+    message.name = object.name ?? "";
+    message.videoIds = object.videoIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseUpdatePlaylistResponse(): UpdatePlaylistResponse {
+  return { playlistId: "0" };
+}
+
+export const UpdatePlaylistResponse: MessageFns<UpdatePlaylistResponse> = {
+  encode(message: UpdatePlaylistResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.playlistId !== "0") {
+      writer.uint32(8).uint64(message.playlistId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdatePlaylistResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdatePlaylistResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.playlistId = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdatePlaylistResponse {
+    return { playlistId: isSet(object.playlistId) ? globalThis.String(object.playlistId) : "0" };
+  },
+
+  toJSON(message: UpdatePlaylistResponse): unknown {
+    const obj: any = {};
+    if (message.playlistId !== "0") {
+      obj.playlistId = message.playlistId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(base?: I): UpdatePlaylistResponse {
+    return UpdatePlaylistResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(object: I): UpdatePlaylistResponse {
+    const message = createBaseUpdatePlaylistResponse();
+    message.playlistId = object.playlistId ?? "0";
+    return message;
+  },
+};
+
 export interface PlaylistService {
   CreatePlaylist(
     request: DeepPartial<CreatePlaylistRequest>,
@@ -1154,6 +1331,10 @@ export interface PlaylistService {
     request: DeepPartial<DeletePlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<DeletePlaylistResponse>;
+  UpdatePlaylist(
+    request: DeepPartial<UpdatePlaylistRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UpdatePlaylistResponse>;
 }
 
 export class PlaylistServiceClientImpl implements PlaylistService {
@@ -1165,6 +1346,7 @@ export class PlaylistServiceClientImpl implements PlaylistService {
     this.GetPlaylist = this.GetPlaylist.bind(this);
     this.GetPlaylistsByUserId = this.GetPlaylistsByUserId.bind(this);
     this.DeletePlaylist = this.DeletePlaylist.bind(this);
+    this.UpdatePlaylist = this.UpdatePlaylist.bind(this);
   }
 
   CreatePlaylist(
@@ -1190,6 +1372,13 @@ export class PlaylistServiceClientImpl implements PlaylistService {
     metadata?: grpc.Metadata,
   ): Promise<DeletePlaylistResponse> {
     return this.rpc.unary(PlaylistServiceDeletePlaylistDesc, DeletePlaylistRequest.fromPartial(request), metadata);
+  }
+
+  UpdatePlaylist(
+    request: DeepPartial<UpdatePlaylistRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UpdatePlaylistResponse> {
+    return this.rpc.unary(PlaylistServiceUpdatePlaylistDesc, UpdatePlaylistRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1277,6 +1466,29 @@ export const PlaylistServiceDeletePlaylistDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = DeletePlaylistResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const PlaylistServiceUpdatePlaylistDesc: UnaryMethodDefinitionish = {
+  methodName: "UpdatePlaylist",
+  service: PlaylistServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return UpdatePlaylistRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = UpdatePlaylistResponse.decode(data);
       return {
         ...value,
         toObject() {
