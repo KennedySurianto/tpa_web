@@ -1,6 +1,5 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 import { useAuth } from "../../utils/AuthProvider"
 import type { CreatePlaylistRequest, CreatePlaylistResponse, GetPlaylistByUserIdResponse, Playlist, UpdatePlaylistRequest, UpdatePlaylistResponse, Video } from "../../api/gen/playlist"
 import { playlistClient } from "../../api/grpc/playlistClient"
@@ -20,6 +19,7 @@ const PlaylistPage: React.FC = () => {
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
     const navigate = useNavigate()
 
@@ -48,23 +48,6 @@ const PlaylistPage: React.FC = () => {
 
         fetchData();
     }, [user]);
-
-    // Fixed drag end handler that works for both create and edit modes
-    const onDragEnd = (result: any) => {
-        const { destination, source } = result
-        if (!destination) return
-
-        // Determine which list we're working with
-        const isEditMode = selectedPlaylist !== null
-        const currentSelected = isEditMode ? editSelected : createSelected
-        const setCurrentSelected = isEditMode ? setEditSelected : setCreateSelected
-
-        const items = Array.from(currentSelected)
-        const [reorderedItem] = items.splice(source.index, 1)
-        items.splice(destination.index, 0, reorderedItem)
-
-        setCurrentSelected(items)
-    }
 
     const openEdit = (p: Playlist) => {
         setSelectedPlaylist(p)
@@ -198,38 +181,42 @@ const PlaylistPage: React.FC = () => {
             <div className="selected-videos">
                 <h4>Selected Videos (Drag to reorder)</h4>
                 {selectedVideos.length > 0 ? (
-                <DragDropContext onDragEnd={onDragEnd}>
-                    <Droppable droppableId={isEditMode ? "edit-droppable" : "create-droppable"}>
-                    {(provided) => (
-                        <div className="draggable-list" {...provided.droppableProps} ref={provided.innerRef}>
-                        {selectedVideos.map((video, index) => (
-                            <Draggable key={video.id} draggableId={video.id.toString()} index={index}>
-                            {(provided, snapshot) => (
+                        <div className="draggable-list">
+                            {selectedVideos.map((video, index) => (
                                 <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`draggable-item ${snapshot.isDragging ? "dragging" : ""}`}
+                                key={video.id}
+                                className="draggable-item"
+                                draggable
+                                onDragStart={() => setDraggedIndex(index)}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={() => {
+                                    if (draggedIndex === null || draggedIndex === index) return;
+
+                                    const reordered = [...selectedVideos];
+                                    const [dragged] = reordered.splice(draggedIndex, 1);
+                                    reordered.splice(index, 0, dragged);
+
+                                    const setList = isEditMode ? setEditSelected : setCreateSelected;
+                                    setList(reordered);
+                                    setDraggedIndex(null);
+                                }}
                                 >
                                 <span className="drag-handle">⋮⋮</span>
                                 <span>
                                     {index + 1}. {video.caption}
                                 </span>
-                                <button onClick={() => toggleVideoSelection(video, isEditMode)} className="remove-btn">
+                                <button
+                                    onClick={() => toggleVideoSelection(video, isEditMode)}
+                                    className="remove-btn"
+                                >
                                     ×
                                 </button>
                                 </div>
-                            )}
-                            </Draggable>
-                        ))}
-                        {provided.placeholder}
+                            ))}
                         </div>
+                    ) : (
+                        <p className="empty-message">No videos selected</p>
                     )}
-                    </Droppable>
-                </DragDropContext>
-                ) : (
-                <p className="empty-message">No videos selected</p>
-                )}
             </div>
             </div>
 
