@@ -16,7 +16,7 @@ export function useFriendVideos() {
                     currentUserId: Number(user?.id) || 0 
                 };
                 const res = await videoClient.GetFriendVideos(req);
-                setVideos(res.videos);
+                setVideos(res.videos || []);
             } catch (err) {
                 console.error("Failed to fetch friend videos:", err);
                 setVideos([]);

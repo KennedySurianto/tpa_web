@@ -16,12 +16,12 @@ export function useVideos(
             setLoading(true);
             console.log("fetchVideos is called");
 
-            // If no user id, pass 0 for anonymous
-            const userId: number = user && user.id ? Number(user.id) : 0;
-            console.log("[useVideos.ts] userId: ", userId);
+            // Allow unauthenticated users — use 0
+            const userId: number = Number(user?.id) || 0;
+            console.log("[useVideos.ts] userId:", userId);
 
             const request: GetRecommendedVideosRequest = {
-                userId: userId,
+                userId,
                 limit,
                 lastVideoId: Number(lastVideoId),
                 deviceId: 0,
@@ -30,12 +30,8 @@ export function useVideos(
 
             try {
                 const response = await videoClient.GetRecommendedVideos(request);
-                console.log(response.videos);
-                setVideos(prev => {
-                    const existingIds = new Set(prev.map(v => v.id));
-                    const uniqueNewVideos = response.videos.filter(v => !existingIds.has(v.id));
-                    return [...prev, ...uniqueNewVideos];
-                });
+                console.log("Fetched recommended videos:", response.videos);
+                setVideos(response.videos || []);
             } catch (err) {
                 console.error("Failed to fetch recommended videos", err);
                 setVideos([]);
@@ -45,7 +41,7 @@ export function useVideos(
         };
 
         fetchVideos();
-    }, [user]);
+    }, [user?.id]);
 
     return { videos, setVideos, loading };
 }

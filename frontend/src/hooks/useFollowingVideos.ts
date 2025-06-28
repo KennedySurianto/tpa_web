@@ -16,7 +16,7 @@ export function useFollowingVideos() {
                     currentUserId: Number(user?.id) || 0 
                 };
                 const res = await videoClient.GetFollowingVideos(req);
-                setVideos(res.videos);
+                setVideos(res.videos || []);
             } catch (err) {
                 console.error("Failed to fetch following videos:", err);
                 setVideos([]);
