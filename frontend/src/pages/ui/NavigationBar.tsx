@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../utils/AuthProvider";
+import debounce from "lodash.debounce";
 
 const NavigationBar: React.FC = () => {
     const { user, isAuthenticated, logout } = useAuth();
@@ -11,6 +12,23 @@ const NavigationBar: React.FC = () => {
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    const navigate = useNavigate();
+
+    // debounce navigation
+    const debouncedSearch = React.useRef(
+        debounce((q: string) => {
+            if (q.trim()) {
+                navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+            }
+        }, 500)
+    ).current;
+
+    useEffect(() => {
+        if (search.trim()) {
+            debouncedSearch(search);
+        }
+    }, [search]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -48,10 +66,6 @@ const NavigationBar: React.FC = () => {
     const baseNavItems = isAuthenticated 
         ? [...publicNavItems, ...authenticatedNavItems]
         : [...publicNavItems, ...guestNavItems];
-
-    const filteredNavItems = baseNavItems.filter((item) =>
-        item.label.toLowerCase().includes(search.toLowerCase())
-    );
 
     const handleThemeChange = (newTheme: "auto" | "dark" | "light") => {
         setTheme(newTheme);
@@ -180,7 +194,7 @@ const NavigationBar: React.FC = () => {
                                 {/* Scrollable Navigation Links */}
                                 <div className="flex-grow-1 px-3" style={{ overflowY: "auto" }}>
                                     <nav className="d-flex flex-column">
-                                        {filteredNavItems.map(({ path, label }) => {
+                                        {baseNavItems.map(({ path, label }) => {
                                             const isActive = location.pathname === path;
                                             const isProtected = authenticatedNavItems.some(item => item.path === path);
                                             const isDisabled = !isAuthenticated && isProtected;
@@ -304,12 +318,6 @@ const NavigationBar: React.FC = () => {
                                             </div>
                                         )}
                                     </nav>
-
-                                    {filteredNavItems.length === 0 && (
-                                        <div style={{ color: "#888", padding: "1rem", textAlign: "center" }}>
-                                            No results found
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -377,7 +385,7 @@ const NavigationBar: React.FC = () => {
                     {/* Scrollable Navigation Links */}
                     <div className="flex-grow-1 px-3" style={{ overflowY: "auto" }}>
                         <nav className="d-flex flex-column">
-                            {filteredNavItems.map(({ path, label }) => {
+                            {baseNavItems.map(({ path, label }) => {
                                 const isActive = location.pathname === path;
                                 const isProtected = authenticatedNavItems.some(item => item.path === path);
                                 const isDisabled = !isAuthenticated && isProtected;
@@ -501,12 +509,6 @@ const NavigationBar: React.FC = () => {
                                 </div>
                             )}
                         </nav>
-
-                        {filteredNavItems.length === 0 && (
-                            <div style={{ color: "#888", padding: "1rem", textAlign: "center" }}>
-                                No results found
-                            </div>
-                        )}
                     </div>
                 </div>
             )}

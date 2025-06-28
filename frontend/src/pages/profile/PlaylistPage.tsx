@@ -19,6 +19,7 @@ const PlaylistPage: React.FC = () => {
     const [editSelected, setEditSelected] = useState<Video[]>([])
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     const navigate = useNavigate()
 
@@ -32,6 +33,7 @@ const PlaylistPage: React.FC = () => {
                 console.log("fetched playlists: ", res.playlists);
             } catch (error) {
                 console.error("Failed to fetch playlists:", error);
+                setErrorMessage("Failed to fetch playlists. Please try again later.");
             }
 
             try {
@@ -40,6 +42,7 @@ const PlaylistPage: React.FC = () => {
                 console.log("fetched videos: ", userVideosRes.videos);
             } catch (error) {
                 console.error("Failed to fetch videos:", error);
+                setErrorMessage("Failed to fetch videos. Please try again later.");
             }
         };
 
@@ -89,6 +92,7 @@ const PlaylistPage: React.FC = () => {
             }
         } catch (error) {
             console.error("Failed to update playlist:", error);
+            setErrorMessage("Failed to update playlist. Please try again later.");
         }
     };
 
@@ -120,6 +124,7 @@ const PlaylistPage: React.FC = () => {
             }
         } catch (error) {
             console.error("Failed to create playlist:", error);
+            setErrorMessage("Failed to create playlist. Please try again later.");
         }
     };
 
@@ -135,6 +140,7 @@ const PlaylistPage: React.FC = () => {
             console.log("Playlist deleted:", playlistToDelete);
         } catch (error) {
             console.error("Failed to delete playlist:", error);
+            setErrorMessage("Failed to delete playlist. Please try again later.");
         }
     };
 
@@ -145,9 +151,9 @@ const PlaylistPage: React.FC = () => {
         const isSelected = currentSelected.some((v) => v.id === video.id)
 
         if (isSelected) {
-        setCurrentSelected((prev) => prev.filter((v) => v.id !== video.id))
+            setCurrentSelected((prev) => prev.filter((v) => v.id !== video.id))
         } else {
-        setCurrentSelected((prev) => [...prev, video])
+            setCurrentSelected((prev) => [...prev, video])
         }
     }
 
@@ -251,6 +257,14 @@ const PlaylistPage: React.FC = () => {
                 </button>
 
                 <h2>My Playlists</h2>
+
+                {errorMessage && (
+                    <div className="error-banner">
+                        <span>{errorMessage}</span>
+                        <button onClick={() => setErrorMessage(null)}>×</button>
+                    </div>
+                )}
+
                 <button className="create-btn" onClick={() => setIsCreateModalOpen(true)}>
                     Create Playlist
                 </button>
@@ -526,6 +540,26 @@ const PlaylistPage: React.FC = () => {
                             width: 95%;
                             padding: 16px;
                         }
+                    }
+
+                    .error-banner {
+                        background-color: #ff4d4f;
+                        color: white;
+                        padding: 12px 16px;
+                        border-radius: 6px;
+                        margin-bottom: 16px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-weight: bold;
+                    }
+                    
+                    .error-banner button {
+                        background: transparent;
+                        border: none;
+                        color: white;
+                        font-size: 20px;
+                        cursor: pointer;
                     }
                     `}
                 </style>

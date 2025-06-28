@@ -15,7 +15,7 @@ type VideoRepositoryImpl struct {
 	db *gorm.DB
 }
 
-func NewVideoRepository(db *gorm.DB) *VideoRepositoryImpl {
+func NewVideoRepository(db *gorm.DB) VideoRepository {
 	return &VideoRepositoryImpl{db: db}
 }
 
@@ -112,4 +112,15 @@ func (r *VideoRepositoryImpl) SaveCaptionTx(tx *gorm.DB, caption *model.Caption)
 		"created_at": time.Now(),
 		"updated_at": time.Now(),
 	}).Error
+}
+
+func (r *VideoRepositoryImpl) GetAllVideos() ([]model.Video, error) {
+	var videos []model.Video
+	err := r.db.
+		Model(&model.Video{}).
+		Where("privacy = ?", "public").
+		Where("deleted_at IS NULL").
+		Order("created_at DESC").
+		Find(&videos).Error
+	return videos, err
 }

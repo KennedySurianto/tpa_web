@@ -18,4 +18,5 @@ type VideoRepository interface {
 	BeginTx() *gorm.DB
 	CreateVideoTx(tx *gorm.DB, video *model.Video) error
 	SaveCaptionTx(tx *gorm.DB, caption *model.Caption) error
+	GetAllVideos() ([]model.Video, error)
 }

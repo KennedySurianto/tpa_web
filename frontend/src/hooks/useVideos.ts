@@ -13,11 +13,11 @@ export function useVideos(
 
     useEffect(() => {
         const fetchVideos = async () => {
-            if (!user) return;
+            setLoading(true);
             console.log("fetchVideos is called");
 
-            // If no user id, pass empty string for anonymous
-            const userId: number = Number(user.id) || 0;
+            // If no user id, pass 0 for anonymous
+            const userId: number = user && user.id ? Number(user.id) : 0;
             console.log("[useVideos.ts] userId: ", userId);
 
             const request: GetRecommendedVideosRequest = {
@@ -44,7 +44,6 @@ export function useVideos(
             }
         };
 
-        setLoading(true);
         fetchVideos();
     }, [user]);
 

@@ -2152,6 +2152,7 @@ export interface VideoService {
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse>;
+  GetAllVideos(request: DeepPartial<GetVideosByUserIdRequest>, metadata?: grpc.Metadata): Promise<GetVideosResponse>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -2169,6 +2170,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.GetCaptions = this.GetCaptions.bind(this);
     this.GetFriendVideos = this.GetFriendVideos.bind(this);
     this.GetFollowingVideos = this.GetFollowingVideos.bind(this);
+    this.GetAllVideos = this.GetAllVideos.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -2225,6 +2227,10 @@ export class VideoServiceClientImpl implements VideoService {
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse> {
     return this.rpc.unary(VideoServiceGetFollowingVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
+  }
+
+  GetAllVideos(request: DeepPartial<GetVideosByUserIdRequest>, metadata?: grpc.Metadata): Promise<GetVideosResponse> {
+    return this.rpc.unary(VideoServiceGetAllVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2439,6 +2445,29 @@ export const VideoServiceGetFriendVideosDesc: UnaryMethodDefinitionish = {
 
 export const VideoServiceGetFollowingVideosDesc: UnaryMethodDefinitionish = {
   methodName: "GetFollowingVideos",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetVideosByUserIdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetVideosResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const VideoServiceGetAllVideosDesc: UnaryMethodDefinitionish = {
+  methodName: "GetAllVideos",
   service: VideoServiceDesc,
   requestStream: false,
   responseStream: false,

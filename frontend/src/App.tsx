@@ -17,13 +17,13 @@ import LiveViewerPage from './pages/video/LiveViewerPage'
 import FriendPage from './pages/video/FriendPage'
 import FollowingPage from './pages/video/FollowingPage'
 import PlaylistPage from './pages/profile/PlaylistPage'
+import SearchPage from './pages/search/SearchPage'
 
 const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-            
           {/* Public routes */}
           <Route element={<PublicRoute />}>
             <Route path="/" element={<OnBoardingPage />} />
@@ -37,6 +37,7 @@ const App = () => {
           <Route element={<Layout />} >
             <Route path="/home" element={<VideoFeed />} />
             <Route path="/:username" element={<ProfilePage />} />
+            <Route path="/search" element={<SearchPage />} />
             
             {/* Private routes */}
             <Route element={<PrivateRoute />}>

@@ -379,3 +379,18 @@ func (vc *VideoController) fetchVideoAttributes(
 	return likeResp.Count, commentsCount, viewsCount, isLiked, user, nil
 }
 
+func (vc *VideoController) GetAllVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
+	videos, err := vc.videoService.GetAllVideos()
+	if err != nil {
+		return nil, err
+	}
+
+	pbVideos := make([]*pb.Video, len(videos))
+	for i, v := range videos {
+		pbVideos[i] = vc.modelToProto(ctx, &v, uint64(req.CurrentUserId))
+	}
+
+	return &pb.GetVideosResponse{
+		Videos: pbVideos,
+	}, nil
+}

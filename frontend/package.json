@@ -10,23 +10,32 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@improbable-eng/grpc-web": "^0.15.0",
+    "@mui/material": "^7.1.2",
+    "@mui/styled-engine": "^7.1.1",
     "@protobuf-ts/grpcweb-transport": "^2.10.0",
     "google-protobuf": "^3.21.4",
     "grpc-web": "^1.5.0",
+    "jaro-winkler": "^0.2.8",
     "lodash": "^4.17.21",
+    "lodash.debounce": "^4.0.8",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "talisman": "^1.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/jaro-winkler": "^0.2.4",
     "@types/lodash": "^4.17.18",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.15.32",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

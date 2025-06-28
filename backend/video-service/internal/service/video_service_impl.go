@@ -38,8 +38,8 @@ func NewVideoService(
 	minio *storage.MinIOClient, 
 	likeClient likepb.LikeServiceClient, 
 	watchClient watchpb.WatchServiceClient,
-	commentClient commentpb.CommentServiceClient) *VideoServiceImpl {
-	return &VideoServiceImpl{
+	commentClient commentpb.CommentServiceClient) VideoService {
+	return &VideoServiceImpl {
 		videoRepo: 	videoRepo,
 		minio: 		minio,
 		likeClient: likeClient,
@@ -292,4 +292,8 @@ func (s *VideoServiceImpl) GetRecommendedVideos(userID, lastVideoID, deviceID ui
 
 func (s *VideoServiceImpl) GetCaptionsByVideoID(videoID uint) ([]model.Caption, error) {
     return s.videoRepo.GetCaptionsByVideoID(videoID)
+}
+
+func (s *VideoServiceImpl) GetAllVideos() ([]model.Video, error) {
+	return s.videoRepo.GetAllVideos()
 }
