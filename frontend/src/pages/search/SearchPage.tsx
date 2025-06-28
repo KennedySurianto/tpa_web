@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Tabs, Tab } from "@mui/material";
-import debounce from "lodash.debounce";
-import jaroWinkler from "jaro-winkler";
 import { useLocation } from "react-router-dom";
 import type { User, UserListResponse } from "../../api/gen/user";
 import { userClient } from "../../api/grpc/userClient";
@@ -10,6 +8,8 @@ import { videoClient } from "../../api/grpc/videoClient";
 import { UserCard } from "../../components/UserCard";
 import { VideoCard } from "../../components/VideoCard";
 import { VideoDetailModal } from "../modals/VideoDetailModal";
+import jaroDistance from "../../utils/jaroDistance";
+import debounce from "../../utils/debounce";
 
 const SearchPage: React.FC = () => {
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -70,10 +70,10 @@ const SearchPage: React.FC = () => {
       debounce((query: string, currentPage: number, users: User[], videos: Video[]) => {
         setLoading(true);
         const matchedUsers = users.filter(
-          (u) => jaroWinkler(u.username?.toLowerCase() ?? "", query.toLowerCase()) > 0.7
+          (u) => jaroDistance(u.username?.toLowerCase() ?? "", query.toLowerCase()) > 0.7
         );
         const matchedVideos = videos.filter(
-          (v) => jaroWinkler(v.caption.toLowerCase(), query.toLowerCase()) > 0.7
+          (v) => jaroDistance(v.caption.toLowerCase(), query.toLowerCase()) > 0.7
         );
 
         setFilteredUsers(matchedUsers.slice(0, currentPage * 5));
