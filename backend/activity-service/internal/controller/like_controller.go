@@ -6,6 +6,8 @@ import (
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type LikeController struct {
@@ -40,4 +42,20 @@ func (s *LikeController) GetVideoLikeCount(ctx context.Context, req *pb.GetVideo
 		return nil, err
 	}
 	return &pb.GetVideoLikeCountResponse{Count: uint64(count)}, nil
+}
+
+func (c *LikeController) GetLikesByUserId(ctx context.Context, req *pb.GetLikesByUserIdRequest) (*pb.GetLikesByUserIdResponse, error) {
+	likes, err := c.service.GetLikesByUserId(uint(req.GetUserId()))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get likes: %v", err)
+	}
+
+	var resLikes []uint64
+	for _, l := range likes {
+		resLikes = append(resLikes, uint64(l.VideoID))
+	}
+
+	return &pb.GetLikesByUserIdResponse{
+		VideoIds: resLikes,
+	}, nil
 }

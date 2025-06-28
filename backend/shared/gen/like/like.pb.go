@@ -381,6 +381,94 @@ func (x *GetVideoLikeCountResponse) GetCount() uint64 {
 	return 0
 }
 
+type GetLikesByUserIdRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLikesByUserIdRequest) Reset() {
+	*x = GetLikesByUserIdRequest{}
+	mi := &file_like_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLikesByUserIdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLikesByUserIdRequest) ProtoMessage() {}
+
+func (x *GetLikesByUserIdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_like_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLikesByUserIdRequest.ProtoReflect.Descriptor instead.
+func (*GetLikesByUserIdRequest) Descriptor() ([]byte, []int) {
+	return file_like_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetLikesByUserIdRequest) GetUserId() uint32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type GetLikesByUserIdResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoIds      []uint64               `protobuf:"varint,1,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLikesByUserIdResponse) Reset() {
+	*x = GetLikesByUserIdResponse{}
+	mi := &file_like_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLikesByUserIdResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLikesByUserIdResponse) ProtoMessage() {}
+
+func (x *GetLikesByUserIdResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_like_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLikesByUserIdResponse.ProtoReflect.Descriptor instead.
+func (*GetLikesByUserIdResponse) Descriptor() ([]byte, []int) {
+	return file_like_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetLikesByUserIdResponse) GetVideoIds() []uint64 {
+	if x != nil {
+		return x.VideoIds
+	}
+	return nil
+}
+
 var File_like_proto protoreflect.FileDescriptor
 
 const file_like_proto_rawDesc = "" +
@@ -403,12 +491,17 @@ const file_like_proto_rawDesc = "" +
 	"\x18GetVideoLikeCountRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\rR\avideoId\"1\n" +
 	"\x19GetVideoLikeCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x04R\x05count2\x9f\x02\n" +
+	"\x05count\x18\x01 \x01(\x04R\x05count\"2\n" +
+	"\x17GetLikesByUserIdRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\"7\n" +
+	"\x18GetLikesByUserIdResponse\x12\x1b\n" +
+	"\tvideo_ids\x18\x01 \x03(\x04R\bvideoIds2\xfa\x02\n" +
 	"\vLikeService\x125\n" +
 	"\x04Like\x12\x15.activity.LikeRequest\x1a\x16.activity.LikeResponse\x12;\n" +
 	"\x06Unlike\x12\x17.activity.UnlikeRequest\x1a\x18.activity.UnlikeResponse\x12>\n" +
 	"\aIsLiked\x12\x18.activity.IsLikedRequest\x1a\x19.activity.IsLikedResponse\x12\\\n" +
-	"\x11GetVideoLikeCount\x12\".activity.GetVideoLikeCountRequest\x1a#.activity.GetVideoLikeCountResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/like;likeb\x06proto3"
+	"\x11GetVideoLikeCount\x12\".activity.GetVideoLikeCountRequest\x1a#.activity.GetVideoLikeCountResponse\x12Y\n" +
+	"\x10GetLikesByUserId\x12!.activity.GetLikesByUserIdRequest\x1a\".activity.GetLikesByUserIdResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/like;likeb\x06proto3"
 
 var (
 	file_like_proto_rawDescOnce sync.Once
@@ -422,7 +515,7 @@ func file_like_proto_rawDescGZIP() []byte {
 	return file_like_proto_rawDescData
 }
 
-var file_like_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_like_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_like_proto_goTypes = []any{
 	(*LikeRequest)(nil),               // 0: activity.LikeRequest
 	(*LikeResponse)(nil),              // 1: activity.LikeResponse
@@ -432,18 +525,22 @@ var file_like_proto_goTypes = []any{
 	(*IsLikedResponse)(nil),           // 5: activity.IsLikedResponse
 	(*GetVideoLikeCountRequest)(nil),  // 6: activity.GetVideoLikeCountRequest
 	(*GetVideoLikeCountResponse)(nil), // 7: activity.GetVideoLikeCountResponse
+	(*GetLikesByUserIdRequest)(nil),   // 8: activity.GetLikesByUserIdRequest
+	(*GetLikesByUserIdResponse)(nil),  // 9: activity.GetLikesByUserIdResponse
 }
 var file_like_proto_depIdxs = []int32{
 	0, // 0: activity.LikeService.Like:input_type -> activity.LikeRequest
 	2, // 1: activity.LikeService.Unlike:input_type -> activity.UnlikeRequest
 	4, // 2: activity.LikeService.IsLiked:input_type -> activity.IsLikedRequest
 	6, // 3: activity.LikeService.GetVideoLikeCount:input_type -> activity.GetVideoLikeCountRequest
-	1, // 4: activity.LikeService.Like:output_type -> activity.LikeResponse
-	3, // 5: activity.LikeService.Unlike:output_type -> activity.UnlikeResponse
-	5, // 6: activity.LikeService.IsLiked:output_type -> activity.IsLikedResponse
-	7, // 7: activity.LikeService.GetVideoLikeCount:output_type -> activity.GetVideoLikeCountResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	8, // 4: activity.LikeService.GetLikesByUserId:input_type -> activity.GetLikesByUserIdRequest
+	1, // 5: activity.LikeService.Like:output_type -> activity.LikeResponse
+	3, // 6: activity.LikeService.Unlike:output_type -> activity.UnlikeResponse
+	5, // 7: activity.LikeService.IsLiked:output_type -> activity.IsLikedResponse
+	7, // 8: activity.LikeService.GetVideoLikeCount:output_type -> activity.GetVideoLikeCountResponse
+	9, // 9: activity.LikeService.GetLikesByUserId:output_type -> activity.GetLikesByUserIdResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -460,7 +557,7 @@ func file_like_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_like_proto_rawDesc), len(file_like_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

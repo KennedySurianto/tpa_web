@@ -28,3 +28,7 @@ func (s *LikeServiceImpl) IsLiked(userID, videoID uint) (bool, error) {
 func (s *LikeServiceImpl) GetLikeCount(videoID uint) (int64, error) {
 	return s.repo.GetLikeCount(videoID)
 }
+
+func (s *LikeServiceImpl) GetLikesByUserId(userID uint) ([]model.Like, error) {
+	return s.repo.GetLikesByUserId(userID)
+}

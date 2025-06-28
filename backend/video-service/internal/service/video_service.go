@@ -14,4 +14,5 @@ type VideoService interface {
 	GetRecommendedVideos(userID, lastVideoID, deviceID uint32, language string, limit int32) ([]*model.Video, error)
 	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
 	GetAllVideos() ([]model.Video, error)
+	GetLikedVideosByUserId(userId uint32) ([]*model.Video, error)
 }

@@ -124,3 +124,11 @@ func (r *VideoRepositoryImpl) GetAllVideos() ([]model.Video, error) {
 		Find(&videos).Error
 	return videos, err
 }
+
+func (r *VideoRepositoryImpl) GetVideosByIDs(ids []uint) ([]*model.Video, error) {
+	var videos []*model.Video
+	if err := r.db.Where("id IN ?", ids).Find(&videos).Error; err != nil {
+		return nil, err
+	}
+	return videos, nil
+}

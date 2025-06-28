@@ -39,3 +39,9 @@ func (r *LikeRepositoryImpl) GetLikeCount(videoID uint) (int64, error) {
 		Count(&count).Error
 	return count, err
 }
+
+func (r *LikeRepositoryImpl) GetLikesByUserId(userID uint) ([]model.Like, error) {
+	var likes []model.Like
+	err := r.db.Where("user_id = ?", userID).Find(&likes).Error
+	return likes, err
+}

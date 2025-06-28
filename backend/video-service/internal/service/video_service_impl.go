@@ -297,3 +297,29 @@ func (s *VideoServiceImpl) GetCaptionsByVideoID(videoID uint) ([]model.Caption, 
 func (s *VideoServiceImpl) GetAllVideos() ([]model.Video, error) {
 	return s.videoRepo.GetAllVideos()
 }
+
+func (s *VideoServiceImpl) GetLikedVideosByUserId(userId uint32) ([]*model.Video, error) {
+	// Call like service to get liked video IDs
+	likesResp, err := s.likeClient.GetLikesByUserId(context.Background(), &likepb.GetLikesByUserIdRequest{
+		UserId: userId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get liked video IDs: %w", err)
+	}
+
+	if len(likesResp.VideoIds) == 0 {
+		return []*model.Video{}, nil
+	}
+
+	var videoIds []uint
+	for _, v := range likesResp.VideoIds {
+		videoIds = append(videoIds, uint(v))
+	}
+
+	videos, err := s.videoRepo.GetVideosByIDs(videoIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get videos by IDs: %w", err)
+	}
+
+	return videos, nil
+}

@@ -44,6 +44,14 @@ export interface GetVideoLikeCountResponse {
   count: string;
 }
 
+export interface GetLikesByUserIdRequest {
+  userId: number;
+}
+
+export interface GetLikesByUserIdResponse {
+  videoIds: string[];
+}
+
 function createBaseLikeRequest(): LikeRequest {
   return { userId: 0, videoId: 0 };
 }
@@ -532,6 +540,136 @@ export const GetVideoLikeCountResponse: MessageFns<GetVideoLikeCountResponse> = 
   },
 };
 
+function createBaseGetLikesByUserIdRequest(): GetLikesByUserIdRequest {
+  return { userId: 0 };
+}
+
+export const GetLikesByUserIdRequest: MessageFns<GetLikesByUserIdRequest> = {
+  encode(message: GetLikesByUserIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== 0) {
+      writer.uint32(8).uint32(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetLikesByUserIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLikesByUserIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.userId = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLikesByUserIdRequest {
+    return { userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0 };
+  },
+
+  toJSON(message: GetLikesByUserIdRequest): unknown {
+    const obj: any = {};
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(base?: I): GetLikesByUserIdRequest {
+    return GetLikesByUserIdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(object: I): GetLikesByUserIdRequest {
+    const message = createBaseGetLikesByUserIdRequest();
+    message.userId = object.userId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetLikesByUserIdResponse(): GetLikesByUserIdResponse {
+  return { videoIds: [] };
+}
+
+export const GetLikesByUserIdResponse: MessageFns<GetLikesByUserIdResponse> = {
+  encode(message: GetLikesByUserIdResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    writer.uint32(10).fork();
+    for (const v of message.videoIds) {
+      writer.uint64(v);
+    }
+    writer.join();
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetLikesByUserIdResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLikesByUserIdResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag === 8) {
+            message.videoIds.push(reader.uint64().toString());
+
+            continue;
+          }
+
+          if (tag === 10) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.videoIds.push(reader.uint64().toString());
+            }
+
+            continue;
+          }
+
+          break;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLikesByUserIdResponse {
+    return {
+      videoIds: globalThis.Array.isArray(object?.videoIds) ? object.videoIds.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: GetLikesByUserIdResponse): unknown {
+    const obj: any = {};
+    if (message.videoIds?.length) {
+      obj.videoIds = message.videoIds;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(base?: I): GetLikesByUserIdResponse {
+    return GetLikesByUserIdResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(object: I): GetLikesByUserIdResponse {
+    const message = createBaseGetLikesByUserIdResponse();
+    message.videoIds = object.videoIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
 export interface LikeService {
   Like(request: DeepPartial<LikeRequest>, metadata?: grpc.Metadata): Promise<LikeResponse>;
   Unlike(request: DeepPartial<UnlikeRequest>, metadata?: grpc.Metadata): Promise<UnlikeResponse>;
@@ -540,6 +678,10 @@ export interface LikeService {
     request: DeepPartial<GetVideoLikeCountRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideoLikeCountResponse>;
+  GetLikesByUserId(
+    request: DeepPartial<GetLikesByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLikesByUserIdResponse>;
 }
 
 export class LikeServiceClientImpl implements LikeService {
@@ -551,6 +693,7 @@ export class LikeServiceClientImpl implements LikeService {
     this.Unlike = this.Unlike.bind(this);
     this.IsLiked = this.IsLiked.bind(this);
     this.GetVideoLikeCount = this.GetVideoLikeCount.bind(this);
+    this.GetLikesByUserId = this.GetLikesByUserId.bind(this);
   }
 
   Like(request: DeepPartial<LikeRequest>, metadata?: grpc.Metadata): Promise<LikeResponse> {
@@ -570,6 +713,13 @@ export class LikeServiceClientImpl implements LikeService {
     metadata?: grpc.Metadata,
   ): Promise<GetVideoLikeCountResponse> {
     return this.rpc.unary(LikeServiceGetVideoLikeCountDesc, GetVideoLikeCountRequest.fromPartial(request), metadata);
+  }
+
+  GetLikesByUserId(
+    request: DeepPartial<GetLikesByUserIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLikesByUserIdResponse> {
+    return this.rpc.unary(LikeServiceGetLikesByUserIdDesc, GetLikesByUserIdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -657,6 +807,29 @@ export const LikeServiceGetVideoLikeCountDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetVideoLikeCountResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LikeServiceGetLikesByUserIdDesc: UnaryMethodDefinitionish = {
+  methodName: "GetLikesByUserId",
+  service: LikeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetLikesByUserIdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLikesByUserIdResponse.decode(data);
       return {
         ...value,
         toObject() {

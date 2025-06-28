@@ -3,6 +3,7 @@ import type { Playlist } from '../api/gen/playlist';
 import { avatarBytesToUrl } from '../utils/avatarConverter';
 import { playlistClient } from '../api/grpc/playlistClient';
 import { GetPlaylistByUserIdResponse } from '../api/gen/playlist';
+import { useNavigate } from 'react-router-dom';
 
 interface PlaylistTabProps {
     userId: string;
@@ -11,6 +12,7 @@ interface PlaylistTabProps {
 
 const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPlaylists = async () => {
@@ -39,19 +41,20 @@ const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
         { isOwnProfile && (
             <div
                 style={{
-                position: 'relative',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                background: '#000',
-                cursor: 'pointer',
-                width: '100%',
-                aspectRatio: '16 / 9', // Landscape aspect ratio
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                color: '#fff',
-                textAlign: 'center',
+                    position: 'relative',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: '#000',
+                    cursor: 'pointer',
+                    width: '100%',
+                    aspectRatio: '16 / 9', // Landscape aspect ratio
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: '#fff',
+                    textAlign: 'center',
                 }}
+                onClick={() => navigate("/playlist")}
             >
                 <div
                 style={{

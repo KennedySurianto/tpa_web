@@ -23,6 +23,7 @@ const (
 	LikeService_Unlike_FullMethodName            = "/activity.LikeService/Unlike"
 	LikeService_IsLiked_FullMethodName           = "/activity.LikeService/IsLiked"
 	LikeService_GetVideoLikeCount_FullMethodName = "/activity.LikeService/GetVideoLikeCount"
+	LikeService_GetLikesByUserId_FullMethodName  = "/activity.LikeService/GetLikesByUserId"
 )
 
 // LikeServiceClient is the client API for LikeService service.
@@ -33,6 +34,7 @@ type LikeServiceClient interface {
 	Unlike(ctx context.Context, in *UnlikeRequest, opts ...grpc.CallOption) (*UnlikeResponse, error)
 	IsLiked(ctx context.Context, in *IsLikedRequest, opts ...grpc.CallOption) (*IsLikedResponse, error)
 	GetVideoLikeCount(ctx context.Context, in *GetVideoLikeCountRequest, opts ...grpc.CallOption) (*GetVideoLikeCountResponse, error)
+	GetLikesByUserId(ctx context.Context, in *GetLikesByUserIdRequest, opts ...grpc.CallOption) (*GetLikesByUserIdResponse, error)
 }
 
 type likeServiceClient struct {
@@ -83,6 +85,16 @@ func (c *likeServiceClient) GetVideoLikeCount(ctx context.Context, in *GetVideoL
 	return out, nil
 }
 
+func (c *likeServiceClient) GetLikesByUserId(ctx context.Context, in *GetLikesByUserIdRequest, opts ...grpc.CallOption) (*GetLikesByUserIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLikesByUserIdResponse)
+	err := c.cc.Invoke(ctx, LikeService_GetLikesByUserId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LikeServiceServer is the server API for LikeService service.
 // All implementations must embed UnimplementedLikeServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type LikeServiceServer interface {
 	Unlike(context.Context, *UnlikeRequest) (*UnlikeResponse, error)
 	IsLiked(context.Context, *IsLikedRequest) (*IsLikedResponse, error)
 	GetVideoLikeCount(context.Context, *GetVideoLikeCountRequest) (*GetVideoLikeCountResponse, error)
+	GetLikesByUserId(context.Context, *GetLikesByUserIdRequest) (*GetLikesByUserIdResponse, error)
 	mustEmbedUnimplementedLikeServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedLikeServiceServer) IsLiked(context.Context, *IsLikedRequest) 
 }
 func (UnimplementedLikeServiceServer) GetVideoLikeCount(context.Context, *GetVideoLikeCountRequest) (*GetVideoLikeCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVideoLikeCount not implemented")
+}
+func (UnimplementedLikeServiceServer) GetLikesByUserId(context.Context, *GetLikesByUserIdRequest) (*GetLikesByUserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLikesByUserId not implemented")
 }
 func (UnimplementedLikeServiceServer) mustEmbedUnimplementedLikeServiceServer() {}
 func (UnimplementedLikeServiceServer) testEmbeddedByValue()                     {}
@@ -206,6 +222,24 @@ func _LikeService_GetVideoLikeCount_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LikeService_GetLikesByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLikesByUserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LikeServiceServer).GetLikesByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LikeService_GetLikesByUserId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LikeServiceServer).GetLikesByUserId(ctx, req.(*GetLikesByUserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LikeService_ServiceDesc is the grpc.ServiceDesc for LikeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var LikeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVideoLikeCount",
 			Handler:    _LikeService_GetVideoLikeCount_Handler,
+		},
+		{
+			MethodName: "GetLikesByUserId",
+			Handler:    _LikeService_GetLikesByUserId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

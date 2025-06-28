@@ -170,10 +170,6 @@ func (s *VideoController) DeleteVideo(ctx context.Context, req *pb.DeleteVideoRe
 }
 
 func (s *VideoController) GetVideosByUserId(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
-	req = &pb.GetVideosByUserIdRequest{
-		UserId:  req.UserId,
-	}
-
 	videos, err := s.videoService.GetVideosByUserId(req)
 	if err != nil {
 		return nil, err
@@ -394,3 +390,20 @@ func (vc *VideoController) GetAllVideos(ctx context.Context, req *pb.GetVideosBy
 		Videos: pbVideos,
 	}, nil
 }
+
+func (vc *VideoController) GetLikedVideosByUserId(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {
+	// Step 1: Call service to fetch liked videos (use userId as the liked user)
+	videos, err := vc.videoService.GetLikedVideosByUserId(req.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get liked videos: %w", err)
+	}
+
+	// Step 2: Convert to proto
+	var pbVideos []*pb.Video
+	for _, v := range videos {
+		pbVideos = append(pbVideos, vc.modelToProto(ctx, v, uint64(req.CurrentUserId)))
+	}
+
+	return &pb.GetVideosResponse{Videos: pbVideos}, nil
+}
+

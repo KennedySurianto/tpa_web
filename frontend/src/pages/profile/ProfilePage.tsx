@@ -13,6 +13,7 @@ import { FollowerListModal } from '../modals/FollowerListModal';
 import { FollowingListModal } from '../modals/FollowingListModal';
 import VideoTab from '../../components/VideoTab';
 import PlaylistTab from '../../components/PlaylistTab';
+import { useLikedVideos } from "../../hooks/useLikedVideos";
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -33,6 +34,8 @@ const ProfilePage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('videos');
     const [totalLikes, setTotalLikes] = useState<number>(0);
 
+    const { videos: likedVideos } = useLikedVideos(selectedUser?.id ? Number(selectedUser.id) : 0);
+
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
     }
@@ -40,20 +43,20 @@ const ProfilePage: React.FC = () => {
     useEffect(() => {
         const fetchUser = async () => {
             if (!username) {
-            setError('Username is missing.');
-            setLoading(false);
-            return;
+                setError('Username is missing.');
+                setLoading(false);
+                return;
             }
 
             try {
-            const req: GetUserByUsernameRequest = { username };
-            const res: User = await userClient.GetUserByUsername(req);
-            setSelectedUser(res);
+                const req: GetUserByUsernameRequest = { username };
+                const res: User = await userClient.GetUserByUsername(req);
+                setSelectedUser(res);
             } catch (err) {
-            console.error('Error fetching user:', err);
-            setError('Failed to fetch user data.');
+                console.error('Error fetching user:', err);
+                setError('Failed to fetch user data.');
             } finally {
-            setLoading(false);
+                setLoading(false);
             }
         };
 
@@ -95,7 +98,7 @@ const ProfilePage: React.FC = () => {
         }
 
         fetchVideos();
-    }, [selectedUser]);
+    }, [user, selectedUser]);
 
     const checkFollowStatus = async (followerId: number, followedId: number) => {
         try {
@@ -480,8 +483,6 @@ const ProfilePage: React.FC = () => {
                             </div>
                         </div>
 
-
-
                         {!isOwnProfile ? (
                             <div style={{
                                 display: 'flex',
@@ -645,7 +646,7 @@ const ProfilePage: React.FC = () => {
                                 />}
                             {activeTab === 'likedVideos' && 
                                 <VideoTab 
-                                    videos={videos} 
+                                    videos={likedVideos} 
                                     isOwnProfile={isOwnProfile}
                                     isVideoTab={false}
                                     setSelectedVideo={setSelectedVideo} 

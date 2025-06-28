@@ -1328,7 +1328,7 @@ const file_video_proto_rawDesc = "" +
 	"\bcaptions\x18\x01 \x03(\v2(.video.GetCaptionsResponse.CaptionsEntryR\bcaptions\x1aO\n" +
 	"\rCaptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12(\n" +
-	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\xbf\x06\n" +
+	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\x94\a\n" +
 	"\fVideoService\x12D\n" +
 	"\vCreateVideo\x12\x19.video.CreateVideoRequest\x1a\x1a.video.CreateVideoResponse\x12;\n" +
 	"\bGetVideo\x12\x16.video.GetVideoRequest\x1a\x17.video.GetVideoResponse\x12D\n" +
@@ -1340,7 +1340,8 @@ const file_video_proto_rawDesc = "" +
 	"\vGetCaptions\x12\x19.video.GetCaptionsRequest\x1a\x1a.video.GetCaptionsResponse\x12L\n" +
 	"\x0fGetFriendVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12O\n" +
 	"\x12GetFollowingVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12I\n" +
-	"\fGetAllVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
+	"\fGetAllVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12S\n" +
+	"\x16GetLikedVideosByUserId\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
 
 var (
 	file_video_proto_rawDescOnce sync.Once
@@ -1400,19 +1401,21 @@ var file_video_proto_depIdxs = []int32{
 	10, // 19: video.VideoService.GetFriendVideos:input_type -> video.GetVideosByUserIdRequest
 	10, // 20: video.VideoService.GetFollowingVideos:input_type -> video.GetVideosByUserIdRequest
 	10, // 21: video.VideoService.GetAllVideos:input_type -> video.GetVideosByUserIdRequest
-	3,  // 22: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
-	5,  // 23: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
-	7,  // 24: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
-	9,  // 25: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
-	14, // 26: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosResponse
-	12, // 27: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
-	14, // 28: video.VideoService.GetRecommendedVideos:output_type -> video.GetVideosResponse
-	17, // 29: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
-	14, // 30: video.VideoService.GetFriendVideos:output_type -> video.GetVideosResponse
-	14, // 31: video.VideoService.GetFollowingVideos:output_type -> video.GetVideosResponse
-	14, // 32: video.VideoService.GetAllVideos:output_type -> video.GetVideosResponse
-	22, // [22:33] is the sub-list for method output_type
-	11, // [11:22] is the sub-list for method input_type
+	10, // 22: video.VideoService.GetLikedVideosByUserId:input_type -> video.GetVideosByUserIdRequest
+	3,  // 23: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
+	5,  // 24: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
+	7,  // 25: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
+	9,  // 26: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
+	14, // 27: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosResponse
+	12, // 28: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
+	14, // 29: video.VideoService.GetRecommendedVideos:output_type -> video.GetVideosResponse
+	17, // 30: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
+	14, // 31: video.VideoService.GetFriendVideos:output_type -> video.GetVideosResponse
+	14, // 32: video.VideoService.GetFollowingVideos:output_type -> video.GetVideosResponse
+	14, // 33: video.VideoService.GetAllVideos:output_type -> video.GetVideosResponse
+	14, // 34: video.VideoService.GetLikedVideosByUserId:output_type -> video.GetVideosResponse
+	23, // [23:35] is the sub-list for method output_type
+	11, // [11:23] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name

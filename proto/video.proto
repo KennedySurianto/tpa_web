@@ -154,4 +154,5 @@ service VideoService {
   rpc GetFriendVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
   rpc GetFollowingVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
   rpc GetAllVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
+  rpc GetLikedVideosByUserId(GetVideosByUserIdRequest) returns (GetVideosResponse);
 }

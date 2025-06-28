@@ -7,4 +7,5 @@ type LikeRepository interface {
 	RemoveLike(like *model.Like) error
 	IsLiked(userID, videoID uint) (bool, error)
 	GetLikeCount(videoID uint) (int64, error)
+	GetLikesByUserId(userID uint) ([]model.Like, error)
 }

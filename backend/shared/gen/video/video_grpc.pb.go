@@ -19,17 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VideoService_CreateVideo_FullMethodName          = "/video.VideoService/CreateVideo"
-	VideoService_GetVideo_FullMethodName             = "/video.VideoService/GetVideo"
-	VideoService_UpdateVideo_FullMethodName          = "/video.VideoService/UpdateVideo"
-	VideoService_DeleteVideo_FullMethodName          = "/video.VideoService/DeleteVideo"
-	VideoService_GetVideosByUserId_FullMethodName    = "/video.VideoService/GetVideosByUserId"
-	VideoService_UpdateMetrics_FullMethodName        = "/video.VideoService/UpdateMetrics"
-	VideoService_GetRecommendedVideos_FullMethodName = "/video.VideoService/GetRecommendedVideos"
-	VideoService_GetCaptions_FullMethodName          = "/video.VideoService/GetCaptions"
-	VideoService_GetFriendVideos_FullMethodName      = "/video.VideoService/GetFriendVideos"
-	VideoService_GetFollowingVideos_FullMethodName   = "/video.VideoService/GetFollowingVideos"
-	VideoService_GetAllVideos_FullMethodName         = "/video.VideoService/GetAllVideos"
+	VideoService_CreateVideo_FullMethodName            = "/video.VideoService/CreateVideo"
+	VideoService_GetVideo_FullMethodName               = "/video.VideoService/GetVideo"
+	VideoService_UpdateVideo_FullMethodName            = "/video.VideoService/UpdateVideo"
+	VideoService_DeleteVideo_FullMethodName            = "/video.VideoService/DeleteVideo"
+	VideoService_GetVideosByUserId_FullMethodName      = "/video.VideoService/GetVideosByUserId"
+	VideoService_UpdateMetrics_FullMethodName          = "/video.VideoService/UpdateMetrics"
+	VideoService_GetRecommendedVideos_FullMethodName   = "/video.VideoService/GetRecommendedVideos"
+	VideoService_GetCaptions_FullMethodName            = "/video.VideoService/GetCaptions"
+	VideoService_GetFriendVideos_FullMethodName        = "/video.VideoService/GetFriendVideos"
+	VideoService_GetFollowingVideos_FullMethodName     = "/video.VideoService/GetFollowingVideos"
+	VideoService_GetAllVideos_FullMethodName           = "/video.VideoService/GetAllVideos"
+	VideoService_GetLikedVideosByUserId_FullMethodName = "/video.VideoService/GetLikedVideosByUserId"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -51,6 +52,7 @@ type VideoServiceClient interface {
 	GetFriendVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	GetAllVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
+	GetLikedVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 }
 
 type videoServiceClient struct {
@@ -171,6 +173,16 @@ func (c *videoServiceClient) GetAllVideos(ctx context.Context, in *GetVideosByUs
 	return out, nil
 }
 
+func (c *videoServiceClient) GetLikedVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVideosResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetLikedVideosByUserId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -190,6 +202,7 @@ type VideoServiceServer interface {
 	GetFriendVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	GetAllVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
+	GetLikedVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -232,6 +245,9 @@ func (UnimplementedVideoServiceServer) GetFollowingVideos(context.Context, *GetV
 }
 func (UnimplementedVideoServiceServer) GetAllVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllVideos not implemented")
+}
+func (UnimplementedVideoServiceServer) GetLikedVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLikedVideosByUserId not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -452,6 +468,24 @@ func _VideoService_GetAllVideos_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetLikedVideosByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosByUserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetLikedVideosByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetLikedVideosByUserId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetLikedVideosByUserId(ctx, req.(*GetVideosByUserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -502,6 +536,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllVideos",
 			Handler:    _VideoService_GetAllVideos_Handler,
+		},
+		{
+			MethodName: "GetLikedVideosByUserId",
+			Handler:    _VideoService_GetLikedVideosByUserId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
