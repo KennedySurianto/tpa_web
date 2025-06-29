@@ -11,4 +11,5 @@ type CommentRepository interface {
 	CreateComment(ctx context.Context, comment *model.Comment) error
 	GetRepliesByCommentID(ctx context.Context, commentID uint) ([]model.Comment, error)
 	GetCommentCount(videoID uint) (int64, error)
+	DeleteComment(ctx context.Context, commentID uint) error
 }

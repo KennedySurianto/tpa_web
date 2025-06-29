@@ -45,3 +45,16 @@ func (s *CommentRepositoryImpl) GetCommentCount(videoID uint) (int64, error) {
 	err := s.db.Model(&model.Comment{}).Where("video_id = ?", videoID).Count(&count).Error
 	return count, err
 }
+
+func (r *CommentRepositoryImpl) DeleteComment(ctx context.Context, commentID uint) error {
+	tx := r.db.WithContext(ctx)
+
+	// Delete replies first
+	if err := tx.Where("reply_to_id = ?", commentID).Delete(&model.Comment{}).Error; err != nil {
+		return err
+	}
+
+	// Then delete the parent comment
+	return tx.Delete(&model.Comment{}, commentID).Error
+}
+

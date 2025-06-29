@@ -511,6 +511,94 @@ func (x *GetCommentCountResponse) GetCount() uint64 {
 	return 0
 }
 
+type DeleteCommentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCommentRequest) Reset() {
+	*x = DeleteCommentRequest{}
+	mi := &file_comment_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCommentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommentRequest) ProtoMessage() {}
+
+func (x *DeleteCommentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_comment_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommentRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCommentRequest) Descriptor() ([]byte, []int) {
+	return file_comment_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeleteCommentRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DeleteCommentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCommentResponse) Reset() {
+	*x = DeleteCommentResponse{}
+	mi := &file_comment_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCommentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommentResponse) ProtoMessage() {}
+
+func (x *DeleteCommentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_comment_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommentResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCommentResponse) Descriptor() ([]byte, []int) {
+	return file_comment_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteCommentResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
 var File_comment_proto protoreflect.FileDescriptor
 
 const file_comment_proto_rawDesc = "" +
@@ -552,11 +640,16 @@ const file_comment_proto_rawDesc = "" +
 	"\x16GetCommentCountRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\rR\avideoId\"/\n" +
 	"\x17GetCommentCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x04R\x05count2\x86\x02\n" +
+	"\x05count\x18\x01 \x01(\x04R\x05count\"&\n" +
+	"\x14DeleteCommentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\"1\n" +
+	"\x15DeleteCommentResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xd8\x02\n" +
 	"\x0eCommentService\x12J\n" +
 	"\vGetComments\x12\x1c.activity.GetCommentsRequest\x1a\x1d.activity.GetCommentsResponse\x12P\n" +
 	"\rCreateComment\x12\x1e.activity.CreateCommentRequest\x1a\x1f.activity.CreateCommentResponse\x12V\n" +
-	"\x0fGetCommentCount\x12 .activity.GetCommentCountRequest\x1a!.activity.GetCommentCountResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activityb\x06proto3"
+	"\x0fGetCommentCount\x12 .activity.GetCommentCountRequest\x1a!.activity.GetCommentCountResponse\x12P\n" +
+	"\rDeleteComment\x12\x1e.activity.DeleteCommentRequest\x1a\x1f.activity.DeleteCommentResponseBIZGgithub.com/KennedySurianto/tpa_web/backend/shared/gen/activity;activityb\x06proto3"
 
 var (
 	file_comment_proto_rawDescOnce sync.Once
@@ -570,7 +663,7 @@ func file_comment_proto_rawDescGZIP() []byte {
 	return file_comment_proto_rawDescData
 }
 
-var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_comment_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_comment_proto_goTypes = []any{
 	(*User)(nil),                    // 0: activity.User
 	(*Comment)(nil),                 // 1: activity.Comment
@@ -580,6 +673,8 @@ var file_comment_proto_goTypes = []any{
 	(*CreateCommentResponse)(nil),   // 5: activity.CreateCommentResponse
 	(*GetCommentCountRequest)(nil),  // 6: activity.GetCommentCountRequest
 	(*GetCommentCountResponse)(nil), // 7: activity.GetCommentCountResponse
+	(*DeleteCommentRequest)(nil),    // 8: activity.DeleteCommentRequest
+	(*DeleteCommentResponse)(nil),   // 9: activity.DeleteCommentResponse
 }
 var file_comment_proto_depIdxs = []int32{
 	0, // 0: activity.Comment.user:type_name -> activity.User
@@ -590,11 +685,13 @@ var file_comment_proto_depIdxs = []int32{
 	2, // 5: activity.CommentService.GetComments:input_type -> activity.GetCommentsRequest
 	4, // 6: activity.CommentService.CreateComment:input_type -> activity.CreateCommentRequest
 	6, // 7: activity.CommentService.GetCommentCount:input_type -> activity.GetCommentCountRequest
-	3, // 8: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
-	5, // 9: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
-	7, // 10: activity.CommentService.GetCommentCount:output_type -> activity.GetCommentCountResponse
-	8, // [8:11] is the sub-list for method output_type
-	5, // [5:8] is the sub-list for method input_type
+	8, // 8: activity.CommentService.DeleteComment:input_type -> activity.DeleteCommentRequest
+	3, // 9: activity.CommentService.GetComments:output_type -> activity.GetCommentsResponse
+	5, // 10: activity.CommentService.CreateComment:output_type -> activity.CreateCommentResponse
+	7, // 11: activity.CommentService.GetCommentCount:output_type -> activity.GetCommentCountResponse
+	9, // 12: activity.CommentService.DeleteComment:output_type -> activity.DeleteCommentResponse
+	9, // [9:13] is the sub-list for method output_type
+	5, // [5:9] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
 	5, // [5:5] is the sub-list for extension extendee
 	0, // [0:5] is the sub-list for field type_name
@@ -611,7 +708,7 @@ func file_comment_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comment_proto_rawDesc), len(file_comment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -58,9 +58,18 @@ message GetCommentCountResponse {
     uint64 count = 1;
 }
 
+message DeleteCommentRequest {
+    uint64 id = 1;
+}
+
+message DeleteCommentResponse {
+    bool success = 1;
+}
+
 // Service definition
 service CommentService {
     rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
     rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
     rpc GetCommentCount(GetCommentCountRequest) returns (GetCommentCountResponse);
+    rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
 }

@@ -9,6 +9,8 @@ import (
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/like_comment"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type CommentController struct {
@@ -179,3 +181,12 @@ func (c *CommentController) GetCommentCount(ctx context.Context, req *pb.GetComm
 	}
 	return &pb.GetCommentCountResponse{Count: uint64(count)}, nil
 }
+
+func (c *CommentController) DeleteComment(ctx context.Context, req *pb.DeleteCommentRequest) (*pb.DeleteCommentResponse, error) {
+	err := c.svc.DeleteComment(ctx, uint(req.Id))
+	if err != nil {
+		return &pb.DeleteCommentResponse{Success: false}, status.Errorf(codes.Internal, "failed to delete comment: %v", err)
+	}
+	return &pb.DeleteCommentResponse{Success: true}, nil
+}
+

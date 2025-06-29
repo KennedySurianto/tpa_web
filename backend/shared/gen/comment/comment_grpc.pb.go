@@ -22,6 +22,7 @@ const (
 	CommentService_GetComments_FullMethodName     = "/activity.CommentService/GetComments"
 	CommentService_CreateComment_FullMethodName   = "/activity.CommentService/CreateComment"
 	CommentService_GetCommentCount_FullMethodName = "/activity.CommentService/GetCommentCount"
+	CommentService_DeleteComment_FullMethodName   = "/activity.CommentService/DeleteComment"
 )
 
 // CommentServiceClient is the client API for CommentService service.
@@ -33,6 +34,7 @@ type CommentServiceClient interface {
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (*GetCommentsResponse, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error)
 	GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error)
+	DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...grpc.CallOption) (*DeleteCommentResponse, error)
 }
 
 type commentServiceClient struct {
@@ -73,6 +75,16 @@ func (c *commentServiceClient) GetCommentCount(ctx context.Context, in *GetComme
 	return out, nil
 }
 
+func (c *commentServiceClient) DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...grpc.CallOption) (*DeleteCommentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteCommentResponse)
+	err := c.cc.Invoke(ctx, CommentService_DeleteComment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CommentServiceServer is the server API for CommentService service.
 // All implementations must embed UnimplementedCommentServiceServer
 // for forward compatibility.
@@ -82,6 +94,7 @@ type CommentServiceServer interface {
 	GetComments(context.Context, *GetCommentsRequest) (*GetCommentsResponse, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error)
 	GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error)
+	DeleteComment(context.Context, *DeleteCommentRequest) (*DeleteCommentResponse, error)
 	mustEmbedUnimplementedCommentServiceServer()
 }
 
@@ -100,6 +113,9 @@ func (UnimplementedCommentServiceServer) CreateComment(context.Context, *CreateC
 }
 func (UnimplementedCommentServiceServer) GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCommentCount not implemented")
+}
+func (UnimplementedCommentServiceServer) DeleteComment(context.Context, *DeleteCommentRequest) (*DeleteCommentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteComment not implemented")
 }
 func (UnimplementedCommentServiceServer) mustEmbedUnimplementedCommentServiceServer() {}
 func (UnimplementedCommentServiceServer) testEmbeddedByValue()                        {}
@@ -176,6 +192,24 @@ func _CommentService_GetCommentCount_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CommentService_DeleteComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCommentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommentServiceServer).DeleteComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommentService_DeleteComment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommentServiceServer).DeleteComment(ctx, req.(*DeleteCommentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CommentService_ServiceDesc is the grpc.ServiceDesc for CommentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -194,6 +228,10 @@ var CommentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCommentCount",
 			Handler:    _CommentService_GetCommentCount_Handler,
+		},
+		{
+			MethodName: "DeleteComment",
+			Handler:    _CommentService_DeleteComment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

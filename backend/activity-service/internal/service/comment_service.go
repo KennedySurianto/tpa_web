@@ -11,4 +11,5 @@ type CommentService interface {
 	CreateComment(ctx context.Context, userID, videoID, replyToId uint64, content string) (*model.Comment, error)
 	GetReplies(ctx context.Context, commentID uint) ([]model.Comment, error)
 	GetCommentCount(videoID uint) (int64, error)
+	DeleteComment(ctx context.Context, commentID uint) error
 }

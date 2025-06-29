@@ -62,6 +62,14 @@ export interface GetCommentCountResponse {
   count: string;
 }
 
+export interface DeleteCommentRequest {
+  id: string;
+}
+
+export interface DeleteCommentResponse {
+  success: boolean;
+}
+
 function createBaseUser(): User {
   return { id: "0", username: "", avatar: new Uint8Array(0) };
 }
@@ -825,6 +833,122 @@ export const GetCommentCountResponse: MessageFns<GetCommentCountResponse> = {
   },
 };
 
+function createBaseDeleteCommentRequest(): DeleteCommentRequest {
+  return { id: "0" };
+}
+
+export const DeleteCommentRequest: MessageFns<DeleteCommentRequest> = {
+  encode(message: DeleteCommentRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "0") {
+      writer.uint32(8).uint64(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteCommentRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteCommentRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.uint64().toString();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteCommentRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "0" };
+  },
+
+  toJSON(message: DeleteCommentRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "0") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteCommentRequest>, I>>(base?: I): DeleteCommentRequest {
+    return DeleteCommentRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteCommentRequest>, I>>(object: I): DeleteCommentRequest {
+    const message = createBaseDeleteCommentRequest();
+    message.id = object.id ?? "0";
+    return message;
+  },
+};
+
+function createBaseDeleteCommentResponse(): DeleteCommentResponse {
+  return { success: false };
+}
+
+export const DeleteCommentResponse: MessageFns<DeleteCommentResponse> = {
+  encode(message: DeleteCommentResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteCommentResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteCommentResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteCommentResponse {
+    return { success: isSet(object.success) ? globalThis.Boolean(object.success) : false };
+  },
+
+  toJSON(message: DeleteCommentResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteCommentResponse>, I>>(base?: I): DeleteCommentResponse {
+    return DeleteCommentResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteCommentResponse>, I>>(object: I): DeleteCommentResponse {
+    const message = createBaseDeleteCommentResponse();
+    message.success = object.success ?? false;
+    return message;
+  },
+};
+
 /** Service definition */
 export interface CommentService {
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse>;
@@ -833,6 +957,7 @@ export interface CommentService {
     request: DeepPartial<GetCommentCountRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetCommentCountResponse>;
+  DeleteComment(request: DeepPartial<DeleteCommentRequest>, metadata?: grpc.Metadata): Promise<DeleteCommentResponse>;
 }
 
 export class CommentServiceClientImpl implements CommentService {
@@ -843,6 +968,7 @@ export class CommentServiceClientImpl implements CommentService {
     this.GetComments = this.GetComments.bind(this);
     this.CreateComment = this.CreateComment.bind(this);
     this.GetCommentCount = this.GetCommentCount.bind(this);
+    this.DeleteComment = this.DeleteComment.bind(this);
   }
 
   GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse> {
@@ -858,6 +984,10 @@ export class CommentServiceClientImpl implements CommentService {
     metadata?: grpc.Metadata,
   ): Promise<GetCommentCountResponse> {
     return this.rpc.unary(CommentServiceGetCommentCountDesc, GetCommentCountRequest.fromPartial(request), metadata);
+  }
+
+  DeleteComment(request: DeepPartial<DeleteCommentRequest>, metadata?: grpc.Metadata): Promise<DeleteCommentResponse> {
+    return this.rpc.unary(CommentServiceDeleteCommentDesc, DeleteCommentRequest.fromPartial(request), metadata);
   }
 }
 
@@ -922,6 +1052,29 @@ export const CommentServiceGetCommentCountDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetCommentCountResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CommentServiceDeleteCommentDesc: UnaryMethodDefinitionish = {
+  methodName: "DeleteComment",
+  service: CommentServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return DeleteCommentRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = DeleteCommentResponse.decode(data);
       return {
         ...value,
         toObject() {

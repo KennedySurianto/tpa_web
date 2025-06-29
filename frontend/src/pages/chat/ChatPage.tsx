@@ -6,6 +6,8 @@ import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
 import { userClient } from "../../api/grpc/userClient";
 import { chatClient } from "../../api/grpc/chatClient";
 import ChatWebSocket from "../../components/ChatWebSocket";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
 
 type Message = {
   id: number; // local message ID for React rendering
@@ -25,7 +27,6 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const nextId = useRef(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const hasFetchedMessages = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -43,7 +44,7 @@ export default function ChatPage() {
   }, [receiverUsername]);
 
   useEffect(() => {
-    if (!user || hasFetchedMessages.current || !receiver) return;
+    if (!user || !receiver) return;
 
     const fetchMessages = async () => {
       try {
@@ -54,16 +55,14 @@ export default function ChatPage() {
         const res = await chatClient.GetChatsWithUser(req);
 
         if (res) {
-          res.chats.forEach((chat) => {
-            const message: Message = {
-                id: nextId.current++,
-                messageId: chat.id,
-                sender: chat.senderId === user.id ? user.username : receiverUsername || "Unknown",
-                text: chat.message,
-                deleted: chat.deletedAt && chat.deletedAt !== "" ? true : false,
-            };
-            setMessages((prev) => [...prev, message]);
-          });
+          const loadedMessages: Message[] = res.chats.map((chat) => ({
+            id: nextId.current++,
+            messageId: chat.id,
+            sender: chat.senderId === user.id ? user.username : receiver.username || "Unknown",
+            text: chat.message,
+            deleted: chat.deletedAt && chat.deletedAt !== "" ? true : false,
+          }));
+          setMessages(loadedMessages);
         }
       } catch (err) {
         console.error("Failed to fetch messages:", err);
@@ -71,11 +70,10 @@ export default function ChatPage() {
     };
 
     fetchMessages();
-    hasFetchedMessages.current = true;
-  }, [user, receiver]);
+  }, [user, receiver?.id]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
     const handleIncomingMessage = (msg: any) => {
@@ -196,8 +194,10 @@ export default function ChatPage() {
           margin: "0 auto",
           display: "flex",
           flexDirection: "column",
-          border: "1px solid #ddd",
-          borderRadius: 6,
+          backgroundColor: "#1e1e1e",
+          color: "#e6e6e6",
+          borderLeft: "1px solid #333",
+          borderRight: "1px solid #333",
         }}
         className="w-100"
       >
@@ -205,19 +205,20 @@ export default function ChatPage() {
         <div
           style={{
             padding: "12px 16px",
-            borderBottom: "1px solid #ddd",
-            backgroundColor: "#f0f0f0",
+            borderBottom: "1px solid #333",
+            backgroundColor: "#2a2a2a",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             fontWeight: "bold",
+            color: "#fff",
           }}
         >
           <span style={{ cursor: "pointer" }} onClick={() => navigate(-1)}>
             ⬅
           </span>
           <span>💬 {receiver?.username || "..."}</span>
-          <span>⋯</span>
+          <span></span>
         </div>
 
         {/* Chat messages */}
@@ -226,34 +227,54 @@ export default function ChatPage() {
             flex: 1,
             padding: 10,
             overflowY: "auto",
-            backgroundColor: "#f9f9f9",
+            backgroundColor: "#1e1e1e",
           }}
         >
           {messages.map((m) => (
             <div
               key={m.id}
               style={{
-                marginBottom: 10,
+                marginBottom: 12,
                 display: "flex",
                 justifyContent: m.sender === user.username ? "flex-end" : "flex-start",
+                alignItems: "flex-end",
                 position: "relative",
+                gap: 8,
               }}
             >
+              {/* Avatar for receiver */}
+              {m.sender !== user.username && (
+                <img
+                  src={receiver?.avatar ? avatarBytesToUrl(receiver.avatar) || defaultAvatar : defaultAvatar}
+                  alt={m.sender}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+
               <div
                 style={{
-                  backgroundColor: m.sender === user.username ? "#0084ff" : "#e5e5ea",
-                  color: m.sender === user.username ? "white" : "black",
+                  backgroundColor: m.sender === user.username ? "#4a90e2" : "#3a3a3a",
+                  color: "white",
                   padding: "8px 12px",
-                  borderRadius: 20,
+                  borderRadius: 16,
                   maxWidth: "70%",
                   wordBreak: "break-word",
+                  fontSize: 14,
                 }}
               >
-                <b>{m.sender === user.username ? "You" : m.sender}</b>:{" "}
-                {m.deleted ? <i style={{ opacity: 0.6 }}>Message unsent</i> : m.text}
+                {m.deleted ? (
+                  <i style={{ opacity: 0.5, fontStyle: "italic" }}>Message unsent</i>
+                ) : (
+                  m.text
+                )}
               </div>
 
-              {/* Unsend button for your own message */}
+              {/* Unsend button for sender */}
               {m.sender === user.username && !m.deleted && (
                 <button
                   onClick={() => handleUnsendMessage(m)}
@@ -265,21 +286,65 @@ export default function ChatPage() {
                     padding: "2px 6px",
                     borderRadius: 12,
                     border: "none",
-                    backgroundColor: "#f66",
+                    backgroundColor: "#d9534f",
                     color: "#fff",
                     cursor: "pointer",
                   }}
+                  title="Unsend"
                 >
                   ×
                 </button>
               )}
             </div>
           ))}
+
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div style={{ display: "flex", padding: 10, borderTop: "1px solid #ddd" }}>
+        <div
+          style={{
+            display: "flex",
+            padding: 12,
+            borderTop: "1px solid #333",
+            backgroundColor: "#2a2a2a",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          {/* Attach button */}
+          <label
+            htmlFor="fileUpload"
+            style={{
+              backgroundColor: "#444",
+              color: "#ccc",
+              borderRadius: "50%",
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 18,
+            }}
+            title="Attach File"
+          >
+            📎
+          </label>
+          <input
+            id="fileUpload"
+            type="file"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                // TODO: implement file upload logic
+                console.log("Selected file:", file.name);
+              }
+            }}
+          />
+
+          {/* Text input */}
           <input
             type="text"
             placeholder={`Message to ${receiver?.username || "..."}`}
@@ -291,23 +356,27 @@ export default function ChatPage() {
               padding: 10,
               fontSize: 16,
               borderRadius: 20,
-              border: "1px solid #ccc",
+              border: "1px solid #555",
+              backgroundColor: "#121212",
+              color: "#f0f0f0",
               outline: "none",
             }}
             disabled={!receiver || !user}
           />
+
+          {/* Send button */}
           <button
             onClick={() => sendMessage("text")}
             disabled={!receiver || !user}
             style={{
-              marginLeft: 10,
               padding: "10px 20px",
               borderRadius: 20,
               border: "none",
-              backgroundColor: receiver && user ? "#0084ff" : "#aaa",
-              color: "white",
+              backgroundColor: receiver && user ? "#4a90e2" : "#555",
+              color: "#fff",
               fontWeight: "bold",
               cursor: receiver && user ? "pointer" : "not-allowed",
+              transition: "background 0.2s ease",
             }}
           >
             Send

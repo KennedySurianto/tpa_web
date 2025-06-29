@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useComments } from '../../hooks/useComments';
-import { Comment, CreateCommentRequest, CreateCommentResponse } from '../../api/gen/comment';
+import { Comment, CreateCommentRequest, CreateCommentResponse, DeleteCommentRequest, DeleteCommentResponse } from '../../api/gen/comment';
 import { useAuth } from '../../utils/AuthProvider';
 import { commentClient } from '../../api/grpc/commentClient';
 import type { LikeCommentRequest, UnlikeCommentRequest } from '../../api/gen/like_comment';
@@ -166,6 +166,30 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
     }));
   };
 
+  const handleDelete = async (commentId: number) => {
+    try {
+      if (!user) {
+        setErrorMessage('User is not authenticated.');
+        return;
+      }
+      
+      const req: DeleteCommentRequest = {
+        id: commentId.toString(),
+      };
+
+      const res: DeleteCommentResponse = await  commentClient.DeleteComment(req);
+      if (res && res.success) {
+        setErrorMessage('');
+        await refetch();
+      } else {
+        setErrorMessage('Failed to delete comment.');
+      }
+    } catch (error: any) {
+      console.error('DeleteComment error:', error);
+      setErrorMessage(error?.message || 'Failed to delete comment.');
+    }
+  };
+
   return (
     <div style={{
       width: '350px',
@@ -312,17 +336,11 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                       fontSize: '16px',
                       flexShrink: 0,
                     }}>
-                      {comment.user?.avatar ? (
-                        <img
-                          src={comment.user.avatar ? avatarBytesToUrl(comment.user.avatar) || defaultAvatar : defaultAvatar}
-                          alt={comment.user.username || 'User Avatar'}
-                          style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-                        />
-                      ) : (
-                        <span style={{ color: 'white' }}>
-                          👤
-                        </span>
-                      )}
+                      <img
+                        src={comment.user && comment.user.avatar ? avatarBytesToUrl(comment.user.avatar) ?? defaultAvatar : defaultAvatar}
+                        alt={comment.user?.username || 'User Avatar'}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      />
                     </div>
 
                     <div style={{ flexGrow: 1 }}>
@@ -334,16 +352,23 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                         }}>
                           {comment.user?.username ? comment.user.username : 'user' + comment.userId}
                         </span>
-                        <button style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#8a8a8a',
-                          fontSize: '16px',
-                          cursor: 'pointer',
-                          padding: '2px',
-                        }}>
-                          ⋯
-                        </button>
+                        
+                        {user && String(user.id) === comment.userId && (
+                          <button
+                            onClick={() => handleDelete(Number(comment.id))}
+                            style={{
+                              backgroundColor: 'transparent',
+                              color: '#ff4d4f',
+                              border: 'none',
+                              fontSize: '14px',
+                              marginLeft: '8px',
+                              cursor: 'pointer'
+                            }}
+                            title="Delete comment"
+                          >
+                            🗑
+                          </button>
+                        )}
                       </div>
 
                       <p style={{
@@ -418,16 +443,13 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                   justifyContent: 'center',
                                   fontSize: '12px',
                                   flexShrink: 0,
+                                  overflow: 'hidden',
                                 }}>
-                                  {reply.user?.avatar ? (
-                                    <img
-                                      src={reply.user.avatar ? avatarBytesToUrl(reply.user.avatar) || defaultAvatar : defaultAvatar}
-                                      alt={reply.user.username || 'User Avatar'}
-                                      style={{ width: '24px', height: '24px', borderRadius: '50%' }}
-                                    />
-                                  ) : (
-                                    <span style={{ color: 'white' }}>👤</span>
-                                  )}
+                                  <img
+                                  src={reply.user?.avatar ? avatarBytesToUrl(reply.user.avatar) || defaultAvatar : defaultAvatar}
+                                  alt={reply.user?.username || 'User Avatar'}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                                  />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ 
@@ -464,6 +486,23 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                     </button>
                                   </div>
                                 </div>
+
+                                {user && String(user.id) === comment.userId && (
+                                  <button
+                                    onClick={() => handleDelete(Number(reply.id))}
+                                    style={{
+                                      backgroundColor: 'transparent',
+                                      color: '#ff4d4f',
+                                      border: 'none',
+                                      fontSize: '14px',
+                                      marginLeft: '8px',
+                                      cursor: 'pointer'
+                                    }}
+                                    title="Delete reply"
+                                  >
+                                    🗑
+                                  </button>
+                                )}
                               </div>
                             ))
                           ) : (

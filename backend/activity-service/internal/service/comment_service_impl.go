@@ -52,3 +52,7 @@ func (s *CommentServiceImpl) GetReplies(ctx context.Context, commentID uint) ([]
 func (s *CommentServiceImpl) GetCommentCount(videoID uint) (int64, error) {
     return s.repo.GetCommentCount(videoID)
 }
+
+func (s *CommentServiceImpl) DeleteComment(ctx context.Context, commentID uint) error {
+	return s.repo.DeleteComment(ctx, commentID)
+}

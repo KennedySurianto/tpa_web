@@ -9,6 +9,7 @@ import { videoClient } from "../api/grpc/videoClient";
 import CommentBar from "../pages/ui/CommentBar";
 import { avatarBytesToUrl } from "../utils/avatarConverter";
 import defaultAvatar from "../assets/default.jpg";
+import ShareVideoModal from "../pages/modals/ShareVideoModal";
 
 interface props {
     videos: Video[],
@@ -36,6 +37,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
     const [expandedCaptions, setExpandedCaptions] = useState<{ [videoId: number]: boolean }>({});
     const [expandedDescriptions, setExpandedDescriptions] = useState<{ [videoId: number]: boolean }>({});
     const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [videoUrl, setVideoUrl] = useState<string>("");
+    const [downloadUrl, setDownloadUrl] = useState<string>("");
+    const [caption, setCaption] = useState<string>("");
 
     const scrollToVideo = (index: number) => {
         setCurrentVideoIndex(index);
@@ -204,9 +209,12 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         setSelectedVideoId(null);
     };
 
-    const handleShare = (videoId: number) => {
+    const handleShare = (videoId: number, videoUrl: string, caption: string) => {
         console.log(`Share video ${videoId}`);
-        // TODO: add share logic here (e.g., open share dialog)
+        setVideoUrl(`${window.location.origin}/video/${videoId}`);
+        setDownloadUrl(videoUrl);
+        setCaption(caption);
+        setIsModalOpen(true);
     };
 
     const handleSave = (videoId: number) => {
@@ -943,7 +951,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                                     </div>
                                     <button 
                                         className="btn btn-link" 
-                                        onClick={() => handleShare(video.id)}
+                                        onClick={() => handleShare(video.id, video.videoUrl, video.caption)}
                                         style={{ 
                                             fontSize: '0.9rem',
                                             color: 'white',
@@ -1040,6 +1048,14 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     canComment={canComment}
                 />
             )}
+
+            <ShareVideoModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                videoUrl={videoUrl}
+                downloadUrl={downloadUrl}
+                caption={caption}
+            />
         </div>
     );
 };
