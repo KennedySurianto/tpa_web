@@ -11,9 +11,10 @@ message Chat {
     uint64 receiver_id = 3;
     string type = 4;
     string message = 5;
-    string created_at = 6;
-    string updated_at = 7;
-    string deleted_at = 8;
+    optional bytes image = 6;
+    string created_at = 7;
+    string updated_at = 8;
+    string deleted_at = 9;
 }
 
 // Request to send a message
@@ -22,6 +23,7 @@ message SendMessageRequest {
     uint64 receiver_id = 2;
     string type = 3; // "text", "image", or "video"
     string message = 4;
+    optional bytes image = 5;
 }
 
 // Response after sending a message
@@ -56,10 +58,19 @@ message UnsendMessageRequest {
 
 message Empty {}
 
+message SetTypingStatusRequest {
+    uint64 sender_id = 1;
+    uint64 receiver_id = 2;
+    bool is_typing = 3;
+}
+
 // Chat service definition
 service ChatService {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
     rpc UnsendMessage(UnsendMessageRequest) returns (Empty);
     rpc GetChatsByUserID(GetChatsByUserIDRequest) returns (GetChatsByUserIDResponse);
     rpc GetChatsWithUser(GetChatsWithUserRequest) returns (GetChatsWithUserResponse);
+
+    // typing status
+    rpc SetTypingStatus(SetTypingStatusRequest) returns (Empty);
 }

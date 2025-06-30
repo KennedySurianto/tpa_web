@@ -19,4 +19,5 @@ type Chat struct {
 	ReceiverID 		uint     		`gorm:"not null"`
 	Type 			ChatType 		`gorm:"type:text;not null"`
 	Message    		string   		`gorm:"type:text;not null"`
+	Image      		[]byte   		`gorm:"type:bytea"`
 }

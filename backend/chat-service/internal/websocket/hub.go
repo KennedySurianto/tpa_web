@@ -17,6 +17,7 @@ type IncomingMessage struct {
 	ReceiverID uint64 `json:"receiver_id"` // Required
 	Message    string `json:"message"`     // Only for text
 	MessageID  string `json:"message_id"`  // Only for unsend
+	Image      []byte `json:"image"` 		// Optional for image messages (Base64 encoded if using JSON)
 }
 
 func NewHub() *Hub {
@@ -77,6 +78,17 @@ func (h *Hub) HandleMessage(rawMsg []byte, senderID uint64) {
 		outgoing := map[string]interface{}{
 			"type":       "unsend",
 			"messageId":  incoming.MessageID,
+		}
+		jsonMsg, _ := json.Marshal(outgoing)
+		h.Broadcast(incoming.ReceiverID, jsonMsg)
+		h.Broadcast(senderID, jsonMsg)
+
+	case "image":
+		outgoing := map[string]interface{}{
+			"type":       "image",
+			"sender_id":  senderID,
+			"image":      incoming.Image, // should already be []byte
+			"message":    incoming.Message, // optional caption
 		}
 		jsonMsg, _ := json.Marshal(outgoing)
 		h.Broadcast(incoming.ReceiverID, jsonMsg)

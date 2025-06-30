@@ -27,6 +27,7 @@ func (h *ChatController) SendMessage(ctx context.Context, req *chatpb.SendMessag
 		ReceiverID: uint(req.ReceiverId),
 		Type:       model.ChatType(req.Type),
 		Message:    req.GetMessage(),
+		Image: 		req.GetImage(),
 	}
 
 	saved, err := h.service.SendMessage(chat)
@@ -40,6 +41,7 @@ func (h *ChatController) SendMessage(ctx context.Context, req *chatpb.SendMessag
 		ReceiverId: uint64(saved.ReceiverID),
 		Type:       string(saved.Type),
 		Message:    saved.Message,
+		Image:      saved.Image,
 		CreatedAt:  saved.CreatedAt.Format(time.RFC3339),
 	}
 
@@ -64,6 +66,7 @@ func (h *ChatController) GetChatsByUserID(ctx context.Context, req *chatpb.GetCh
 			ReceiverId: uint64(c.ReceiverID),
 			Type:       string(c.Type),
 			Message:    c.Message,
+			Image:		c.Image,
 			CreatedAt:  c.CreatedAt.Format(time.RFC3339),
 		})
 	}
@@ -87,6 +90,7 @@ func (h *ChatController) GetChatsWithUser(ctx context.Context, req *chatpb.GetCh
 			ReceiverId: uint64(c.ReceiverID),
 			Type:       string(c.Type),
 			Message:    c.Message,
+			Image: 		c.Image,
 			CreatedAt:  c.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:  c.UpdatedAt.Format(time.RFC3339),
 			DeletedAt:  func() string {
@@ -120,5 +124,30 @@ func (c *ChatController) UnsendMessage(ctx context.Context, req *chatpb.UnsendMe
 	c.hub.Broadcast(uint64(req.ReceiverId), jsonBytes)
 	c.hub.Broadcast(uint64(req.SenderId), jsonBytes)
 
+	return &chatpb.Empty{}, nil
+}
+
+func (h *ChatController) SetTypingStatus(ctx context.Context, req *chatpb.SetTypingStatusRequest) (*chatpb.Empty, error) {
+	// Prepare the typing event
+	typingEvent := map[string]interface{}{
+		"type":       "typing",
+		"sender_id":  req.SenderId,
+		"receiver_id": req.ReceiverId,
+		"is_typing":  req.IsTyping,  // true for typing, false for stop typing
+	}
+
+	// Log the typing status (for debugging purposes)
+	fmt.Printf("Typing event: sender_id=%d, receiver_id=%d, is_typing=%v\n", req.SenderId, req.ReceiverId, req.IsTyping)
+
+	// Marshal the event to JSON
+	jsonBytes, err := json.Marshal(typingEvent)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling typing event: %v", err)
+	}
+
+	// Broadcast the typing status to the receiver via WebSocket
+	h.hub.Broadcast(req.ReceiverId, jsonBytes)
+
+	// Send the empty response back to the client
 	return &chatpb.Empty{}, nil
 }

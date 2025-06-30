@@ -18,6 +18,7 @@ export interface Chat {
   receiverId: string;
   type: string;
   message: string;
+  image?: Uint8Array | undefined;
   createdAt: string;
   updatedAt: string;
   deletedAt: string;
@@ -30,6 +31,7 @@ export interface SendMessageRequest {
   /** "text", "image", or "video" */
   type: string;
   message: string;
+  image?: Uint8Array | undefined;
 }
 
 /** Response after sending a message */
@@ -65,6 +67,12 @@ export interface UnsendMessageRequest {
 export interface Empty {
 }
 
+export interface SetTypingStatusRequest {
+  senderId: string;
+  receiverId: string;
+  isTyping: boolean;
+}
+
 function createBaseChat(): Chat {
   return {
     id: "0",
@@ -72,6 +80,7 @@ function createBaseChat(): Chat {
     receiverId: "0",
     type: "",
     message: "",
+    image: undefined,
     createdAt: "",
     updatedAt: "",
     deletedAt: "",
@@ -95,14 +104,17 @@ export const Chat: MessageFns<Chat> = {
     if (message.message !== "") {
       writer.uint32(42).string(message.message);
     }
+    if (message.image !== undefined) {
+      writer.uint32(50).bytes(message.image);
+    }
     if (message.createdAt !== "") {
-      writer.uint32(50).string(message.createdAt);
+      writer.uint32(58).string(message.createdAt);
     }
     if (message.updatedAt !== "") {
-      writer.uint32(58).string(message.updatedAt);
+      writer.uint32(66).string(message.updatedAt);
     }
     if (message.deletedAt !== "") {
-      writer.uint32(66).string(message.deletedAt);
+      writer.uint32(74).string(message.deletedAt);
     }
     return writer;
   },
@@ -159,7 +171,7 @@ export const Chat: MessageFns<Chat> = {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.image = reader.bytes();
           continue;
         }
         case 7: {
@@ -167,11 +179,19 @@ export const Chat: MessageFns<Chat> = {
             break;
           }
 
-          message.updatedAt = reader.string();
+          message.createdAt = reader.string();
           continue;
         }
         case 8: {
           if (tag !== 66) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
             break;
           }
 
@@ -194,6 +214,7 @@ export const Chat: MessageFns<Chat> = {
       receiverId: isSet(object.receiverId) ? globalThis.String(object.receiverId) : "0",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      image: isSet(object.image) ? bytesFromBase64(object.image) : undefined,
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
       deletedAt: isSet(object.deletedAt) ? globalThis.String(object.deletedAt) : "",
@@ -217,6 +238,9 @@ export const Chat: MessageFns<Chat> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.image !== undefined) {
+      obj.image = base64FromBytes(message.image);
+    }
     if (message.createdAt !== "") {
       obj.createdAt = message.createdAt;
     }
@@ -239,6 +263,7 @@ export const Chat: MessageFns<Chat> = {
     message.receiverId = object.receiverId ?? "0";
     message.type = object.type ?? "";
     message.message = object.message ?? "";
+    message.image = object.image ?? undefined;
     message.createdAt = object.createdAt ?? "";
     message.updatedAt = object.updatedAt ?? "";
     message.deletedAt = object.deletedAt ?? "";
@@ -247,7 +272,7 @@ export const Chat: MessageFns<Chat> = {
 };
 
 function createBaseSendMessageRequest(): SendMessageRequest {
-  return { senderId: "0", receiverId: "0", type: "", message: "" };
+  return { senderId: "0", receiverId: "0", type: "", message: "", image: undefined };
 }
 
 export const SendMessageRequest: MessageFns<SendMessageRequest> = {
@@ -263,6 +288,9 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
     }
     if (message.message !== "") {
       writer.uint32(34).string(message.message);
+    }
+    if (message.image !== undefined) {
+      writer.uint32(42).bytes(message.image);
     }
     return writer;
   },
@@ -306,6 +334,14 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
           message.message = reader.string();
           continue;
         }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.image = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -321,6 +357,7 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
       receiverId: isSet(object.receiverId) ? globalThis.String(object.receiverId) : "0",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      image: isSet(object.image) ? bytesFromBase64(object.image) : undefined,
     };
   },
 
@@ -338,6 +375,9 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.image !== undefined) {
+      obj.image = base64FromBytes(message.image);
+    }
     return obj;
   },
 
@@ -350,6 +390,7 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
     message.receiverId = object.receiverId ?? "0";
     message.type = object.type ?? "";
     message.message = object.message ?? "";
+    message.image = object.image ?? undefined;
     return message;
   },
 };
@@ -797,6 +838,98 @@ export const Empty: MessageFns<Empty> = {
   },
 };
 
+function createBaseSetTypingStatusRequest(): SetTypingStatusRequest {
+  return { senderId: "0", receiverId: "0", isTyping: false };
+}
+
+export const SetTypingStatusRequest: MessageFns<SetTypingStatusRequest> = {
+  encode(message: SetTypingStatusRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.senderId !== "0") {
+      writer.uint32(8).uint64(message.senderId);
+    }
+    if (message.receiverId !== "0") {
+      writer.uint32(16).uint64(message.receiverId);
+    }
+    if (message.isTyping !== false) {
+      writer.uint32(24).bool(message.isTyping);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SetTypingStatusRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSetTypingStatusRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.senderId = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.receiverId = reader.uint64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.isTyping = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SetTypingStatusRequest {
+    return {
+      senderId: isSet(object.senderId) ? globalThis.String(object.senderId) : "0",
+      receiverId: isSet(object.receiverId) ? globalThis.String(object.receiverId) : "0",
+      isTyping: isSet(object.isTyping) ? globalThis.Boolean(object.isTyping) : false,
+    };
+  },
+
+  toJSON(message: SetTypingStatusRequest): unknown {
+    const obj: any = {};
+    if (message.senderId !== "0") {
+      obj.senderId = message.senderId;
+    }
+    if (message.receiverId !== "0") {
+      obj.receiverId = message.receiverId;
+    }
+    if (message.isTyping !== false) {
+      obj.isTyping = message.isTyping;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(base?: I): SetTypingStatusRequest {
+    return SetTypingStatusRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(object: I): SetTypingStatusRequest {
+    const message = createBaseSetTypingStatusRequest();
+    message.senderId = object.senderId ?? "0";
+    message.receiverId = object.receiverId ?? "0";
+    message.isTyping = object.isTyping ?? false;
+    return message;
+  },
+};
+
 /** Chat service definition */
 export interface ChatService {
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse>;
@@ -809,6 +942,8 @@ export interface ChatService {
     request: DeepPartial<GetChatsWithUserRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetChatsWithUserResponse>;
+  /** typing status */
+  SetTypingStatus(request: DeepPartial<SetTypingStatusRequest>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class ChatServiceClientImpl implements ChatService {
@@ -820,6 +955,7 @@ export class ChatServiceClientImpl implements ChatService {
     this.UnsendMessage = this.UnsendMessage.bind(this);
     this.GetChatsByUserID = this.GetChatsByUserID.bind(this);
     this.GetChatsWithUser = this.GetChatsWithUser.bind(this);
+    this.SetTypingStatus = this.SetTypingStatus.bind(this);
   }
 
   SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse> {
@@ -842,6 +978,10 @@ export class ChatServiceClientImpl implements ChatService {
     metadata?: grpc.Metadata,
   ): Promise<GetChatsWithUserResponse> {
     return this.rpc.unary(ChatServiceGetChatsWithUserDesc, GetChatsWithUserRequest.fromPartial(request), metadata);
+  }
+
+  SetTypingStatus(request: DeepPartial<SetTypingStatusRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(ChatServiceSetTypingStatusDesc, SetTypingStatusRequest.fromPartial(request), metadata);
   }
 }
 
@@ -939,6 +1079,29 @@ export const ChatServiceGetChatsWithUserDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const ChatServiceSetTypingStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "SetTypingStatus",
+  service: ChatServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return SetTypingStatusRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
@@ -1004,6 +1167,31 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+}
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
 }
 

@@ -29,9 +29,10 @@ type Chat struct {
 	ReceiverId    uint64                 `protobuf:"varint,3,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
 	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
 	Message       string                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     string                 `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	Image         []byte                 `protobuf:"bytes,6,opt,name=image,proto3,oneof" json:"image,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     string                 `protobuf:"bytes,9,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -101,6 +102,13 @@ func (x *Chat) GetMessage() string {
 	return ""
 }
 
+func (x *Chat) GetImage() []byte {
+	if x != nil {
+		return x.Image
+	}
+	return nil
+}
+
 func (x *Chat) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
@@ -129,6 +137,7 @@ type SendMessageRequest struct {
 	ReceiverId    uint64                 `protobuf:"varint,2,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
 	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"` // "text", "image", or "video"
 	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	Image         []byte                 `protobuf:"bytes,5,opt,name=image,proto3,oneof" json:"image,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -189,6 +198,13 @@ func (x *SendMessageRequest) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *SendMessageRequest) GetImage() []byte {
+	if x != nil {
+		return x.Image
+	}
+	return nil
 }
 
 // Response after sending a message
@@ -518,31 +534,95 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_chat_proto_rawDescGZIP(), []int{8}
 }
 
+type SetTypingStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SenderId      uint64                 `protobuf:"varint,1,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
+	ReceiverId    uint64                 `protobuf:"varint,2,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	IsTyping      bool                   `protobuf:"varint,3,opt,name=is_typing,json=isTyping,proto3" json:"is_typing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetTypingStatusRequest) Reset() {
+	*x = SetTypingStatusRequest{}
+	mi := &file_chat_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetTypingStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetTypingStatusRequest) ProtoMessage() {}
+
+func (x *SetTypingStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetTypingStatusRequest.ProtoReflect.Descriptor instead.
+func (*SetTypingStatusRequest) Descriptor() ([]byte, []int) {
+	return file_chat_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SetTypingStatusRequest) GetSenderId() uint64 {
+	if x != nil {
+		return x.SenderId
+	}
+	return 0
+}
+
+func (x *SetTypingStatusRequest) GetReceiverId() uint64 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+func (x *SetTypingStatusRequest) GetIsTyping() bool {
+	if x != nil {
+		return x.IsTyping
+	}
+	return false
+}
+
 var File_chat_proto protoreflect.FileDescriptor
 
 const file_chat_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"chat.proto\x12\x04chat\"\xdf\x01\n" +
+	"chat.proto\x12\x04chat\"\x84\x02\n" +
 	"\x04Chat\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1b\n" +
 	"\tsender_id\x18\x02 \x01(\x04R\bsenderId\x12\x1f\n" +
 	"\vreceiver_id\x18\x03 \x01(\x04R\n" +
 	"receiverId\x12\x12\n" +
 	"\x04type\x18\x04 \x01(\tR\x04type\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\x12\x1d\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\x12\x19\n" +
+	"\x05image\x18\x06 \x01(\fH\x00R\x05image\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\b \x01(\tR\tdeletedAt\"\x80\x01\n" +
+	"deleted_at\x18\t \x01(\tR\tdeletedAtB\b\n" +
+	"\x06_image\"\xa5\x01\n" +
 	"\x12SendMessageRequest\x12\x1b\n" +
 	"\tsender_id\x18\x01 \x01(\x04R\bsenderId\x12\x1f\n" +
 	"\vreceiver_id\x18\x02 \x01(\x04R\n" +
 	"receiverId\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\tR\x04type\x12\x18\n" +
-	"\amessage\x18\x04 \x01(\tR\amessage\"5\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\x12\x19\n" +
+	"\x05image\x18\x05 \x01(\fH\x00R\x05image\x88\x01\x01B\b\n" +
+	"\x06_image\"5\n" +
 	"\x13SendMessageResponse\x12\x1e\n" +
 	"\x04chat\x18\x01 \x01(\v2\n" +
 	".chat.ChatR\x04chat\"2\n" +
@@ -562,12 +642,18 @@ const file_chat_proto_rawDesc = "" +
 	"\tsender_id\x18\x02 \x01(\rR\bsenderId\x12\x1f\n" +
 	"\vreceiver_id\x18\x03 \x01(\rR\n" +
 	"receiverId\"\a\n" +
-	"\x05Empty2\xb1\x02\n" +
+	"\x05Empty\"s\n" +
+	"\x16SetTypingStatusRequest\x12\x1b\n" +
+	"\tsender_id\x18\x01 \x01(\x04R\bsenderId\x12\x1f\n" +
+	"\vreceiver_id\x18\x02 \x01(\x04R\n" +
+	"receiverId\x12\x1b\n" +
+	"\tis_typing\x18\x03 \x01(\bR\bisTyping2\xef\x02\n" +
 	"\vChatService\x12B\n" +
 	"\vSendMessage\x12\x18.chat.SendMessageRequest\x1a\x19.chat.SendMessageResponse\x128\n" +
 	"\rUnsendMessage\x12\x1a.chat.UnsendMessageRequest\x1a\v.chat.Empty\x12Q\n" +
 	"\x10GetChatsByUserID\x12\x1d.chat.GetChatsByUserIDRequest\x1a\x1e.chat.GetChatsByUserIDResponse\x12Q\n" +
-	"\x10GetChatsWithUser\x12\x1d.chat.GetChatsWithUserRequest\x1a\x1e.chat.GetChatsWithUserResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/chat;chatb\x06proto3"
+	"\x10GetChatsWithUser\x12\x1d.chat.GetChatsWithUserRequest\x1a\x1e.chat.GetChatsWithUserResponse\x12<\n" +
+	"\x0fSetTypingStatus\x12\x1c.chat.SetTypingStatusRequest\x1a\v.chat.EmptyBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/chat;chatb\x06proto3"
 
 var (
 	file_chat_proto_rawDescOnce sync.Once
@@ -581,7 +667,7 @@ func file_chat_proto_rawDescGZIP() []byte {
 	return file_chat_proto_rawDescData
 }
 
-var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_chat_proto_goTypes = []any{
 	(*Chat)(nil),                     // 0: chat.Chat
 	(*SendMessageRequest)(nil),       // 1: chat.SendMessageRequest
@@ -592,6 +678,7 @@ var file_chat_proto_goTypes = []any{
 	(*GetChatsWithUserResponse)(nil), // 6: chat.GetChatsWithUserResponse
 	(*UnsendMessageRequest)(nil),     // 7: chat.UnsendMessageRequest
 	(*Empty)(nil),                    // 8: chat.Empty
+	(*SetTypingStatusRequest)(nil),   // 9: chat.SetTypingStatusRequest
 }
 var file_chat_proto_depIdxs = []int32{
 	0, // 0: chat.SendMessageResponse.chat:type_name -> chat.Chat
@@ -601,12 +688,14 @@ var file_chat_proto_depIdxs = []int32{
 	7, // 4: chat.ChatService.UnsendMessage:input_type -> chat.UnsendMessageRequest
 	3, // 5: chat.ChatService.GetChatsByUserID:input_type -> chat.GetChatsByUserIDRequest
 	5, // 6: chat.ChatService.GetChatsWithUser:input_type -> chat.GetChatsWithUserRequest
-	2, // 7: chat.ChatService.SendMessage:output_type -> chat.SendMessageResponse
-	8, // 8: chat.ChatService.UnsendMessage:output_type -> chat.Empty
-	4, // 9: chat.ChatService.GetChatsByUserID:output_type -> chat.GetChatsByUserIDResponse
-	6, // 10: chat.ChatService.GetChatsWithUser:output_type -> chat.GetChatsWithUserResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
+	9, // 7: chat.ChatService.SetTypingStatus:input_type -> chat.SetTypingStatusRequest
+	2, // 8: chat.ChatService.SendMessage:output_type -> chat.SendMessageResponse
+	8, // 9: chat.ChatService.UnsendMessage:output_type -> chat.Empty
+	4, // 10: chat.ChatService.GetChatsByUserID:output_type -> chat.GetChatsByUserIDResponse
+	6, // 11: chat.ChatService.GetChatsWithUser:output_type -> chat.GetChatsWithUserResponse
+	8, // 12: chat.ChatService.SetTypingStatus:output_type -> chat.Empty
+	8, // [8:13] is the sub-list for method output_type
+	3, // [3:8] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -617,13 +706,15 @@ func file_chat_proto_init() {
 	if File_chat_proto != nil {
 		return
 	}
+	file_chat_proto_msgTypes[0].OneofWrappers = []any{}
+	file_chat_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chat_proto_rawDesc), len(file_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

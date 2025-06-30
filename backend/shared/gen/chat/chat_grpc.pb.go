@@ -23,6 +23,7 @@ const (
 	ChatService_UnsendMessage_FullMethodName    = "/chat.ChatService/UnsendMessage"
 	ChatService_GetChatsByUserID_FullMethodName = "/chat.ChatService/GetChatsByUserID"
 	ChatService_GetChatsWithUser_FullMethodName = "/chat.ChatService/GetChatsWithUser"
+	ChatService_SetTypingStatus_FullMethodName  = "/chat.ChatService/SetTypingStatus"
 )
 
 // ChatServiceClient is the client API for ChatService service.
@@ -35,6 +36,8 @@ type ChatServiceClient interface {
 	UnsendMessage(ctx context.Context, in *UnsendMessageRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetChatsByUserID(ctx context.Context, in *GetChatsByUserIDRequest, opts ...grpc.CallOption) (*GetChatsByUserIDResponse, error)
 	GetChatsWithUser(ctx context.Context, in *GetChatsWithUserRequest, opts ...grpc.CallOption) (*GetChatsWithUserResponse, error)
+	// typing status
+	SetTypingStatus(ctx context.Context, in *SetTypingStatusRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type chatServiceClient struct {
@@ -85,6 +88,16 @@ func (c *chatServiceClient) GetChatsWithUser(ctx context.Context, in *GetChatsWi
 	return out, nil
 }
 
+func (c *chatServiceClient) SetTypingStatus(ctx context.Context, in *SetTypingStatusRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, ChatService_SetTypingStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServiceServer is the server API for ChatService service.
 // All implementations must embed UnimplementedChatServiceServer
 // for forward compatibility.
@@ -95,6 +108,8 @@ type ChatServiceServer interface {
 	UnsendMessage(context.Context, *UnsendMessageRequest) (*Empty, error)
 	GetChatsByUserID(context.Context, *GetChatsByUserIDRequest) (*GetChatsByUserIDResponse, error)
 	GetChatsWithUser(context.Context, *GetChatsWithUserRequest) (*GetChatsWithUserResponse, error)
+	// typing status
+	SetTypingStatus(context.Context, *SetTypingStatusRequest) (*Empty, error)
 	mustEmbedUnimplementedChatServiceServer()
 }
 
@@ -116,6 +131,9 @@ func (UnimplementedChatServiceServer) GetChatsByUserID(context.Context, *GetChat
 }
 func (UnimplementedChatServiceServer) GetChatsWithUser(context.Context, *GetChatsWithUserRequest) (*GetChatsWithUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChatsWithUser not implemented")
+}
+func (UnimplementedChatServiceServer) SetTypingStatus(context.Context, *SetTypingStatusRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetTypingStatus not implemented")
 }
 func (UnimplementedChatServiceServer) mustEmbedUnimplementedChatServiceServer() {}
 func (UnimplementedChatServiceServer) testEmbeddedByValue()                     {}
@@ -210,6 +228,24 @@ func _ChatService_GetChatsWithUser_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChatService_SetTypingStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTypingStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).SetTypingStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_SetTypingStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).SetTypingStatus(ctx, req.(*SetTypingStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChatService_ServiceDesc is the grpc.ServiceDesc for ChatService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -232,6 +268,10 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChatsWithUser",
 			Handler:    _ChatService_GetChatsWithUser_Handler,
+		},
+		{
+			MethodName: "SetTypingStatus",
+			Handler:    _ChatService_SetTypingStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

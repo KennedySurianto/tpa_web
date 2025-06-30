@@ -8,6 +8,8 @@ type Props = {
 
 export default function ChatWebSocket({ userId, onMessage }: Props) {
     useEffect(() => {
+        if (!userId) return;
+
         const ws = new WebSocket(`ws://${window.location.hostname}:8080/ws?user_id=${userId}`);
 
         ws.onopen = () => console.log("✅ WebSocket connected");

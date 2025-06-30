@@ -14,6 +14,7 @@ import { FollowingListModal } from '../modals/FollowingListModal';
 import VideoTab from '../../components/VideoTab';
 import PlaylistTab from '../../components/PlaylistTab';
 import { useLikedVideos } from "../../hooks/useLikedVideos";
+import defaultAvatar from "../../assets/default.jpg"
 
 const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -74,11 +75,11 @@ const ProfilePage: React.FC = () => {
         };
 
         runFollowChecks();
-    }, [selectedUser, user?.id]);
+    }, [selectedUser, user]);
 
     useEffect(() => {
         const fetchVideos = async () => {
-            if (!selectedUser) return;
+            if (!selectedUser || !selectedUser.id || !user || !user.id) return;
 
             try {
 
@@ -257,7 +258,7 @@ const ProfilePage: React.FC = () => {
     }
 
     const getAvatarDisplay = (): string => {
-        return avatarBytesToUrl(selectedUser?.avatar) || '👤';
+        return selectedUser?.avatar ? avatarBytesToUrl(selectedUser.avatar) || defaultAvatar : defaultAvatar;
     };
 
     const formatJoinDate = (timestamp: string | undefined) => {
@@ -294,18 +295,24 @@ const ProfilePage: React.FC = () => {
                         width: 'clamp(100px, 20vw, 120px)',
                         height: 'clamp(100px, 20vw, 120px)',
                         borderRadius: '50%',
-                        background: selectedUser.avatar 
-                            ? `url(${avatarBytesToUrl(selectedUser.avatar)}) center/cover` 
-                            : 'linear-gradient(135deg, #ff0050, #ff6b35)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: selectedUser.avatar ? '0' : 'clamp(2rem, 5vw, 3rem)',
                         margin: '0 auto 1rem',
                         border: '3px solid transparent',
                         backgroundClip: 'padding-box',
                         position: 'relative'
                     }}>
+                        <img 
+                            src={getAvatarDisplay()} 
+                            alt={selectedUser.username}
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "50%",
+                                objectFit: "cover"
+                            }} 
+                        />
                         {!selectedUser.avatar && getAvatarDisplay()}
                         {selectedUser.isVerified && (
                             <div style={{
@@ -580,31 +587,7 @@ const ProfilePage: React.FC = () => {
                                     Edit Profile
                                 </button>
 
-                                {/* Playlists Button */}
-                                <button
-                                    style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        color: 'white',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                                        padding: 'clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px)',
-                                        borderRadius: '8px',
-                                        fontSize: 'clamp(0.9rem, 3vw, 1rem)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        minWidth: '100px',
-                                        flex: '1',
-                                        maxWidth: '150px'
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
-                                    }}
-                                    onClick={() => navigate("/playlist")} // Navigating to PlaylistPage
-                                >
-                                    Edit Playlists
-                                </button>
+                                {/* todo: settings page */}
                             </div>
                         )}
 

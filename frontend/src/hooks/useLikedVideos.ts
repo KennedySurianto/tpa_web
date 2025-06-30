@@ -9,6 +9,8 @@ export function useLikedVideos(userId: number) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!userId || Number.isNaN(userId)) return;
+
         const fetchLikedVideos = async () => {
             const currentUserId: number = Number(user?.id) ?? 0;
 
