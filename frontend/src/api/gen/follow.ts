@@ -12,6 +12,23 @@ import { User } from "./user";
 
 export const protobufPackage = "activity";
 
+export interface GetFriendsRequest {
+  /** The ID of the user for whom we are fetching the friends */
+  userId: string;
+  /** The current page number */
+  page: number;
+  /** The number of friends to return per page */
+  limit: number;
+}
+
+/** Define the message for the response */
+export interface GetFriendsResponse {
+  /** List of friends (User objects) */
+  users: User[];
+  /** Flag to indicate if more friends are available */
+  hasMore: boolean;
+}
+
 export interface FollowRequest {
   followerId: number;
   followedId: number;
@@ -34,6 +51,174 @@ export interface FollowList {
 
 export interface Empty {
 }
+
+function createBaseGetFriendsRequest(): GetFriendsRequest {
+  return { userId: "", page: 0, limit: 0 };
+}
+
+export const GetFriendsRequest: MessageFns<GetFriendsRequest> = {
+  encode(message: GetFriendsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    if (message.page !== 0) {
+      writer.uint32(16).int32(message.page);
+    }
+    if (message.limit !== 0) {
+      writer.uint32(24).int32(message.limit);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetFriendsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetFriendsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.page = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetFriendsRequest {
+    return {
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      page: isSet(object.page) ? globalThis.Number(object.page) : 0,
+      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
+    };
+  },
+
+  toJSON(message: GetFriendsRequest): unknown {
+    const obj: any = {};
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    if (message.page !== 0) {
+      obj.page = Math.round(message.page);
+    }
+    if (message.limit !== 0) {
+      obj.limit = Math.round(message.limit);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetFriendsRequest>, I>>(base?: I): GetFriendsRequest {
+    return GetFriendsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetFriendsRequest>, I>>(object: I): GetFriendsRequest {
+    const message = createBaseGetFriendsRequest();
+    message.userId = object.userId ?? "";
+    message.page = object.page ?? 0;
+    message.limit = object.limit ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetFriendsResponse(): GetFriendsResponse {
+  return { users: [], hasMore: false };
+}
+
+export const GetFriendsResponse: MessageFns<GetFriendsResponse> = {
+  encode(message: GetFriendsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.hasMore !== false) {
+      writer.uint32(16).bool(message.hasMore);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetFriendsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetFriendsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.hasMore = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetFriendsResponse {
+    return {
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      hasMore: isSet(object.hasMore) ? globalThis.Boolean(object.hasMore) : false,
+    };
+  },
+
+  toJSON(message: GetFriendsResponse): unknown {
+    const obj: any = {};
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
+    }
+    if (message.hasMore !== false) {
+      obj.hasMore = message.hasMore;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetFriendsResponse>, I>>(base?: I): GetFriendsResponse {
+    return GetFriendsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetFriendsResponse>, I>>(object: I): GetFriendsResponse {
+    const message = createBaseGetFriendsResponse();
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    message.hasMore = object.hasMore ?? false;
+    return message;
+  },
+};
 
 function createBaseFollowRequest(): FollowRequest {
   return { followerId: 0, followedId: 0 };
@@ -369,6 +554,7 @@ export interface FollowService {
   Unfollow(request: DeepPartial<FollowRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   GetFollowers(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList>;
   GetFollowing(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList>;
+  GetFriends(request: DeepPartial<GetFriendsRequest>, metadata?: grpc.Metadata): Promise<GetFriendsResponse>;
 }
 
 export class FollowServiceClientImpl implements FollowService {
@@ -380,6 +566,7 @@ export class FollowServiceClientImpl implements FollowService {
     this.Unfollow = this.Unfollow.bind(this);
     this.GetFollowers = this.GetFollowers.bind(this);
     this.GetFollowing = this.GetFollowing.bind(this);
+    this.GetFriends = this.GetFriends.bind(this);
   }
 
   Follow(request: DeepPartial<FollowRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -396,6 +583,10 @@ export class FollowServiceClientImpl implements FollowService {
 
   GetFollowing(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList> {
     return this.rpc.unary(FollowServiceGetFollowingDesc, UserRequest.fromPartial(request), metadata);
+  }
+
+  GetFriends(request: DeepPartial<GetFriendsRequest>, metadata?: grpc.Metadata): Promise<GetFriendsResponse> {
+    return this.rpc.unary(FollowServiceGetFriendsDesc, GetFriendsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -483,6 +674,29 @@ export const FollowServiceGetFollowingDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = FollowList.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const FollowServiceGetFriendsDesc: UnaryMethodDefinitionish = {
+  methodName: "GetFriends",
+  service: FollowServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetFriendsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetFriendsResponse.decode(data);
       return {
         ...value,
         toObject() {

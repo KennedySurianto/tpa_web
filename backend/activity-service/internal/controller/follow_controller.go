@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/KennedySurianto/tpa_web/backend/activity-service/internal/service"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
@@ -74,3 +75,29 @@ func (c *FollowController) GetFollowing(ctx context.Context, req *pb.UserRequest
 
 	return &pb.FollowList{Follows: items}, nil
 }
+
+func (c *FollowController) GetFriends(ctx context.Context, req *pb.GetFriendsRequest) (*pb.GetFriendsResponse, error) {
+	userIdUint64, err := strconv.ParseUint(req.UserId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	friends, hasMore, err := c.svc.GetFriends(uint(userIdUint64), req.Page, req.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*userpb.User
+	for _, f := range friends {
+		userResp, err := c.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(f.FollowerID)})
+		if err != nil {
+			continue // or handle error appropriately
+		}
+		users = append(users, userResp)
+	}
+
+	return &pb.GetFriendsResponse{
+		Users:   users,
+		HasMore: hasMore,
+	}, nil
+}
+

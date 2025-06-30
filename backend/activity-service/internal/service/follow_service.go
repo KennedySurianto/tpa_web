@@ -7,4 +7,5 @@ type FollowService interface {
 	UnfollowUser(followerID, followedID uint) error
 	GetFollowers(userID uint) ([]model.Follow, error)
 	GetFollowing(userID uint) ([]model.Follow, error)
+	GetFriends(userID uint, page int32, limit int32) ([]model.Follow, bool, error)
 }

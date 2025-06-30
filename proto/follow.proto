@@ -12,6 +12,19 @@ service FollowService {
     rpc Unfollow(FollowRequest) returns (Empty) {}
     rpc GetFollowers(UserRequest) returns (FollowList) {}
     rpc GetFollowing(UserRequest) returns (FollowList) {}
+    rpc GetFriends(GetFriendsRequest) returns (GetFriendsResponse);
+}
+
+message GetFriendsRequest {
+    string user_id = 1;   // The ID of the user for whom we are fetching the friends
+    int32 page = 2;       // The current page number
+    int32 limit = 3;      // The number of friends to return per page
+}
+
+// Define the message for the response
+message GetFriendsResponse {
+    repeated user.User users = 1;  // List of friends (User objects)
+    bool has_more = 2;        // Flag to indicate if more friends are available
 }
 
 message FollowRequest {

@@ -28,3 +28,7 @@ func (s *FollowServiceImpl) GetFollowers(userID uint) ([]model.Follow, error) {
 func (s *FollowServiceImpl) GetFollowing(userID uint) ([]model.Follow, error) {
 	return s.repo.GetFollowing(userID)
 }
+
+func (s *FollowServiceImpl) GetFriends(userID uint, page int32, limit int32) ([]model.Follow, bool, error) {
+    return s.repo.GetFriends(userID, page, limit)
+}

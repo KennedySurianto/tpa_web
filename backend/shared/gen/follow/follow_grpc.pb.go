@@ -23,6 +23,7 @@ const (
 	FollowService_Unfollow_FullMethodName     = "/activity.FollowService/Unfollow"
 	FollowService_GetFollowers_FullMethodName = "/activity.FollowService/GetFollowers"
 	FollowService_GetFollowing_FullMethodName = "/activity.FollowService/GetFollowing"
+	FollowService_GetFriends_FullMethodName   = "/activity.FollowService/GetFriends"
 )
 
 // FollowServiceClient is the client API for FollowService service.
@@ -33,6 +34,7 @@ type FollowServiceClient interface {
 	Unfollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetFollowers(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*FollowList, error)
 	GetFollowing(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*FollowList, error)
+	GetFriends(ctx context.Context, in *GetFriendsRequest, opts ...grpc.CallOption) (*GetFriendsResponse, error)
 }
 
 type followServiceClient struct {
@@ -83,6 +85,16 @@ func (c *followServiceClient) GetFollowing(ctx context.Context, in *UserRequest,
 	return out, nil
 }
 
+func (c *followServiceClient) GetFriends(ctx context.Context, in *GetFriendsRequest, opts ...grpc.CallOption) (*GetFriendsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFriendsResponse)
+	err := c.cc.Invoke(ctx, FollowService_GetFriends_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FollowServiceServer is the server API for FollowService service.
 // All implementations must embed UnimplementedFollowServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type FollowServiceServer interface {
 	Unfollow(context.Context, *FollowRequest) (*Empty, error)
 	GetFollowers(context.Context, *UserRequest) (*FollowList, error)
 	GetFollowing(context.Context, *UserRequest) (*FollowList, error)
+	GetFriends(context.Context, *GetFriendsRequest) (*GetFriendsResponse, error)
 	mustEmbedUnimplementedFollowServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedFollowServiceServer) GetFollowers(context.Context, *UserReque
 }
 func (UnimplementedFollowServiceServer) GetFollowing(context.Context, *UserRequest) (*FollowList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFollowing not implemented")
+}
+func (UnimplementedFollowServiceServer) GetFriends(context.Context, *GetFriendsRequest) (*GetFriendsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFriends not implemented")
 }
 func (UnimplementedFollowServiceServer) mustEmbedUnimplementedFollowServiceServer() {}
 func (UnimplementedFollowServiceServer) testEmbeddedByValue()                       {}
@@ -206,6 +222,24 @@ func _FollowService_GetFollowing_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FollowService_GetFriends_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFriendsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FollowServiceServer).GetFriends(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FollowService_GetFriends_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FollowServiceServer).GetFriends(ctx, req.(*GetFriendsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FollowService_ServiceDesc is the grpc.ServiceDesc for FollowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var FollowService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFollowing",
 			Handler:    _FollowService_GetFollowing_Handler,
+		},
+		{
+			MethodName: "GetFriends",
+			Handler:    _FollowService_GetFriends_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

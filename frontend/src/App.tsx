@@ -46,6 +46,7 @@ const App = () => {
                 <Route path="/upload" element={<UploadVideoPage />} />
                 <Route path="/edit-profile" element={<EditProfilePage />} />
                 <Route path="/:receiverUsername/message" element={<ChatLayout />} />
+                <Route path="/messages" element={<ChatLayout />} />
                 <Route path="/live" element={<LivePage />} />
                 <Route path="/live/:remoteUsername" element={<LiveViewerPage />} />
                 <Route path="/friends" element={<FriendPage />} />

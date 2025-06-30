@@ -227,6 +227,14 @@ export default function ChatPage() {
         );
     }
 
+    if (!receiverUsername || !receiver) {
+        return (
+            <div style={{ textAlign: "center", marginTop: 50 }}>
+                <h2>Select a friend to start a converstation with</h2>
+            </div>
+        )
+    }
+
     return (
     <>
         <ChatWebSocket
