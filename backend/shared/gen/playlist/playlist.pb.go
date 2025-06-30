@@ -129,6 +129,7 @@ func (x *CreatePlaylistResponse) GetPlaylistId() uint64 {
 type GetPlaylistRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CurrentUserId uint64                 `protobuf:"varint,2,opt,name=current_user_id,json=currentUserId,proto3" json:"current_user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -166,6 +167,13 @@ func (*GetPlaylistRequest) Descriptor() ([]byte, []int) {
 func (x *GetPlaylistRequest) GetId() uint64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *GetPlaylistRequest) GetCurrentUserId() uint64 {
+	if x != nil {
+		return x.CurrentUserId
 	}
 	return 0
 }
@@ -778,9 +786,10 @@ const file_playlist_proto_rawDesc = "" +
 	"\tvideo_ids\x18\x03 \x03(\x04R\bvideoIds\"9\n" +
 	"\x16CreatePlaylistResponse\x12\x1f\n" +
 	"\vplaylist_id\x18\x01 \x01(\x04R\n" +
-	"playlistId\"$\n" +
+	"playlistId\"L\n" +
 	"\x12GetPlaylistRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\"J\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12&\n" +
+	"\x0fcurrent_user_id\x18\x02 \x01(\x04R\rcurrentUserId\"J\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +

@@ -1,7 +1,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useAuth } from "../../utils/AuthProvider"
-import type { CreatePlaylistRequest, CreatePlaylistResponse, GetPlaylistByUserIdResponse, Playlist, UpdatePlaylistRequest, UpdatePlaylistResponse, Video } from "../../api/gen/playlist"
+import type { CreatePlaylistRequest, CreatePlaylistResponse, GetPlaylistByUserIdResponse, GetPlaylistRequest, Playlist, UpdatePlaylistRequest, UpdatePlaylistResponse, Video } from "../../api/gen/playlist"
 import { playlistClient } from "../../api/grpc/playlistClient"
 import { videoClient } from "../../api/grpc/videoClient"
 import { useNavigate } from "react-router-dom"
@@ -27,8 +27,13 @@ const PlaylistPage: React.FC = () => {
         const fetchData = async () => {
             if (!user?.id) return;
 
+            const req: GetPlaylistRequest = {
+                id: user?.id.toString(),
+                currentUserId: user?.id.toString(),
+            };
+
             try {
-                const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId({ id: user?.id.toString() });
+                const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req);
                 setPlaylists(res.playlists);
                 console.log("fetched playlists: ", res.playlists);
             } catch (error) {

@@ -47,8 +47,8 @@ func (s *playlistServiceImpl) GetByUserId(userId uint) ([]*model.Playlist, error
 	return s.repo.GetByUserId(userId)
 }
 
-func (s *playlistServiceImpl) GetVideoById(ctx context.Context, videoId uint32) (*videopb.Video, error) {
-	videoResp, err := s.videoClient.GetVideo(ctx, &videopb.GetVideoRequest{Id: videoId})
+func (s *playlistServiceImpl) GetVideoById(ctx context.Context, videoId, currentUserId uint64) (*videopb.Video, error) {
+	videoResp, err := s.videoClient.GetVideo(ctx, &videopb.GetVideoRequest{VideoId: videoId, CurrentUserId: currentUserId})
 	if err != nil {
 		return nil, err
 	}

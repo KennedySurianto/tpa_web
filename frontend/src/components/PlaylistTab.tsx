@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import type { Playlist } from '../api/gen/playlist';
+import type { GetPlaylistRequest, Playlist } from '../api/gen/playlist';
 import { avatarBytesToUrl } from '../utils/avatarConverter';
 import { playlistClient } from '../api/grpc/playlistClient';
 import { GetPlaylistByUserIdResponse } from '../api/gen/playlist';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../utils/AuthProvider';
 
 interface PlaylistTabProps {
     userId: string;
@@ -11,18 +12,24 @@ interface PlaylistTabProps {
 }
 
 const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
+    const { user } = useAuth();
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPlaylists = async () => {
-        try {
-            const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId({ id: userId });
-            setPlaylists(res.playlists);
-            console.log('fetched playlists: ', res.playlists);
-        } catch (error) {
-            console.error('Failed to fetch playlists:', error);
-        }
+            const req: GetPlaylistRequest = {
+                id: userId,
+                currentUserId: user?.id?.toString() ?? "0",
+            }
+
+            try {
+                const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req);
+                setPlaylists(res.playlists);
+                console.log('fetched playlists: ', res.playlists);
+            } catch (error) {
+                console.error('Failed to fetch playlists:', error);
+            }
         };
 
         fetchPlaylists();

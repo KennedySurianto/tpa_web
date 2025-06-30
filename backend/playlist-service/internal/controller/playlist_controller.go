@@ -47,7 +47,7 @@ func (c *PlaylistController) GetPlaylist(ctx context.Context, req *pb.GetPlaylis
 	var videoDetails []*pb.Video
 	for _, videoID := range p.VideoIDs {
 		// Fetch video details by ID using the service method
-		videoResp, err := c.svc.GetVideoById(ctx, uint32(videoID))
+		videoResp, err := c.svc.GetVideoById(ctx, uint64(videoID), req.CurrentUserId)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +146,7 @@ func (c *PlaylistController) GetPlaylistsByUserId(ctx context.Context, req *pb.G
 			// Debug: Fetching video details for the current video ID
 			fmt.Printf("Debug: Fetching video details for VideoID: %d\n", videoID)
 
-			videoResp, err := c.svc.GetVideoById(ctx, uint32(videoID)) // Reuse the GetVideoById method
+			videoResp, err := c.svc.GetVideoById(ctx, uint64(videoID), req.CurrentUserId) // Reuse the GetVideoById method
 			if err != nil {
 				// Debug: Error fetching video details
 				fmt.Printf("Debug: Error fetching video details for VideoID %d: %v\n", videoID, err)

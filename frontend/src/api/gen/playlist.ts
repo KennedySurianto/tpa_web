@@ -24,6 +24,7 @@ export interface CreatePlaylistResponse {
 
 export interface GetPlaylistRequest {
   id: string;
+  currentUserId: string;
 }
 
 export interface User {
@@ -262,13 +263,16 @@ export const CreatePlaylistResponse: MessageFns<CreatePlaylistResponse> = {
 };
 
 function createBaseGetPlaylistRequest(): GetPlaylistRequest {
-  return { id: "0" };
+  return { id: "0", currentUserId: "0" };
 }
 
 export const GetPlaylistRequest: MessageFns<GetPlaylistRequest> = {
   encode(message: GetPlaylistRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== "0") {
       writer.uint32(8).uint64(message.id);
+    }
+    if (message.currentUserId !== "0") {
+      writer.uint32(16).uint64(message.currentUserId);
     }
     return writer;
   },
@@ -288,6 +292,14 @@ export const GetPlaylistRequest: MessageFns<GetPlaylistRequest> = {
           message.id = reader.uint64().toString();
           continue;
         }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.currentUserId = reader.uint64().toString();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -298,13 +310,19 @@ export const GetPlaylistRequest: MessageFns<GetPlaylistRequest> = {
   },
 
   fromJSON(object: any): GetPlaylistRequest {
-    return { id: isSet(object.id) ? globalThis.String(object.id) : "0" };
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
+      currentUserId: isSet(object.currentUserId) ? globalThis.String(object.currentUserId) : "0",
+    };
   },
 
   toJSON(message: GetPlaylistRequest): unknown {
     const obj: any = {};
     if (message.id !== "0") {
       obj.id = message.id;
+    }
+    if (message.currentUserId !== "0") {
+      obj.currentUserId = message.currentUserId;
     }
     return obj;
   },
@@ -315,6 +333,7 @@ export const GetPlaylistRequest: MessageFns<GetPlaylistRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetPlaylistRequest>, I>>(object: I): GetPlaylistRequest {
     const message = createBaseGetPlaylistRequest();
     message.id = object.id ?? "0";
+    message.currentUserId = object.currentUserId ?? "0";
     return message;
   },
 };

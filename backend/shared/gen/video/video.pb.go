@@ -478,7 +478,8 @@ func (x *CreateVideoResponse) GetVideo() *Video {
 
 type GetVideoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	VideoId       uint64                 `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	CurrentUserId uint64                 `protobuf:"varint,2,opt,name=current_user_id,json=currentUserId,proto3" json:"current_user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -513,9 +514,16 @@ func (*GetVideoRequest) Descriptor() ([]byte, []int) {
 	return file_video_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetVideoRequest) GetId() uint32 {
+func (x *GetVideoRequest) GetVideoId() uint64 {
 	if x != nil {
-		return x.Id
+		return x.VideoId
+	}
+	return 0
+}
+
+func (x *GetVideoRequest) GetCurrentUserId() uint64 {
+	if x != nil {
+		return x.CurrentUserId
 	}
 	return 0
 }
@@ -1268,9 +1276,10 @@ const file_video_proto_rawDesc = "" +
 	"\f_descriptionB\v\n" +
 	"\t_sound_id\"9\n" +
 	"\x13CreateVideoResponse\x12\"\n" +
-	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"!\n" +
-	"\x0fGetVideoRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\"6\n" +
+	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"T\n" +
+	"\x0fGetVideoRequest\x12\x19\n" +
+	"\bvideo_id\x18\x01 \x01(\x04R\avideoId\x12&\n" +
+	"\x0fcurrent_user_id\x18\x02 \x01(\x04R\rcurrentUserId\"6\n" +
 	"\x10GetVideoResponse\x12\"\n" +
 	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xd6\x02\n" +
 	"\x12UpdateVideoRequest\x12\x0e\n" +

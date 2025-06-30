@@ -13,6 +13,6 @@ type PlaylistService interface {
 	Get(id uint) (*model.Playlist, error)
 	Delete(id uint) error
 	GetByUserId(userId uint) ([]*model.Playlist, error)
-	GetVideoById(ctx context.Context, videoId uint32) (*videopb.Video, error)
+	GetVideoById(ctx context.Context, videoId, currentUserId uint64) (*videopb.Video, error)
 	UpdatePlaylist(req *pb.UpdatePlaylistRequest) (uint64, error)
 }

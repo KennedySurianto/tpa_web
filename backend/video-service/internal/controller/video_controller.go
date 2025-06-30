@@ -119,13 +119,13 @@ func (vc *VideoController) GetCaptions(ctx context.Context, req *pb.GetCaptionsR
 }
 
 func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest) (*pb.GetVideoResponse, error) {
-	video, err := s.videoService.GetVideoByID(uint(req.Id))
+	video, err := s.videoService.GetVideoByID(uint(req.VideoId))
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.GetVideoResponse{
-		Video: s.modelToProto(ctx, video, 0),
+		Video: s.modelToProto(ctx, video, req.CurrentUserId),
 	}, nil
 }
 

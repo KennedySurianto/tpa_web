@@ -69,7 +69,8 @@ message CreateVideoResponse {
 }
 
 message GetVideoRequest {
-  uint32 id = 1;
+  uint64 video_id = 1;
+  uint64 current_user_id = 2;
 }
 
 message GetVideoResponse {

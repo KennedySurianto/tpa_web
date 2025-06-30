@@ -19,6 +19,7 @@ import PlaylistPage from './pages/profile/PlaylistPage'
 import SearchPage from './pages/search/SearchPage'
 import { NotificationProvider } from './context/NotificationContext'
 import ChatLayout from './pages/chat/ChatLayout'
+import VideoPage from './pages/video/VideoPage'
 
 const App = () => {
   return (
@@ -52,6 +53,7 @@ const App = () => {
                 <Route path="/friends" element={<FriendPage />} />
                 <Route path="/following" element={<FollowingPage />} />
                 <Route path="/playlist" element={<PlaylistPage />} />
+                <Route path="/video/:videoId" element={<VideoPage />} />
 
               </Route>
             </Route>

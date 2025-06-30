@@ -73,7 +73,8 @@ export interface CreateVideoResponse {
 }
 
 export interface GetVideoRequest {
-  id: number;
+  videoId: string;
+  currentUserId: string;
 }
 
 export interface GetVideoResponse {
@@ -972,13 +973,16 @@ export const CreateVideoResponse: MessageFns<CreateVideoResponse> = {
 };
 
 function createBaseGetVideoRequest(): GetVideoRequest {
-  return { id: 0 };
+  return { videoId: "0", currentUserId: "0" };
 }
 
 export const GetVideoRequest: MessageFns<GetVideoRequest> = {
   encode(message: GetVideoRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint32(message.id);
+    if (message.videoId !== "0") {
+      writer.uint32(8).uint64(message.videoId);
+    }
+    if (message.currentUserId !== "0") {
+      writer.uint32(16).uint64(message.currentUserId);
     }
     return writer;
   },
@@ -995,7 +999,15 @@ export const GetVideoRequest: MessageFns<GetVideoRequest> = {
             break;
           }
 
-          message.id = reader.uint32();
+          message.videoId = reader.uint64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.currentUserId = reader.uint64().toString();
           continue;
         }
       }
@@ -1008,13 +1020,19 @@ export const GetVideoRequest: MessageFns<GetVideoRequest> = {
   },
 
   fromJSON(object: any): GetVideoRequest {
-    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+    return {
+      videoId: isSet(object.videoId) ? globalThis.String(object.videoId) : "0",
+      currentUserId: isSet(object.currentUserId) ? globalThis.String(object.currentUserId) : "0",
+    };
   },
 
   toJSON(message: GetVideoRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.videoId !== "0") {
+      obj.videoId = message.videoId;
+    }
+    if (message.currentUserId !== "0") {
+      obj.currentUserId = message.currentUserId;
     }
     return obj;
   },
@@ -1024,7 +1042,8 @@ export const GetVideoRequest: MessageFns<GetVideoRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetVideoRequest>, I>>(object: I): GetVideoRequest {
     const message = createBaseGetVideoRequest();
-    message.id = object.id ?? 0;
+    message.videoId = object.videoId ?? "0";
+    message.currentUserId = object.currentUserId ?? "0";
     return message;
   },
 };
