@@ -1,33 +1,35 @@
-import React from "react";
-import NavigationBar from "../ui/NavigationBar";
-import { Outlet } from "react-router-dom";
+import type React from "react"
+import NavigationBar from "../ui/NavigationBar"
+import { Outlet } from "react-router-dom"
 
 const Layout: React.FC = () => {
-    return (
-        <div className="d-flex"
-            style={{
-                minHeight: '100vh',
-                backgroundColor: '#f8f9fa',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
-                overflow: 'hidden'
-            }}>
-            
-            {/* Sidebar Component - Takes up its own space */}
-            <NavigationBar />
-            
-            {/* Main content area - Fills remaining space */}
-            <div className="flex-grow-1 d-flex flex-column"
-                style={{
-                    minHeight: '100vh',
-                    overflow: 'auto'
-                }}>
+  return (
+    <div className="layout-container">
+      {/* Sidebar Component - Takes up its own space */}
+      <NavigationBar />
+
+      {/* Main content area - Fills remaining space */}
+      <div className="main-content-area">
+        <Outlet />
+      </div>
+
+      <style>{`
+                .layout-container {
+                    display: flex;
+                    min-height: 100vh;
+                    background-color: #f8f9fa;
+                    overflow: hidden;
+                }
                 
-                <Outlet />
+                .main-content-area {
+                    flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100vh;
+                    overflow: auto;
+                }
                 
-            </div>
-            
-            {/* Responsive adjustments */}
-            <style>{`
+                /* Responsive adjustments */
                 @media (max-width: 767.98px) {
                     .layout-container {
                         flex-direction: column !important;
@@ -50,9 +52,8 @@ const Layout: React.FC = () => {
                     }
                 }
             `}</style>
-            
-        </div>
-    );
-};
+    </div>
+  )
+}
 
-export default Layout;
+export default Layout

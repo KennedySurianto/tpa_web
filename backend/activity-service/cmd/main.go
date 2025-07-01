@@ -23,6 +23,7 @@ import (
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 )
 
 func main() {
@@ -59,8 +60,14 @@ func main() {
 	commentCtrl := controller.NewCommentController(commentSvc, userClient, *likeCommentCtrl)
 	followCtrl := controller.NewFollowController(followSvc, userClient)
 	
-	// Register gRPC server
-	grpcServer := grpc.NewServer()
+	// Create middleware and gRPC server
+	pasetoMaker, err := middleware.NewPasetoMaker()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	interceptor := middleware.UnaryAuthInterceptor(pasetoMaker)
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor))
+
 	commentpb.RegisterCommentServiceServer(grpcServer, commentCtrl)
 	likepb.RegisterLikeServiceServer(grpcServer, likeCtrl)
 	watchpb.RegisterWatchServiceServer(grpcServer, watchCtrl)

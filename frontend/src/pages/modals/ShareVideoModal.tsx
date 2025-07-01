@@ -1,28 +1,115 @@
 import type React from "react"
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useNotification } from "../../context/NotificationContext"
+import type { User } from "../../api/gen/user"
+import { useAuth } from "../../utils/AuthProvider"
+import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow"
+import { followClient } from "../../api/grpc/followClient"
+import { avatarBytesToUrl } from "../../utils/avatarConverter"
+import defaultAvatar from "../../assets/default.jpg"
 
 interface ShareVideoModalProps {
-    isOpen: boolean
-    onClose: () => void
-    videoUrl: string
-    downloadUrl: string
-    caption: string
+  isOpen: boolean
+  onClose: () => void
+  videoUrl: string
+  downloadUrl: string
+  caption: string
 }
 
-const dummyFriends = [
-    { id: "f1", name: "Alice Johnson", avatar: "AJ" },
-    { id: "f2", name: "Bob Smith", avatar: "BS" },
-    { id: "f3", name: "Charlie Brown", avatar: "CB" },
-    { id: "f4", name: "Diana Prince", avatar: "DP" },
-    { id: "f5", name: "Ethan Hunt", avatar: "EH" },
-]
-
 const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, videoUrl, downloadUrl, caption }) => {
+  const { user, getAuthMetadata } = useAuth()
   const { showNotification } = useNotification()
 
+  const [friends, setFriends] = useState<User[]>([])
   const [selectedFriends, setSelectedFriends] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const [limit] = useState(10)
+  
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setFriends([])
+      setSelectedFriends([])
+      setCopied(false)
+      setPage(1)
+      setHasMore(true)
+      fetchInitialFriends()
+    }
+  }, [isOpen])
+
+  // Initial fetch
+  const fetchInitialFriends = async () => {
+    if (!user || !user.id) return
+
+    setLoading(true)
+    const req: GetFriendsRequest = {
+      userId: user.id,
+      page: 1,
+      limit: limit,
+    }
+
+    try {
+      const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+      if (res) {
+        setFriends(res.users)
+        setHasMore(res.hasMore)
+        setPage(2) // Set to 2 for next fetch
+      }
+    } catch (err) {
+      console.error("Failed to fetch friends:", err)
+      showNotification("Failed to load friends", "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch more friends function
+  const fetchMoreFriends = useCallback(
+    async (pageToFetch: number) => {
+      if (!user || !user.id) return
+
+      setLoadingMore(true)
+      const req: GetFriendsRequest = {
+        userId: user.id,
+        page: pageToFetch,
+        limit: limit,
+      }
+
+      try {
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+        if (res) {
+          setFriends((prev) => [...prev, ...res.users])
+          setHasMore(res.hasMore)
+        }
+      } catch (err) {
+        console.error("Failed to fetch more friends:", err)
+        showNotification("Failed to load more friends", "error")
+      } finally {
+        setLoadingMore(false)
+      }
+    },
+    [user, limit, getAuthMetadata],
+  )
+
+  // Handle scroll for infinite loading
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
+      const target = e.target as HTMLDivElement
+      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1
+
+      if (bottom && hasMore && !loadingMore) {
+        console.log("Reached the bottom, fetching more friends...")
+        const nextPage = page
+        setPage((prev) => prev + 1)
+        fetchMoreFriends(nextPage)
+      }
+    },
+    [hasMore, loadingMore, page, fetchMoreFriends],
+  )
 
   const toggleFriend = (id: string) => {
     setSelectedFriends((prev) => (prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]))
@@ -45,35 +132,41 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
       return
     }
 
-    const names = selectedFriends.map((id) => dummyFriends.find((f) => f.id === id)?.name).join(", ")
+    const names = selectedFriends
+      .map((id) => friends.find((f) => f.id === id)?.username)
+      .filter(Boolean)
+      .join(", ")
+
     showNotification(`Video shared with: ${names}`, "success")
     setTimeout(() => onClose(), 1500)
   }
 
-    const downloadVideo = async () => {
-        try {
-            const response = await fetch(downloadUrl);
-            if (!response.ok) throw new Error('Network response was not ok');
+  const downloadVideo = async () => {
+    try {
+      const response = await fetch(downloadUrl)
+      if (!response.ok) throw new Error("Network response was not ok")
 
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const sanitizedCaption = caption
+        .trim()
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase()
+      const filename = sanitizedCaption ? `${sanitizedCaption}.mp4` : "video.mp4"
 
-            const sanitizedCaption = caption.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const filename = sanitizedCaption ? `${sanitizedCaption}.mp4` : 'video.mp4';
+      const link = document.createElement("a")
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
 
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            showNotification(`Video "${filename}" download started`, "success");
-        } catch (err) {
-            showNotification("Download failed", "error");
-        }
-    };
+      showNotification(`Video "${filename}" download started`, "success")
+    } catch (err) {
+      showNotification("Download failed", "error")
+    }
+  }
 
   if (!isOpen) return null
 
@@ -114,38 +207,95 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
                 <label className="section-label">Share with friends ({selectedFriends.length} selected)</label>
               </div>
 
-              <div className="friends-list">
-                {dummyFriends.map((friend) => (
-                  <div
-                    key={friend.id}
-                    className={`friend-item ${selectedFriends.includes(friend.id) ? "selected" : ""}`}
-                    onClick={() => toggleFriend(friend.id)}
-                  >
-                    <div className="checkbox-container">
-                      <input
-                        type="checkbox"
-                        checked={selectedFriends.includes(friend.id)}
-                        onChange={() => toggleFriend(friend.id)}
-                        className="friend-checkbox"
-                      />
-                      <div className="checkbox-custom">
-                        {selectedFriends.includes(friend.id) && (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                            <path
-                              d="M20 6L9 17l-5-5"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
+              <div className="friends-list" onScroll={handleScroll}>
+                {loading ? (
+                  <div className="loading-container">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="friend-skeleton">
+                        <div className="skeleton-avatar"></div>
+                        <div className="skeleton-content">
+                          <div className="skeleton-name"></div>
+                          <div className="skeleton-username"></div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="friend-avatar">{friend.avatar}</div>
-                    <span className="friend-name">{friend.name}</span>
+                    ))}
                   </div>
-                ))}
+                ) : friends.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" />
+                        <path
+                          d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <p className="empty-text">No friends found</p>
+                  </div>
+                ) : (
+                  <>
+                    {friends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className={`friend-item ${selectedFriends.includes(friend.id) ? "selected" : ""}`}
+                        onClick={() => toggleFriend(friend.id)}
+                      >
+                        <div className="checkbox-container">
+                          <input
+                            type="checkbox"
+                            checked={selectedFriends.includes(friend.id)}
+                            onChange={() => toggleFriend(friend.id)}
+                            className="friend-checkbox"
+                          />
+                          <div className="checkbox-custom">
+                            {selectedFriends.includes(friend.id) && (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M20 6L9 17l-5-5"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="friend-avatar">
+                          <img
+                            src={friend.avatar ? avatarBytesToUrl(friend.avatar) || defaultAvatar : defaultAvatar}
+                            alt={friend.username}
+                            className="avatar-image"
+                          />
+                        </div>
+
+                        <div className="friend-info">
+                          <span className="friend-name">{friend.displayName || friend.username}</span>
+                          <span className="friend-username">@{friend.username}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {loadingMore && (
+                      <div className="loading-more">
+                        <div className="loading-spinner"></div>
+                        <span>Loading more friends...</span>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               <button
@@ -237,12 +387,11 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.75);
+          background: rgba(0, 0, 0, 0.85);
           display: flex;
           justify-content: center;
           align-items: center;
-          z-index: 1000;
-          backdrop-filter: blur(4px);
+          z-index: 99999;
           animation: fadeIn 0.2s ease-out;
         }
 
@@ -350,6 +499,68 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
           border-radius: 3px;
         }
 
+        .friends-list::-webkit-scrollbar-thumb:hover {
+          background: #6b7280;
+        }
+
+        .loading-container {
+          padding: 8px 0;
+        }
+
+        .friend-skeleton {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #374151;
+        }
+
+        .skeleton-content {
+          flex: 1;
+        }
+
+        .skeleton-name {
+          height: 14px;
+          background: #374151;
+          border-radius: 4px;
+          margin-bottom: 6px;
+          width: 60%;
+        }
+
+        .skeleton-username {
+          height: 12px;
+          background: #374151;
+          border-radius: 4px;
+          width: 40%;
+        }
+
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+          text-align: center;
+        }
+
+        .empty-icon {
+          color: #6b7280;
+          margin-bottom: 12px;
+        }
+
+        .empty-text {
+          color: #9ca3af;
+          font-size: 14px;
+          margin: 0;
+        }
+
         .friend-item {
           display: flex;
           align-items: center;
@@ -409,19 +620,57 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #ffffff;
-          font-size: 12px;
-          font-weight: 600;
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+
+        .avatar-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .friend-info {
+          flex: 1;
+          min-width: 0;
         }
 
         .friend-name {
+          display: block;
           color: #ffffff;
           font-size: 14px;
-          flex: 1;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .friend-username {
+          display: block;
+          color: #9ca3af;
+          font-size: 12px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .loading-more {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 16px;
+          color: #9ca3af;
+          font-size: 14px;
+        }
+
+        .loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid #374151;
+          border-top: 2px solid #3b82f6;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
         }
 
         .section {
@@ -498,21 +747,6 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
           border: none;
         }
 
-        .action-button.primary {
-          background: #3b82f6;
-          color: #ffffff;
-        }
-
-        .action-button.primary:hover:not(.disabled) {
-          background: #2563eb;
-        }
-
-        .action-button.primary.disabled {
-          background: #374151;
-          color: #6b7280;
-          cursor: not-allowed;
-        }
-
         .action-button.secondary {
           background: #374151;
           color: #ffffff;
@@ -521,56 +755,6 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
 
         .action-button.secondary:hover {
           background: #4b5563;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-          from { 
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .modal-container {
-            max-width: calc(100vw - 32px);
-            max-height: calc(100vh - 32px);
-            flex-direction: column;
-          }
-
-          .modal-body {
-            flex-direction: column;
-          }
-
-          .friends-section {
-            border-right: none;
-            border-bottom: 1px solid #374151;
-            flex: 0 0 auto;
-            max-height: 200px;
-          }
-
-          .actions-section {
-            flex: 0 0 auto;
-          }
         }
 
         .share-button {
@@ -599,6 +783,59 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
           background: #374151;
           color: #6b7280;
           cursor: not-allowed;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+          from { 
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95) translateZ(0);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0) scale(1) translateZ(0);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+          .modal-container {
+            max-width: calc(100vw - 32px);
+            max-height: calc(100vh - 32px);
+            flex-direction: column;
+          }
+
+          .modal-body {
+            flex-direction: column;
+          }
+
+          .friends-section {
+            border-right: none;
+            border-bottom: 1px solid #374151;
+            flex: 0 0 auto;
+            max-height: 200px;
+          }
+
+          .actions-section {
+            flex: 0 0 auto;
+          }
         }
       `}</style>
     </>

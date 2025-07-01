@@ -9,6 +9,9 @@ COPY auth-service/go.mod auth-service/go.sum ./auth-service/
 # Copy shared package
 COPY shared ./shared
 
+# Copy middleware package
+COPY middleware ./middleware
+
 # Copy the rest of the service code
 COPY auth-service ./auth-service
 

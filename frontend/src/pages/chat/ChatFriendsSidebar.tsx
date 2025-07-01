@@ -1,7 +1,7 @@
 import type React from "react"
-
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { Search, X, MessageCircle, Users, Clock, Loader2 } from "lucide-react"
 import type { User } from "../../api/gen/user"
 import { useAuth } from "../../utils/AuthProvider"
 import { avatarBytesToUrl } from "../../utils/avatarConverter"
@@ -11,517 +11,652 @@ import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow
 import { followClient } from "../../api/grpc/followClient"
 
 export default function ChatFriendsSidebar() {
-    const { user } = useAuth()
-    const [friends, setFriends] = useState<User[]>([])
-    const [loading, setLoading] = useState(true)
-    const [loadingMore, setLoadingMore] = useState(false)
-    const [searchQuery, setSearchQuery] = useState("")
-    const navigate = useNavigate()
-    const [hasMore, setHasMore] = useState(true)
-    const [page, setPage] = useState(1)
-    const [limit] = useState(10)
+  const { user } = useAuth()
+  const [friends, setFriends] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const navigate = useNavigate()
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const [limit] = useState(10)
 
-    // Initial fetch
-    useEffect(() => {
-        const fetchInitialFriends = async () => {
-        if (!user || !user.id) return
+  // Initial fetch
+  useEffect(() => {
+    const fetchInitialFriends = async () => {
+      if (!user || !user.id) return
 
-        setLoading(true)
-        const req: GetFriendsRequest = {
-            userId: user.id,
-            page: 1, // Always start with page 1
-            limit: limit,
+      setLoading(true)
+      const req: GetFriendsRequest = {
+        userId: user.id,
+        page: 1, // Always start with page 1
+        limit: limit,
+      }
+
+      try {
+        const res: GetFriendsResponse = await followClient.GetFriends(req)
+
+        if (res) {
+          setFriends(res.users)
+          setHasMore(res.hasMore)
+          setPage(2) // Set to 2 for next fetch
         }
+      } catch (err) {
+        console.error("Failed to fetch friends:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-        try {
-            // Dummy data for initial load
-            // const dummyFriends: User[] = [...Array(10)].map((_, i) => ({
-            //     id: (i + 1).toString(),
-            //     username: `Friend${i + 1}`,
-            //     email: `friend${i + 1}@example.com`,
-            //     password: "hashedpassword",
-            //     displayName: `Friend ${i + 1}`,
-            //     bio: `This is the bio for Friend ${i + 1}`,
-            //     avatar: new Uint8Array([i, i + 1, i + 2]),
-            //     isVerified: true,
-            //     isPrivate: false,
-            //     isActive: true,
-            //     lastLoginAt: `${Date.now() - i * 100000}`,
-            //     country: "USA",
-            //     allowDuet: true,
-            //     allowStitch: true,
-            //     allowDownload: true,
-            //     allowComments: true,
-            //     createdAt: `${Date.now() - i * 1000000}`,
-            //     updatedAt: `${Date.now() - i * 1000000}`,
-            // }))
-            
-            const res: GetFriendsResponse = await followClient.GetFriends(req);
-            if (res) {
-                setFriends(res.users)
-                setHasMore(res.hasMore)
-                setPage(2) // Set to 2 for next fetch
-            }
-        } catch (err) {
-            console.error("Failed to fetch friends:", err)
-        } finally {
-            setLoading(false)
+    fetchInitialFriends()
+  }, [user, limit])
+
+  // Fetch more friends function
+  const fetchMoreFriends = useCallback(
+    async (pageToFetch: number) => {
+      if (!user || !user.id) return
+
+      setLoadingMore(true)
+      const req: GetFriendsRequest = {
+        userId: user.id,
+        page: pageToFetch,
+        limit: limit,
+      }
+
+      try {
+        const res: GetFriendsResponse = await followClient.GetFriends(req)
+
+        if (res) {
+          setFriends((prev) => [...prev, ...res.users])
+          setHasMore(res.hasMore)
         }
-        }
+      } catch (err) {
+        console.error("Failed to fetch more friends:", err)
+      } finally {
+        setLoadingMore(false)
+      }
+    },
+    [user, limit],
+  )
 
-        fetchInitialFriends()
-    }, [user, limit])
+  const handleSearch = useCallback(
+    debounce((query: string) => setSearchQuery(query), 300),
+    [],
+  )
 
-    // Fetch more friends function
-    const fetchMoreFriends = useCallback(
-        async (pageToFetch: number) => {
-        if (!user || !user.id) return
+  const filteredFriends = friends.filter(
+    (friend) =>
+      friend.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      friend.displayName?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
-        setLoadingMore(true)
-        const req: GetFriendsRequest = {
-            userId: user.id,
-            page: pageToFetch,
-            limit: limit,
-        }
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
+      const target = e.target as HTMLDivElement
+      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1
 
-        try {
-            // Simulate fetching more data with different IDs
-            // const startId = (pageToFetch - 1) * 10 + 1
-            // const dummyFriends: User[] = [...Array(10)].map((_, i) => ({
-            // id: (startId + i).toString(),
-            // username: `Friend${startId + i}`,
-            // email: `friend${startId + i}@example.com`,
-            // password: "hashedpassword",
-            // displayName: `Friend ${startId + i}`,
-            // bio: `This is the bio for Friend ${startId + i}`,
-            // avatar: new Uint8Array([i, i + 1, i + 2]),
-            // isVerified: true,
-            // isPrivate: false,
-            // isActive: true,
-            // lastLoginAt: `${Date.now() - i * 100000}`,
-            // country: "USA",
-            // allowDuet: true,
-            // allowStitch: true,
-            // allowDownload: true,
-            // allowComments: true,
-            // createdAt: `${Date.now() - i * 1000000}`,
-            // updatedAt: `${Date.now() - i * 1000000}`,
-            // }))
+      if (bottom && hasMore && !loadingMore && !searchQuery) {
+        console.log("Reached the bottom, fetching more...")
+        const nextPage = page
+        setPage((prev) => prev + 1)
+        fetchMoreFriends(nextPage)
+      }
+    },
+    [hasMore, loadingMore, page, fetchMoreFriends, searchQuery],
+  )
 
-            const res: GetFriendsResponse = await followClient.GetFriends(req);
-            if (res) {
-                setFriends((prev) => [...prev, ...res.users])
-                setHasMore(res.hasMore)
-            }
-        } catch (err) {
-            console.error("Failed to fetch more friends:", err)
-        } finally {
-            setLoadingMore(false)
-        }
-        },
-        [user, limit],
-    )
+  const clearSearch = () => {
+    setSearchQuery("")
+    const searchInput = document.querySelector(".search-input") as HTMLInputElement
+    if (searchInput) {
+      searchInput.value = ""
+    }
+  }
 
-    const handleSearch = useCallback(
-        debounce((query: string) => setSearchQuery(query), 300),
-        [],
-    )
+  const getTimeAgo = (timestamp?: string) => {
+    if (!timestamp) return "2m"
 
-    const filteredFriends = friends.filter((friend) => friend.username.toLowerCase().includes(searchQuery.toLowerCase()))
+    const now = Date.now()
+    const time = new Date(timestamp).getTime() // Use Date constructor instead of parseInt
+    const diff = now - time
 
-    const handleScroll = useCallback(
-        (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-        const target = e.target as HTMLDivElement
-        const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
 
-        if (bottom && hasMore && !loadingMore) {
-            console.log("Reached the bottom, fetching more...")
-            const nextPage = page
-            setPage((prev) => prev + 1)
-            fetchMoreFriends(nextPage)
-        }
-        },
-        [hasMore, loadingMore, page, fetchMoreFriends],
-    )
+    if (days > 0) return `${days}d`
+    if (hours > 0) return `${hours}h`
+    if (minutes > 0) return `${minutes}m`
+    return "now"
+  }
 
-    return (
-        <>
-        <div className="sidebar-container">
-            {/* Header */}
-            <div className="sidebar-header">
-            <div className="header-content">
-                <h3 className="sidebar-title">Messages</h3>
-            </div>
-            <div className="search-container">
-                <div className="search-input-wrapper">
-                <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
-                    <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                <input
-                    type="text"
-                    placeholder="Search conversations..."
-                    className="search-input"
-                    onChange={(e) => handleSearch(e.target.value)}
-                />
-                {searchQuery && (
-                    <button className="clear-search" onClick={() => setSearchQuery("")}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    </button>
-                )}
-                </div>
-            </div>
-            </div>
-
-            <div className="friends-list" onScroll={handleScroll}>
-            {loading ? (
-                <div className="loading-container">
-                {[...Array(5)].map((_, i) => (
-                    <div key={i} className="friend-skeleton">
-                    <div className="skeleton-avatar"></div>
-                    <div className="skeleton-content">
-                        <div className="skeleton-name"></div>
-                        <div className="skeleton-message"></div>
-                    </div>
-                    </div>
-                ))}
-                </div>
-            ) : filteredFriends.length === 0 ? (
-                <div className="empty-state">
-                <div className="empty-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" />
-                    <path
-                        d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                    </svg>
-                </div>
-                <p className="empty-text">{searchQuery ? "No conversations found" : "No conversations yet"}</p>
-                </div>
-            ) : (
-                <>
-                {filteredFriends.map((friend) => (
-                    <div key={friend.id} className="friend-item" onClick={() => navigate(`/${friend.username}/message`)}>
-                    <div className="friend-avatar">
-                        <img
-                        src={friend.avatar ? avatarBytesToUrl(friend.avatar) || defaultAvatar : defaultAvatar}
-                        alt={friend.username}
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-                        />
-                    </div>
-                    <div className="friend-content">
-                        <div className="friend-info">
-                        <span className="friend-name">{friend.username}</span>
-                        <span className="friend-time">2m</span>
-                        </div>
-                        <div className="friend-message">
-                        <span className="message-preview">Hey, how are you doing?</span>
-                        <div className="unread-badge">2</div>
-                        </div>
-                    </div>
-                    </div>
-                ))}
-
-                {loadingMore && (
-                    <div className="loading-more">
-                    <span>Loading more...</span>
-                    </div>
-                )}
-                </>
-            )}
-            </div>
+  return (
+    <div className="sidebar-container">
+      {/* Header */}
+      <div className="sidebar-header">
+        <div className="header-content">
+          <div className="title-section">
+            <MessageCircle size={24} className="title-icon" />
+            <h3 className="sidebar-title">Messages</h3>
+          </div>
+          <div className="stats-badge">
+            <Users size={14} />
+            <span>{friends.length}</span>
+          </div>
         </div>
 
-        <style>{`
-                .sidebar-container {
-                    width: 320px;
-                    height: 100vh;
-                    background: #1a1a1a;
-                    border-right: 1px solid #333;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                }
+        <div className="search-container">
+          <div className="search-input-wrapper">
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              className="search-input"
+              autoFocus
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="clear-search" onClick={clearSearch}>
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-                .sidebar-header {
-                    padding: 20px 16px 16px 16px;
-                    border-bottom: 1px solid #333;
-                    background: #1a1a1a;
-                }
+      {/* Friends List */}
+      <div className="friends-list" onScroll={handleScroll}>
+        {loading ? (
+          <div className="loading-container">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="friend-skeleton">
+                <div className="skeleton-avatar"></div>
+                <div className="skeleton-content">
+                  <div className="skeleton-name"></div>
+                  <div className="skeleton-message"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredFriends.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">
+              <MessageCircle size={48} />
+            </div>
+            <h4 className="empty-title">{searchQuery ? "No conversations found" : "No conversations yet"}</h4>
+            <p className="empty-description">
+              {searchQuery ? "Try searching with a different name" : "Start a conversation with your friends"}
+            </p>
+          </div>
+        ) : (
+          <>
+            {filteredFriends.map((friend) => (
+              <div key={friend.id} className="friend-item" onClick={() => navigate(`/${friend.username}/message`)}>
+                <div className="friend-avatar-container">
+                  <div className="friend-avatar">
+                    <img
+                      src={friend.avatar ? avatarBytesToUrl(friend.avatar) || defaultAvatar : defaultAvatar}
+                      alt={friend.username}
+                      className="avatar-image"
+                    />
+                  </div>
+                  <div className="online-indicator"></div>
+                </div>
 
-                .header-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 16px;
-                }
+                <div className="friend-content">
+                  <div className="friend-info">
+                    <div className="name-section">
+                      <span className="friend-name">{friend.displayName || friend.username}</span>
+                      {friend.isVerified && <div className="verified-badge">✓</div>}
+                    </div>
+                    <div className="time-section">
+                      <Clock size={12} />
+                      <span className="friend-time">{getTimeAgo(friend.lastLoginAt)}</span>
+                    </div>
+                  </div>
 
-                .sidebar-title {
-                    font-size: 20px;
-                    font-weight: 600;
-                    color: #ffffff;
-                    margin: 0;
-                }
+                  <div className="friend-message">
+                    <span className="message-preview">Hey, how are you doing? Let's catch up soon!</span>
+                    <div className="message-meta">
+                      <div className="unread-badge">2</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
 
-                .search-container {
-                    position: relative;
-                }
+            {loadingMore && (
+              <div className="loading-more">
+                <Loader2 size={16} className="loading-spinner" />
+                <span>Loading more conversations...</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
-                .search-input-wrapper {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
+      <style>{`
+        .sidebar-container {
+          width: 380px;
+          height: 100vh;
+          background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+          border-right: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          isolation: isolate;
+        }
 
-                .search-input {
-                    width: 100%;
-                    padding: 10px 12px 10px 40px;
-                    background: #2a2a2a;
-                    border: 1px solid #404040;
-                    border-radius: 8px;
-                    color: #ffffff;
-                    font-size: 14px;
-                    outline: none;
-                    transition: all 0.2s ease;
-                }
+        .sidebar-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(10px);
+          flex-shrink: 0;
+        }
 
-                .search-input:focus {
-                    border-color: #3b82f6;
-                    background: #333;
-                }
+        .header-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
+        }
 
-                .search-input::placeholder {
-                    color: #888;
-                }
+        .title-section {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
 
-                .search-icon {
-                    position: absolute;
-                    left: 12px;
-                    color: #888;
-                    pointer-events: none;
-                }
+        .title-icon {
+          color: #3b82f6;
+        }
 
-                .clear-search {
-                    position: absolute;
-                    right: 8px;
-                    background: none;
-                    border: none;
-                    color: #888;
-                    cursor: pointer;
-                    padding: 4px;
-                    border-radius: 4px;
-                    transition: all 0.2s ease;
-                }
+        .sidebar-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0;
+          background: linear-gradient(135deg, #ffffff, #e5e7eb);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
 
-                .clear-search:hover {
-                    background: #404040;
-                    color: #ffffff;
-                }
+        .stats-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0.375rem 0.75rem;
+          background: rgba(59, 130, 246, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          border-radius: 1rem;
+          color: #3b82f6;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
 
-                .friends-list {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 8px 0;
-                }
+        .search-container {
+          position: relative;
+        }
 
-                .friends-list::-webkit-scrollbar {
-                    width: 6px;
-                }
+        .search-input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 100%;
+        }
 
-                .friends-list::-webkit-scrollbar-track {
-                    background: #1a1a1a;
-                }
+        .search-input {
+          width: 100%;
+          padding: 0.875rem 1rem 0.875rem 3rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 0.875rem;
+          color: #ffffff;
+          font-size: 0.9rem;
+          outline: none;
+          transition: all 0.3s ease;
+          font-family: inherit;
+        }
 
-                .friends-list::-webkit-scrollbar-thumb {
-                    background: #404040;
-                    border-radius: 3px;
-                }
+        .search-input:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          background: rgba(255, 255, 255, 0.08);
+        }
 
-                .friends-list::-webkit-scrollbar-thumb:hover {
-                    background: #555;
-                }
+        .search-input::placeholder {
+          color: #9ca3af;
+        }
 
-                .friend-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 16px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    border-radius: 0;
-                    position: relative;
-                }
+        .search-icon {
+          position: absolute;
+          left: 1rem;
+          color: #9ca3af;
+          pointer-events: none;
+          z-index: 1;
+        }
 
-                .friend-item:hover {
-                    background: #2a2a2a;
-                }
+        .clear-search {
+          position: absolute;
+          right: 0.75rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          color: #9ca3af;
+          cursor: pointer;
+          padding: 0.375rem;
+          border-radius: 0.375rem;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-                .friend-item:active {
-                    background: #333;
-                }
+        .clear-search:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
 
-                .friend-avatar {
-                    position: relative;
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 50%;
-                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-                    color: white;
-                    font-weight: 600;
-                    font-size: 14px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
+        .friends-list {
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 0.5rem 0;
+          scroll-behavior: smooth;
+        }
 
-                .friend-content {
-                    flex: 1;
-                    min-width: 0;
-                }
+        .friends-list::-webkit-scrollbar {
+          width: 6px;
+        }
 
-                .friend-info {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 4px;
-                }
+        .friends-list::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+        }
 
-                .friend-name {
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: #ffffff;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
+        .friends-list::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 3px;
+        }
 
-                .friend-time {
-                    font-size: 12px;
-                    color: #888;
-                }
+        .friends-list::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
 
-                .friend-message {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
+        .loading-container {
+          padding: 0.5rem 0;
+        }
 
-                .message-preview {
-                    font-size: 13px;
-                    color: #aaa;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: 180px;
-                }
+        .friend-skeleton {
+          display: flex;
+          align-items: center;
+          gap: 0.875rem;
+          padding: 1rem 1.5rem;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
 
-                .unread-badge {
-                    background: #3b82f6;
-                    color: white;
-                    font-size: 11px;
-                    font-weight: 600;
-                    padding: 2px 6px;
-                    border-radius: 10px;
-                    min-width: 18px;
-                    text-align: center;
-                }
+        .skeleton-avatar {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+        }
 
-                .loading-container {
-                    padding: 8px 0;
-                }
+        .skeleton-content {
+          flex: 1;
+        }
 
-                .friend-skeleton {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 16px;
-                    animation: pulse 1.5s ease-in-out infinite;
-                }
+        .skeleton-name {
+          height: 16px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 0.25rem;
+          margin-bottom: 0.5rem;
+          width: 60%;
+        }
 
-                .skeleton-avatar {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 50%;
-                    background: #333;
-                }
+        .skeleton-message {
+          height: 14px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 0.25rem;
+          width: 80%;
+        }
 
-                .skeleton-content {
-                    flex: 1;
-                }
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 3rem 2rem;
+          text-align: center;
+          min-height: 300px;
+        }
 
-                .skeleton-name {
-                    height: 16px;
-                    background: #333;
-                    border-radius: 4px;
-                    margin-bottom: 8px;
-                    width: 60%;
-                }
+        .empty-icon {
+          color: #6b7280;
+          margin-bottom: 1.5rem;
+          opacity: 0.7;
+        }
 
-                .skeleton-message {
-                    height: 12px;
-                    background: #333;
-                    border-radius: 4px;
-                    width: 80%;
-                }
+        .empty-title {
+          color: #ffffff;
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin: 0 0 0.5rem 0;
+        }
 
-                .empty-state {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 40px 20px;
-                    text-align: center;
-                }
+        .empty-description {
+          color: #9ca3af;
+          font-size: 0.9rem;
+          margin: 0;
+          line-height: 1.4;
+        }
 
-                .empty-icon {
-                    color: #555;
-                    margin-bottom: 16px;
-                }
+        .friend-item {
+          display: flex;
+          align-items: center;
+          gap: 0.875rem;
+          padding: 1rem 1.5rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-radius: 0;
+          position: relative;
+          border-left: 3px solid transparent;
+        }
 
-                .empty-text {
-                    color: #888;
-                    font-size: 14px;
-                    margin: 0;
-                }
+        .friend-item:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-left-color: #3b82f6;
+          transform: translateX(2px);
+        }
 
-                .loading-more {
-                    padding: 16px;
-                    text-align: center;
-                    color: #888;
-                    font-size: 14px;
-                }
+        .friend-item:active {
+          background: rgba(255, 255, 255, 0.08);
+        }
 
-                @keyframes pulse {
-                    0%, 100% {
-                        opacity: 1;
-                    }
-                    50% {
-                        opacity: 0.5;
-                    }
-                }
+        .friend-avatar-container {
+          position: relative;
+          flex-shrink: 0;
+        }
 
-                @media (max-width: 768px) {
-                    .sidebar-container {
-                        width: 100%;
-                        max-width: 320px;
-                    }
-                }
-            `}</style>
-        </>
-    )
+        .friend-avatar {
+          position: relative;
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.2s ease;
+        }
+
+        .friend-item:hover .friend-avatar {
+          border-color: rgba(59, 130, 246, 0.5);
+          transform: scale(1.05);
+        }
+
+        .avatar-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        }
+
+        .online-indicator {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          width: 12px;
+          height: 12px;
+          background: #10b981;
+          border: 2px solid #1a1a1a;
+          border-radius: 50%;
+          box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3);
+        }
+
+        .friend-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .friend-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.375rem;
+        }
+
+        .name-section {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          min-width: 0;
+        }
+
+        .friend-name {
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #ffffff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 150px;
+        }
+
+        .verified-badge {
+          background: #3b82f6;
+          color: #ffffff;
+          font-size: 0.625rem;
+          font-weight: 700;
+          padding: 0.125rem 0.25rem;
+          border-radius: 0.25rem;
+          line-height: 1;
+        }
+
+        .time-section {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          color: #9ca3af;
+        }
+
+        .friend-time {
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+
+        .friend-message {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .message-preview {
+          font-size: 0.85rem;
+          color: #d1d5db;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex: 1;
+          line-height: 1.3;
+        }
+
+        .message-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        .unread-badge {
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          color: #ffffff;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.75rem;
+          min-width: 20px;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .loading-more {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          padding: 1.5rem;
+          color: #9ca3af;
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+
+        .loading-spinner {
+          animation: spin 1s linear infinite;
+          color: #3b82f6;
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+          .sidebar-container {
+            width: 100%;
+            max-width: 380px;
+          }
+
+          .sidebar-header {
+            padding: 1rem;
+          }
+
+          .friend-item {
+            padding: 0.875rem 1rem;
+          }
+
+          .friend-avatar {
+            width: 48px;
+            height: 48px;
+          }
+
+          .friend-name {
+            max-width: 120px;
+          }
+        }
+      `}</style>
+    </div>
+  )
 }

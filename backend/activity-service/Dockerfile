@@ -9,6 +9,9 @@ COPY activity-service/go.mod activity-service/go.sum ./activity-service/
 # Copy shared package
 COPY shared ./shared
 
+# Copy middleware package
+COPY middleware ./middleware
+
 # Copy the rest of the service code
 COPY activity-service ./activity-service
 

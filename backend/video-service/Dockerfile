@@ -9,6 +9,9 @@ COPY video-service/go.mod video-service/go.sum ./video-service/
 # Copy shared package
 COPY shared ./shared
 
+# Copy middleware package
+COPY middleware ./middleware
+
 # Copy the rest of the service code
 COPY video-service ./video-service
 

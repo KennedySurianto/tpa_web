@@ -4,19 +4,23 @@ import { GetVideosByUserIdRequest, Video } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
 export function useFriendVideos() {
-    const { user } = useAuth();
+    const { user, getAuthMetadata } = useAuth();
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchFriendVideos = async () => {
+            setLoading(true);
+            const req: GetVideosByUserIdRequest = { 
+                userId: Number(user?.id) || 0, 
+                currentUserId: Number(user?.id) || 0 
+            };
+
             try {
-                const req: GetVideosByUserIdRequest = { 
-                    userId: Number(user?.id) || 0, 
-                    currentUserId: Number(user?.id) || 0 
-                };
-                const res = await videoClient.GetFriendVideos(req);
-                setVideos(res.videos || []);
+                const res = await videoClient.GetFriendVideos(req, getAuthMetadata());
+                if (res && res.videos && res.videos.length !== 0) {
+                    setVideos(res.videos || []);
+                }
             } catch (err) {
                 console.error("Failed to fetch friend videos:", err);
                 setVideos([]);

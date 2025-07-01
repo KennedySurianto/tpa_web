@@ -17,7 +17,7 @@ type Video struct {
 
 	// Optional associations
 	SoundID *uint  `json:"sound_id,omitempty"`
-	Privacy string `gorm:"default:'public'" json:"privacy"` // public, private, friends
+	Privacy string `json:"privacy"` // public, private, friends
 
 	// Cached metrics (optional for performance; updated asynchronously)
 	ViewsCount    uint `gorm:"default:0" json:"views_count"`
@@ -25,9 +25,7 @@ type Video struct {
 	CommentsCount uint `gorm:"default:0" json:"comments_count"`
 
 	// Feature flags (editable by creator)
-	AllowComments bool `gorm:"default:true" json:"allow_comments"`
-	AllowDuet     bool `gorm:"default:true" json:"allow_duet"`
-	AllowStitch   bool `gorm:"default:true" json:"allow_stitch"`
-
-	// Soft deletes & timestamps handled by gorm.Model
+	AllowComments bool `json:"allow_comments"`
+	AllowDuet     bool `json:"allow_duet"`
+	AllowStitch   bool `json:"allow_stitch"`
 }

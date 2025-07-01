@@ -14,6 +14,7 @@ import (
 	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
 	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
@@ -35,8 +36,15 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Create middleware and gRPC server
+	pasetoMaker, err := middleware.NewPasetoMaker()
+	if err != nil {
+		panic(err)
+	}
+	interceptor := middleware.UnaryAuthInterceptor(pasetoMaker)
 	const maxMsgSize = 1024 * 1024 * 100 // 100 MB
 	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor),
 		grpc.MaxRecvMsgSize(maxMsgSize),
 		grpc.MaxSendMsgSize(maxMsgSize),
 	)
@@ -96,14 +104,6 @@ func getUserClient() userpb.UserServiceClient {
 	// Initialize services
 	userServiceHost := os.Getenv("USER_SERVICE_HOST")
     userServicePort := os.Getenv("USER_SERVICE_PORT")
-    
-    if userServiceHost == "" {
-        userServiceHost = "user-service" // Docker service name
-    }
-
-    if userServicePort == "" {
-        userServicePort = "50051"
-    }
 
 	conn, err := grpc.NewClient(
         fmt.Sprintf("%s:%s", userServiceHost, userServicePort),

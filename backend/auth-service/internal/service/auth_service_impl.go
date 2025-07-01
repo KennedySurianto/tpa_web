@@ -13,15 +13,16 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 )
 
 type AuthServiceImpl struct {
 	userClient   user.UserServiceClient
-	pasetoMaker  *PasetoMaker
+	pasetoMaker  *middleware.PasetoMaker
 	tokenStorage map[string]*model.TokenInfo
 }
 
-func NewAuthService(userClient user.UserServiceClient, pasetoMaker *PasetoMaker) AuthService {
+func NewAuthService(userClient user.UserServiceClient, pasetoMaker *middleware.PasetoMaker) AuthService {
 	return &AuthServiceImpl{
 		userClient:   userClient,
 		pasetoMaker:  pasetoMaker,
@@ -57,6 +58,13 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req *auth.RegisterReques
 		Bio:         strings.TrimSpace(req.Bio),
 		Avatar:      req.Avatar, // Note: Keep as AvatarUrl to match protobuf
 		Country:     strings.TrimSpace(req.Country),
+		IsPrivate:   req.IsPrivate,
+		Preferences: &user.UserPreferences{
+			AllowDuet: req.Preferences.AllowDuet,
+			AllowStitch: req.Preferences.AllowStitch,
+			AllowDownload: req.Preferences.AllowDownload,
+			AllowComments: req.Preferences.AllowComments,
+		},
 	}
 
 	userResponse, err := s.userClient.CreateUser(ctx, createUserReq)

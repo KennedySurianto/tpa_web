@@ -19,19 +19,19 @@ type User struct {
 	Avatar      []byte `gorm:"type:bytea" json:"-"`
 	
 	// TikTok specific attributes
-	IsVerified   bool `gorm:"default:false" json:"is_verified"`
-	IsPrivate    bool `gorm:"default:false" json:"is_private"`
+	IsVerified   bool `json:"is_verified"`
+	IsPrivate    bool `json:"is_private"`
 	
 	// Account status
-	IsActive    bool      `gorm:"default:true" json:"is_active"`
+	IsActive    bool      `json:"is_active"`
 	LastLoginAt time.Time `json:"last_login_at"`
 	
 	// Location (optional)
 	Country string `json:"country,omitempty"`
 	
 	// Preferences
-	AllowDuet        bool `gorm:"default:true" json:"allow_duet"`
-	AllowStitch      bool `gorm:"default:true" json:"allow_stitch"`
-	AllowDownload    bool `gorm:"default:true" json:"allow_download"`
-	AllowComments    bool `gorm:"default:true" json:"allow_comments"`
+	AllowDuet        bool `json:"allow_duet"`
+	AllowStitch      bool `json:"allow_stitch"`
+	AllowDownload    bool `json:"allow_download"`
+	AllowComments    bool `json:"allow_comments"`
 }

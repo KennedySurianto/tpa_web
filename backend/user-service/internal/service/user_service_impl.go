@@ -28,6 +28,14 @@ func (u *UserServiceImpl) CreateUser(req *pb.CreateUserRequest) (*model.User, er
 		Bio:         req.Bio,
 		Avatar:  	 req.Avatar,
 		Country:     req.Country,
+		
+		IsPrivate:   req.IsPrivate,
+		IsVerified: false,
+		IsActive: true,
+		AllowDuet: req.Preferences.AllowDuet,
+		AllowStitch: req.Preferences.AllowStitch,
+		AllowDownload: req.Preferences.AllowDownload,
+		AllowComments: req.Preferences.AllowComments,
 	}
 
 	err := u.userRepo.CreateUser(user)

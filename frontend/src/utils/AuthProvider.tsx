@@ -8,6 +8,7 @@ import {
     User,
 } from "../api/gen/auth";
 import { authClient } from "../api/grpc/authClient";
+import { grpc } from "@improbable-eng/grpc-web";
 
 interface AuthContextType {
     user: User | null;
@@ -15,6 +16,8 @@ interface AuthContextType {
     loading: boolean;
     login: (response: AuthResponse) => void;
     logout: () => void;
+    getAccessToken: () => string | null;
+    getAuthMetadata(): grpc.Metadata
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -127,9 +130,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         authenticate();
     }, []);
+    
+    const getAccessToken = () => {
+        return localStorage.getItem("access_token");
+    };
+
+    const getAuthMetadata = (): grpc.Metadata => {
+        const token = localStorage.getItem("access_token");
+        const metadata = new grpc.Metadata();
+        if (token) {
+            metadata.set("authorization", `Bearer ${token}`);
+        }
+        return metadata;
+    };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            isAuthenticated: !!user, 
+            loading, 
+            login, 
+            logout,
+            getAccessToken,
+            getAuthMetadata,
+        }}>
             {children}
         </AuthContext.Provider>
     );
@@ -140,3 +164,4 @@ export const useAuth = () => {
     if (!context) throw new Error("useAuth must be used within AuthProvider");
     return context;
 };
+

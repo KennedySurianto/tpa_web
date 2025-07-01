@@ -104,6 +104,9 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		AllowComments: req.AllowComments,
 		AllowDuet:     req.AllowDuet,
 		AllowStitch:   req.AllowStitch,
+		ViewsCount: 0,
+		LikesCount: 0,
+		CommentsCount: 0,
 	}
 	if err := s.videoRepo.CreateVideoTx(tx, video); err != nil {
 		tx.Rollback()

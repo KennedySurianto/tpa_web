@@ -11,6 +11,7 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/service"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
@@ -28,15 +29,23 @@ func main() {
 	}
     
 	userClient := getUserClient()
-	pasetoMaker := service.NewPasetoMaker()
+	pasetoMaker, err := middleware.NewPasetoMaker()
+	if err != nil {
+		panic(err)
+	}
 	authService := service.NewAuthService(userClient, pasetoMaker)
 	memcacheHost := getEnv("MEMCACHED_HOST", ":11211")
 	memcacheClient := memcache.NewMemcacheClient(memcacheHost)
 	otpService := service.NewOTPService(memcacheClient)
 	authController := controller.NewAuthController(authService, otpService, userClient)
 
-	// Create gRPC server
+	// Create middleware and gRPC server
+	// interceptor := middleware.UnaryAuthInterceptor(pasetoMaker)
+	// grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor))
+	
+	// pake ini aja buat auth karna gada routes yg hrs di protect
 	grpcServer := grpc.NewServer()
+
 	auth.RegisterAuthServiceServer(grpcServer, authController)
 
 	// Create and register a gRPC health server
