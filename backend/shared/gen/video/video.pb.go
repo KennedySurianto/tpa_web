@@ -110,6 +110,7 @@ type Video struct {
 	User          *User  `protobuf:"bytes,19,opt,name=user,proto3" json:"user,omitempty"`
 	IsLiked       bool   `protobuf:"varint,20,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
 	LikeCount     uint64 `protobuf:"varint,21,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	IsPublished   bool   `protobuf:"varint,22,opt,name=is_published,json=isPublished,proto3" json:"is_published,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -291,6 +292,13 @@ func (x *Video) GetLikeCount() uint64 {
 	return 0
 }
 
+func (x *Video) GetIsPublished() bool {
+	if x != nil {
+		return x.IsPublished
+	}
+	return false
+}
+
 // Request/Response messages
 type CreateVideoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -307,6 +315,7 @@ type CreateVideoRequest struct {
 	AllowStitch   bool                   `protobuf:"varint,11,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
 	VideoData     []byte                 `protobuf:"bytes,12,opt,name=video_data,json=videoData,proto3" json:"video_data,omitempty"`       // Raw binary video data
 	ContentType   string                 `protobuf:"bytes,13,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"` // e.g. "video/mp4"
+	IsPublished   bool                   `protobuf:"varint,14,opt,name=is_published,json=isPublished,proto3" json:"is_published,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -430,6 +439,13 @@ func (x *CreateVideoRequest) GetContentType() string {
 		return x.ContentType
 	}
 	return ""
+}
+
+func (x *CreateVideoRequest) GetIsPublished() bool {
+	if x != nil {
+		return x.IsPublished
+	}
+	return false
 }
 
 type CreateVideoResponse struct {
@@ -581,6 +597,7 @@ type UpdateVideoRequest struct {
 	AllowComments *bool                  `protobuf:"varint,5,opt,name=allow_comments,json=allowComments,proto3,oneof" json:"allow_comments,omitempty"`
 	AllowDuet     *bool                  `protobuf:"varint,6,opt,name=allow_duet,json=allowDuet,proto3,oneof" json:"allow_duet,omitempty"`
 	AllowStitch   *bool                  `protobuf:"varint,7,opt,name=allow_stitch,json=allowStitch,proto3,oneof" json:"allow_stitch,omitempty"`
+	IsPublished   *bool                  `protobuf:"varint,8,opt,name=is_published,json=isPublished,proto3,oneof" json:"is_published,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -660,6 +677,13 @@ func (x *UpdateVideoRequest) GetAllowDuet() bool {
 func (x *UpdateVideoRequest) GetAllowStitch() bool {
 	if x != nil && x.AllowStitch != nil {
 		return *x.AllowStitch
+	}
+	return false
+}
+
+func (x *UpdateVideoRequest) GetIsPublished() bool {
+	if x != nil && x.IsPublished != nil {
+		return *x.IsPublished
 	}
 	return false
 }
@@ -1221,7 +1245,7 @@ const file_video_proto_rawDesc = "" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xfd\x05\n" +
+	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xa0\x06\n" +
 	"\x05Video\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x129\n" +
 	"\n" +
@@ -1251,9 +1275,10 @@ const file_video_proto_rawDesc = "" +
 	"\x04user\x18\x13 \x01(\v2\v.video.UserR\x04user\x12\x19\n" +
 	"\bis_liked\x18\x14 \x01(\bR\aisLiked\x12\x1d\n" +
 	"\n" +
-	"like_count\x18\x15 \x01(\x04R\tlikeCountB\x0e\n" +
+	"like_count\x18\x15 \x01(\x04R\tlikeCount\x12!\n" +
+	"\fis_published\x18\x16 \x01(\bR\visPublishedB\x0e\n" +
 	"\f_descriptionB\v\n" +
-	"\t_sound_id\"\xda\x03\n" +
+	"\t_sound_id\"\xfd\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1b\n" +
 	"\tvideo_url\x18\x02 \x01(\tR\bvideoUrl\x12!\n" +
@@ -1270,7 +1295,8 @@ const file_video_proto_rawDesc = "" +
 	"\fallow_stitch\x18\v \x01(\bR\vallowStitch\x12\x1d\n" +
 	"\n" +
 	"video_data\x18\f \x01(\fR\tvideoData\x12!\n" +
-	"\fcontent_type\x18\r \x01(\tR\vcontentTypeB\f\n" +
+	"\fcontent_type\x18\r \x01(\tR\vcontentType\x12!\n" +
+	"\fis_published\x18\x0e \x01(\bR\visPublishedB\f\n" +
 	"\n" +
 	"_thumbnailB\x0e\n" +
 	"\f_descriptionB\v\n" +
@@ -1281,7 +1307,7 @@ const file_video_proto_rawDesc = "" +
 	"\bvideo_id\x18\x01 \x01(\x04R\avideoId\x12&\n" +
 	"\x0fcurrent_user_id\x18\x02 \x01(\x04R\rcurrentUserId\"6\n" +
 	"\x10GetVideoResponse\x12\"\n" +
-	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\xd6\x02\n" +
+	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"\x8f\x03\n" +
 	"\x12UpdateVideoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12!\n" +
 	"\tthumbnail\x18\x02 \x01(\fH\x00R\tthumbnail\x88\x01\x01\x12\x1d\n" +
@@ -1290,7 +1316,8 @@ const file_video_proto_rawDesc = "" +
 	"\x0eallow_comments\x18\x05 \x01(\bH\x03R\rallowComments\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"allow_duet\x18\x06 \x01(\bH\x04R\tallowDuet\x88\x01\x01\x12&\n" +
-	"\fallow_stitch\x18\a \x01(\bH\x05R\vallowStitch\x88\x01\x01B\f\n" +
+	"\fallow_stitch\x18\a \x01(\bH\x05R\vallowStitch\x88\x01\x01\x12&\n" +
+	"\fis_published\x18\b \x01(\bH\x06R\visPublished\x88\x01\x01B\f\n" +
 	"\n" +
 	"_thumbnailB\n" +
 	"\n" +
@@ -1299,7 +1326,8 @@ const file_video_proto_rawDesc = "" +
 	"\b_privacyB\x11\n" +
 	"\x0f_allow_commentsB\r\n" +
 	"\v_allow_duetB\x0f\n" +
-	"\r_allow_stitch\"9\n" +
+	"\r_allow_stitchB\x0f\n" +
+	"\r_is_published\"9\n" +
 	"\x13UpdateVideoResponse\x12\"\n" +
 	"\x05video\x18\x01 \x01(\v2\f.video.VideoR\x05video\"$\n" +
 	"\x12DeleteVideoRequest\x12\x0e\n" +

@@ -75,13 +75,11 @@ const ManageVideosPage: React.FC = () => {
 
       if (res && res.videos) {
         // Separate published and draft videos
-        // const published = res.videos.filter((video) => video.isPublished)
-        // const drafts = res.videos.filter((video) => !video.isPublished)
+        const published = res.videos.filter((video) => video.isPublished)
+        const drafts = res.videos.filter((video) => !video.isPublished)
 
-        // setPublishedVideos(published)
-        // setDraftVideos(drafts)
-        setPublishedVideos(res.videos);
-        setDraftVideos(res.videos);
+        setPublishedVideos(published)
+        setDraftVideos(drafts)
       }
     } catch (err) {
       console.error("Failed to fetch videos:", err);
@@ -629,16 +627,14 @@ const ManageVideosPage: React.FC = () => {
                       right: "12px",
                       padding: "4px 8px",
                       borderRadius: "6px",
-                      //   background: video.isPublished ? "rgba(34, 197, 94, 0.9)" : "rgba(251, 191, 36, 0.9)",
-                      background: "rgba(34, 197, 94, 0.9)",
+                      background: video.isPublished ? "rgba(34, 197, 94, 0.9)" : "rgba(251, 191, 36, 0.9)",
                       color: "#ffffff",
                       fontSize: "0.7rem",
                       fontWeight: "600",
                       backdropFilter: "blur(10px)",
                     }}
                   >
-                    {/* {video.isPublished ? "Published" : "Draft"} */}
-                    Published
+                    {video.isPublished ? "Published" : "Draft"}
                   </div>
                 </div>
 
@@ -1010,14 +1006,12 @@ const ManageVideosPage: React.FC = () => {
                   <span style={{ color: "#8b949e", fontSize: "0.8rem" }}>Status:</span>
                   <span
                     style={{
-                      //   color: selectedVideo.isPublished ? "#22c55e" : "#f59e0b",
-                      color: "#22c55e",
+                      color: selectedVideo.isPublished ? "#22c55e" : "#f59e0b",
                       fontSize: "0.8rem",
                       fontWeight: "600",
                     }}
                   >
-                    {/* {selectedVideo.isPublished ? "Published" : "Draft"} */}
-                    Published
+                    {selectedVideo.isPublished ? "Published" : "Draft"}
                   </span>
                 </div>
                 <div

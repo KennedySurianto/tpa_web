@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"sort"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
+	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
-	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
-	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
+	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
 )
@@ -75,6 +78,7 @@ func (s *VideoController) modelToProto(ctx context.Context, video *model.Video, 
 		},
 		CreatedAt:     timestamppb.New(video.CreatedAt),
 		UpdatedAt:     timestamppb.New(video.UpdatedAt),
+		IsPublished: video.IsPublished,
 	}
 
 	if video.SoundID != nil {
@@ -131,8 +135,10 @@ func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest)
 }
 
 func (s *VideoController) UpdateVideo(ctx context.Context, req *pb.UpdateVideoRequest) (*pb.UpdateVideoResponse, error) {
-	updateReq := &pb.UpdateVideoRequest{}
-
+	updateReq := &pb.UpdateVideoRequest{
+		Id: req.Id,
+	}
+	
 	if req.Thumbnail != nil {
 		updateReq.Thumbnail = req.Thumbnail
 	}
@@ -151,14 +157,22 @@ func (s *VideoController) UpdateVideo(ctx context.Context, req *pb.UpdateVideoRe
 	if req.AllowStitch != nil {
 		updateReq.AllowStitch = req.AllowStitch
 	}
+	if req.IsPublished != nil {
+		updateReq.IsPublished = req.IsPublished
+	}
 
 	video, err := s.videoService.UpdateVideo(updateReq)
 	if err != nil {
 		return nil, err
 	}
 
+	userID, ok := middleware.GetUserID(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "user ID not found in context")
+	}
+
 	return &pb.UpdateVideoResponse{
-		Video: s.modelToProto(ctx, video, 0),
+		Video: s.modelToProto(ctx, video, userID),
 	}, nil
 }
 

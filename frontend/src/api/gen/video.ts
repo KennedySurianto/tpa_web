@@ -23,7 +23,9 @@ export interface Video {
   id: number;
   createdAt?: Date | undefined;
   updatedAt?: Date | undefined;
-  deletedAt?: Date | undefined;
+  deletedAt?:
+    | Date
+    | undefined;
   /** Video metadata */
   userId: number;
   videoUrl: string;
@@ -45,6 +47,7 @@ export interface Video {
   user?: User | undefined;
   isLiked: boolean;
   likeCount: string;
+  isPublished: boolean;
 }
 
 /** Request/Response messages */
@@ -64,6 +67,7 @@ export interface CreateVideoRequest {
   videoData: Uint8Array;
   /** e.g. "video/mp4" */
   contentType: string;
+  isPublished: boolean;
 }
 
 export interface CreateVideoResponse {
@@ -87,6 +91,7 @@ export interface UpdateVideoRequest {
   allowComments?: boolean | undefined;
   allowDuet?: boolean | undefined;
   allowStitch?: boolean | undefined;
+  isPublished?: boolean | undefined;
 }
 
 export interface UpdateVideoResponse {
@@ -267,6 +272,7 @@ function createBaseVideo(): Video {
     user: undefined,
     isLiked: false,
     likeCount: "0",
+    isPublished: false,
   };
 }
 
@@ -334,6 +340,9 @@ export const Video: MessageFns<Video> = {
     }
     if (message.likeCount !== "0") {
       writer.uint32(168).uint64(message.likeCount);
+    }
+    if (message.isPublished !== false) {
+      writer.uint32(176).bool(message.isPublished);
     }
     return writer;
   },
@@ -513,6 +522,14 @@ export const Video: MessageFns<Video> = {
           message.likeCount = reader.uint64().toString();
           continue;
         }
+        case 22: {
+          if (tag !== 176) {
+            break;
+          }
+
+          message.isPublished = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -545,6 +562,7 @@ export const Video: MessageFns<Video> = {
       user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
       isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
       likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
+      isPublished: isSet(object.isPublished) ? globalThis.Boolean(object.isPublished) : false,
     };
   },
 
@@ -613,6 +631,9 @@ export const Video: MessageFns<Video> = {
     if (message.likeCount !== "0") {
       obj.likeCount = message.likeCount;
     }
+    if (message.isPublished !== false) {
+      obj.isPublished = message.isPublished;
+    }
     return obj;
   },
 
@@ -639,10 +660,10 @@ export const Video: MessageFns<Video> = {
     message.allowComments = object.allowComments ?? false;
     message.allowDuet = object.allowDuet ?? false;
     message.allowStitch = object.allowStitch ?? false;
-    message.user =
-      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     message.isLiked = object.isLiked ?? false;
     message.likeCount = object.likeCount ?? "0";
+    message.isPublished = object.isPublished ?? false;
     return message;
   },
 };
@@ -662,6 +683,7 @@ function createBaseCreateVideoRequest(): CreateVideoRequest {
     allowStitch: false,
     videoData: new Uint8Array(0),
     contentType: "",
+    isPublished: false,
   };
 }
 
@@ -705,6 +727,9 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     }
     if (message.contentType !== "") {
       writer.uint32(106).string(message.contentType);
+    }
+    if (message.isPublished !== false) {
+      writer.uint32(112).bool(message.isPublished);
     }
     return writer;
   },
@@ -820,6 +845,14 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
           message.contentType = reader.string();
           continue;
         }
+        case 14: {
+          if (tag !== 112) {
+            break;
+          }
+
+          message.isPublished = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -844,6 +877,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
       videoData: isSet(object.videoData) ? bytesFromBase64(object.videoData) : new Uint8Array(0),
       contentType: isSet(object.contentType) ? globalThis.String(object.contentType) : "",
+      isPublished: isSet(object.isPublished) ? globalThis.Boolean(object.isPublished) : false,
     };
   },
 
@@ -888,6 +922,9 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     if (message.contentType !== "") {
       obj.contentType = message.contentType;
     }
+    if (message.isPublished !== false) {
+      obj.isPublished = message.isPublished;
+    }
     return obj;
   },
 
@@ -909,6 +946,7 @@ export const CreateVideoRequest: MessageFns<CreateVideoRequest> = {
     message.allowStitch = object.allowStitch ?? false;
     message.videoData = object.videoData ?? new Uint8Array(0);
     message.contentType = object.contentType ?? "";
+    message.isPublished = object.isPublished ?? false;
     return message;
   },
 };
@@ -964,14 +1002,9 @@ export const CreateVideoResponse: MessageFns<CreateVideoResponse> = {
   create<I extends Exact<DeepPartial<CreateVideoResponse>, I>>(base?: I): CreateVideoResponse {
     return CreateVideoResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateVideoResponse>, I>>(
-    object: I,
-  ): CreateVideoResponse {
+  fromPartial<I extends Exact<DeepPartial<CreateVideoResponse>, I>>(object: I): CreateVideoResponse {
     const message = createBaseCreateVideoResponse();
-    message.video =
-      object.video !== undefined && object.video !== null
-        ? Video.fromPartial(object.video)
-        : undefined;
+    message.video = (object.video !== undefined && object.video !== null) ? Video.fromPartial(object.video) : undefined;
     return message;
   },
 };
@@ -1105,10 +1138,7 @@ export const GetVideoResponse: MessageFns<GetVideoResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetVideoResponse>, I>>(object: I): GetVideoResponse {
     const message = createBaseGetVideoResponse();
-    message.video =
-      object.video !== undefined && object.video !== null
-        ? Video.fromPartial(object.video)
-        : undefined;
+    message.video = (object.video !== undefined && object.video !== null) ? Video.fromPartial(object.video) : undefined;
     return message;
   },
 };
@@ -1122,6 +1152,7 @@ function createBaseUpdateVideoRequest(): UpdateVideoRequest {
     allowComments: undefined,
     allowDuet: undefined,
     allowStitch: undefined,
+    isPublished: undefined,
   };
 }
 
@@ -1147,6 +1178,9 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
     }
     if (message.allowStitch !== undefined) {
       writer.uint32(56).bool(message.allowStitch);
+    }
+    if (message.isPublished !== undefined) {
+      writer.uint32(64).bool(message.isPublished);
     }
     return writer;
   },
@@ -1214,6 +1248,14 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
           message.allowStitch = reader.bool();
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.isPublished = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1229,11 +1271,10 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
       thumbnail: isSet(object.thumbnail) ? bytesFromBase64(object.thumbnail) : undefined,
       caption: isSet(object.caption) ? globalThis.String(object.caption) : undefined,
       privacy: isSet(object.privacy) ? globalThis.String(object.privacy) : undefined,
-      allowComments: isSet(object.allowComments)
-        ? globalThis.Boolean(object.allowComments)
-        : undefined,
+      allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : undefined,
       allowDuet: isSet(object.allowDuet) ? globalThis.Boolean(object.allowDuet) : undefined,
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : undefined,
+      isPublished: isSet(object.isPublished) ? globalThis.Boolean(object.isPublished) : undefined,
     };
   },
 
@@ -1260,6 +1301,9 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
     if (message.allowStitch !== undefined) {
       obj.allowStitch = message.allowStitch;
     }
+    if (message.isPublished !== undefined) {
+      obj.isPublished = message.isPublished;
+    }
     return obj;
   },
 
@@ -1275,6 +1319,7 @@ export const UpdateVideoRequest: MessageFns<UpdateVideoRequest> = {
     message.allowComments = object.allowComments ?? undefined;
     message.allowDuet = object.allowDuet ?? undefined;
     message.allowStitch = object.allowStitch ?? undefined;
+    message.isPublished = object.isPublished ?? undefined;
     return message;
   },
 };
@@ -1330,14 +1375,9 @@ export const UpdateVideoResponse: MessageFns<UpdateVideoResponse> = {
   create<I extends Exact<DeepPartial<UpdateVideoResponse>, I>>(base?: I): UpdateVideoResponse {
     return UpdateVideoResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateVideoResponse>, I>>(
-    object: I,
-  ): UpdateVideoResponse {
+  fromPartial<I extends Exact<DeepPartial<UpdateVideoResponse>, I>>(object: I): UpdateVideoResponse {
     const message = createBaseUpdateVideoResponse();
-    message.video =
-      object.video !== undefined && object.video !== null
-        ? Video.fromPartial(object.video)
-        : undefined;
+    message.video = (object.video !== undefined && object.video !== null) ? Video.fromPartial(object.video) : undefined;
     return message;
   },
 };
@@ -1451,9 +1491,7 @@ export const DeleteVideoResponse: MessageFns<DeleteVideoResponse> = {
   create<I extends Exact<DeepPartial<DeleteVideoResponse>, I>>(base?: I): DeleteVideoResponse {
     return DeleteVideoResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DeleteVideoResponse>, I>>(
-    object: I,
-  ): DeleteVideoResponse {
+  fromPartial<I extends Exact<DeepPartial<DeleteVideoResponse>, I>>(object: I): DeleteVideoResponse {
     const message = createBaseDeleteVideoResponse();
     message.success = object.success ?? false;
     return message;
@@ -1465,10 +1503,7 @@ function createBaseGetVideosByUserIdRequest(): GetVideosByUserIdRequest {
 }
 
 export const GetVideosByUserIdRequest: MessageFns<GetVideosByUserIdRequest> = {
-  encode(
-    message: GetVideosByUserIdRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetVideosByUserIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.currentUserId !== 0) {
       writer.uint32(8).uint32(message.currentUserId);
     }
@@ -1528,14 +1563,10 @@ export const GetVideosByUserIdRequest: MessageFns<GetVideosByUserIdRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(
-    base?: I,
-  ): GetVideosByUserIdRequest {
+  create<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(base?: I): GetVideosByUserIdRequest {
     return GetVideosByUserIdRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(
-    object: I,
-  ): GetVideosByUserIdRequest {
+  fromPartial<I extends Exact<DeepPartial<GetVideosByUserIdRequest>, I>>(object: I): GetVideosByUserIdRequest {
     const message = createBaseGetVideosByUserIdRequest();
     message.currentUserId = object.currentUserId ?? 0;
     message.userId = object.userId ?? 0;
@@ -1617,9 +1648,7 @@ export const UpdateMetricsRequest: MessageFns<UpdateMetricsRequest> = {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       viewsCount: isSet(object.viewsCount) ? globalThis.Number(object.viewsCount) : undefined,
       likesCount: isSet(object.likesCount) ? globalThis.Number(object.likesCount) : undefined,
-      commentsCount: isSet(object.commentsCount)
-        ? globalThis.Number(object.commentsCount)
-        : undefined,
+      commentsCount: isSet(object.commentsCount) ? globalThis.Number(object.commentsCount) : undefined,
     };
   },
 
@@ -1643,9 +1672,7 @@ export const UpdateMetricsRequest: MessageFns<UpdateMetricsRequest> = {
   create<I extends Exact<DeepPartial<UpdateMetricsRequest>, I>>(base?: I): UpdateMetricsRequest {
     return UpdateMetricsRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateMetricsRequest>, I>>(
-    object: I,
-  ): UpdateMetricsRequest {
+  fromPartial<I extends Exact<DeepPartial<UpdateMetricsRequest>, I>>(object: I): UpdateMetricsRequest {
     const message = createBaseUpdateMetricsRequest();
     message.id = object.id ?? 0;
     message.viewsCount = object.viewsCount ?? undefined;
@@ -1706,14 +1733,9 @@ export const UpdateMetricsResponse: MessageFns<UpdateMetricsResponse> = {
   create<I extends Exact<DeepPartial<UpdateMetricsResponse>, I>>(base?: I): UpdateMetricsResponse {
     return UpdateMetricsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateMetricsResponse>, I>>(
-    object: I,
-  ): UpdateMetricsResponse {
+  fromPartial<I extends Exact<DeepPartial<UpdateMetricsResponse>, I>>(object: I): UpdateMetricsResponse {
     const message = createBaseUpdateMetricsResponse();
-    message.video =
-      object.video !== undefined && object.video !== null
-        ? Video.fromPartial(object.video)
-        : undefined;
+    message.video = (object.video !== undefined && object.video !== null) ? Video.fromPartial(object.video) : undefined;
     return message;
   },
 };
@@ -1723,10 +1745,7 @@ function createBaseGetRecommendedVideosRequest(): GetRecommendedVideosRequest {
 }
 
 export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest> = {
-  encode(
-    message: GetRecommendedVideosRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetRecommendedVideosRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.userId !== 0) {
       writer.uint32(8).uint32(message.userId);
     }
@@ -1831,14 +1850,10 @@ export const GetRecommendedVideosRequest: MessageFns<GetRecommendedVideosRequest
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(
-    base?: I,
-  ): GetRecommendedVideosRequest {
+  create<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(base?: I): GetRecommendedVideosRequest {
     return GetRecommendedVideosRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(
-    object: I,
-  ): GetRecommendedVideosRequest {
+  fromPartial<I extends Exact<DeepPartial<GetRecommendedVideosRequest>, I>>(object: I): GetRecommendedVideosRequest {
     const message = createBaseGetRecommendedVideosRequest();
     message.userId = object.userId ?? 0;
     message.limit = object.limit ?? 0;
@@ -1886,11 +1901,7 @@ export const GetVideosResponse: MessageFns<GetVideosResponse> = {
   },
 
   fromJSON(object: any): GetVideosResponse {
-    return {
-      videos: globalThis.Array.isArray(object?.videos)
-        ? object.videos.map((e: any) => Video.fromJSON(e))
-        : [],
-    };
+    return { videos: globalThis.Array.isArray(object?.videos) ? object.videos.map((e: any) => Video.fromJSON(e)) : [] };
   },
 
   toJSON(message: GetVideosResponse): unknown {
@@ -2006,11 +2017,7 @@ export const CaptionList: MessageFns<CaptionList> = {
   },
 
   fromJSON(object: any): CaptionList {
-    return {
-      lines: globalThis.Array.isArray(object?.lines)
-        ? object.lines.map((e: any) => globalThis.String(e))
-        : [],
-    };
+    return { lines: globalThis.Array.isArray(object?.lines) ? object.lines.map((e: any) => globalThis.String(e)) : [] };
   },
 
   toJSON(message: CaptionList): unknown {
@@ -2038,10 +2045,7 @@ function createBaseGetCaptionsResponse(): GetCaptionsResponse {
 export const GetCaptionsResponse: MessageFns<GetCaptionsResponse> = {
   encode(message: GetCaptionsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     Object.entries(message.captions).forEach(([key, value]) => {
-      GetCaptionsResponse_CaptionsEntry.encode(
-        { key: key as any, value },
-        writer.uint32(10).fork(),
-      ).join();
+      GetCaptionsResponse_CaptionsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
     });
     return writer;
   },
@@ -2076,13 +2080,10 @@ export const GetCaptionsResponse: MessageFns<GetCaptionsResponse> = {
   fromJSON(object: any): GetCaptionsResponse {
     return {
       captions: isObject(object.captions)
-        ? Object.entries(object.captions).reduce<{ [key: string]: CaptionList }>(
-            (acc, [key, value]) => {
-              acc[key] = CaptionList.fromJSON(value);
-              return acc;
-            },
-            {},
-          )
+        ? Object.entries(object.captions).reduce<{ [key: string]: CaptionList }>((acc, [key, value]) => {
+          acc[key] = CaptionList.fromJSON(value);
+          return acc;
+        }, {})
         : {},
     };
   },
@@ -2104,9 +2105,7 @@ export const GetCaptionsResponse: MessageFns<GetCaptionsResponse> = {
   create<I extends Exact<DeepPartial<GetCaptionsResponse>, I>>(base?: I): GetCaptionsResponse {
     return GetCaptionsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetCaptionsResponse>, I>>(
-    object: I,
-  ): GetCaptionsResponse {
+  fromPartial<I extends Exact<DeepPartial<GetCaptionsResponse>, I>>(object: I): GetCaptionsResponse {
     const message = createBaseGetCaptionsResponse();
     message.captions = Object.entries(object.captions ?? {}).reduce<{ [key: string]: CaptionList }>(
       (acc, [key, value]) => {
@@ -2126,10 +2125,7 @@ function createBaseGetCaptionsResponse_CaptionsEntry(): GetCaptionsResponse_Capt
 }
 
 export const GetCaptionsResponse_CaptionsEntry: MessageFns<GetCaptionsResponse_CaptionsEntry> = {
-  encode(
-    message: GetCaptionsResponse_CaptionsEntry,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetCaptionsResponse_CaptionsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -2199,62 +2195,37 @@ export const GetCaptionsResponse_CaptionsEntry: MessageFns<GetCaptionsResponse_C
   ): GetCaptionsResponse_CaptionsEntry {
     const message = createBaseGetCaptionsResponse_CaptionsEntry();
     message.key = object.key ?? "";
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? CaptionList.fromPartial(object.value)
-        : undefined;
+    message.value = (object.value !== undefined && object.value !== null)
+      ? CaptionList.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
 
 /** Video service definition */
 export interface VideoService {
-  CreateVideo(
-    request: DeepPartial<CreateVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<CreateVideoResponse>;
-  GetVideo(
-    request: DeepPartial<GetVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetVideoResponse>;
-  UpdateVideo(
-    request: DeepPartial<UpdateVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UpdateVideoResponse>;
-  DeleteVideo(
-    request: DeepPartial<DeleteVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<DeleteVideoResponse>;
+  CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse>;
+  GetVideo(request: DeepPartial<GetVideoRequest>, metadata?: grpc.Metadata): Promise<GetVideoResponse>;
+  UpdateVideo(request: DeepPartial<UpdateVideoRequest>, metadata?: grpc.Metadata): Promise<UpdateVideoResponse>;
+  DeleteVideo(request: DeepPartial<DeleteVideoRequest>, metadata?: grpc.Metadata): Promise<DeleteVideoResponse>;
   GetVideosByUserId(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse>;
-  UpdateMetrics(
-    request: DeepPartial<UpdateMetricsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UpdateMetricsResponse>;
+  UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse>;
   GetRecommendedVideos(
     request: DeepPartial<GetRecommendedVideosRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse>;
   /** caption generator */
-  GetCaptions(
-    request: DeepPartial<GetCaptionsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetCaptionsResponse>;
+  GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse>;
   /** friends videos */
-  GetFriendVideos(
-    request: DeepPartial<GetVideosByUserIdRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetVideosResponse>;
+  GetFriendVideos(request: DeepPartial<GetVideosByUserIdRequest>, metadata?: grpc.Metadata): Promise<GetVideosResponse>;
   GetFollowingVideos(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse>;
-  GetAllVideos(
-    request: DeepPartial<GetVideosByUserIdRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetVideosResponse>;
+  GetAllVideos(request: DeepPartial<GetVideosByUserIdRequest>, metadata?: grpc.Metadata): Promise<GetVideosResponse>;
   GetLikedVideosByUserId(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
@@ -2280,66 +2251,31 @@ export class VideoServiceClientImpl implements VideoService {
     this.GetLikedVideosByUserId = this.GetLikedVideosByUserId.bind(this);
   }
 
-  CreateVideo(
-    request: DeepPartial<CreateVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<CreateVideoResponse> {
-    return this.rpc.unary(
-      VideoServiceCreateVideoDesc,
-      CreateVideoRequest.fromPartial(request),
-      metadata,
-    );
+  CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
+    return this.rpc.unary(VideoServiceCreateVideoDesc, CreateVideoRequest.fromPartial(request), metadata);
   }
 
-  GetVideo(
-    request: DeepPartial<GetVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetVideoResponse> {
+  GetVideo(request: DeepPartial<GetVideoRequest>, metadata?: grpc.Metadata): Promise<GetVideoResponse> {
     return this.rpc.unary(VideoServiceGetVideoDesc, GetVideoRequest.fromPartial(request), metadata);
   }
 
-  UpdateVideo(
-    request: DeepPartial<UpdateVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UpdateVideoResponse> {
-    return this.rpc.unary(
-      VideoServiceUpdateVideoDesc,
-      UpdateVideoRequest.fromPartial(request),
-      metadata,
-    );
+  UpdateVideo(request: DeepPartial<UpdateVideoRequest>, metadata?: grpc.Metadata): Promise<UpdateVideoResponse> {
+    return this.rpc.unary(VideoServiceUpdateVideoDesc, UpdateVideoRequest.fromPartial(request), metadata);
   }
 
-  DeleteVideo(
-    request: DeepPartial<DeleteVideoRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<DeleteVideoResponse> {
-    return this.rpc.unary(
-      VideoServiceDeleteVideoDesc,
-      DeleteVideoRequest.fromPartial(request),
-      metadata,
-    );
+  DeleteVideo(request: DeepPartial<DeleteVideoRequest>, metadata?: grpc.Metadata): Promise<DeleteVideoResponse> {
+    return this.rpc.unary(VideoServiceDeleteVideoDesc, DeleteVideoRequest.fromPartial(request), metadata);
   }
 
   GetVideosByUserId(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse> {
-    return this.rpc.unary(
-      VideoServiceGetVideosByUserIdDesc,
-      GetVideosByUserIdRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(VideoServiceGetVideosByUserIdDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 
-  UpdateMetrics(
-    request: DeepPartial<UpdateMetricsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UpdateMetricsResponse> {
-    return this.rpc.unary(
-      VideoServiceUpdateMetricsDesc,
-      UpdateMetricsRequest.fromPartial(request),
-      metadata,
-    );
+  UpdateMetrics(request: DeepPartial<UpdateMetricsRequest>, metadata?: grpc.Metadata): Promise<UpdateMetricsResponse> {
+    return this.rpc.unary(VideoServiceUpdateMetricsDesc, UpdateMetricsRequest.fromPartial(request), metadata);
   }
 
   GetRecommendedVideos(
@@ -2353,48 +2289,26 @@ export class VideoServiceClientImpl implements VideoService {
     );
   }
 
-  GetCaptions(
-    request: DeepPartial<GetCaptionsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetCaptionsResponse> {
-    return this.rpc.unary(
-      VideoServiceGetCaptionsDesc,
-      GetCaptionsRequest.fromPartial(request),
-      metadata,
-    );
+  GetCaptions(request: DeepPartial<GetCaptionsRequest>, metadata?: grpc.Metadata): Promise<GetCaptionsResponse> {
+    return this.rpc.unary(VideoServiceGetCaptionsDesc, GetCaptionsRequest.fromPartial(request), metadata);
   }
 
   GetFriendVideos(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse> {
-    return this.rpc.unary(
-      VideoServiceGetFriendVideosDesc,
-      GetVideosByUserIdRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(VideoServiceGetFriendVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 
   GetFollowingVideos(
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse> {
-    return this.rpc.unary(
-      VideoServiceGetFollowingVideosDesc,
-      GetVideosByUserIdRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(VideoServiceGetFollowingVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 
-  GetAllVideos(
-    request: DeepPartial<GetVideosByUserIdRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetVideosResponse> {
-    return this.rpc.unary(
-      VideoServiceGetAllVideosDesc,
-      GetVideosByUserIdRequest.fromPartial(request),
-      metadata,
-    );
+  GetAllVideos(request: DeepPartial<GetVideosByUserIdRequest>, metadata?: grpc.Metadata): Promise<GetVideosResponse> {
+    return this.rpc.unary(VideoServiceGetAllVideosDesc, GetVideosByUserIdRequest.fromPartial(request), metadata);
   }
 
   GetLikedVideosByUserId(
@@ -2732,10 +2646,9 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-        : (metadata ?? this.options.metadata);
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -2747,11 +2660,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(
-              response.statusMessage,
-              response.status,
-              response.trailers,
-            );
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -2787,19 +2696,14 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends globalThis.Array<infer U>
-    ? globalThis.Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
@@ -2833,11 +2737,7 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(
-    message: string,
-    public code: grpc.Code,
-    public metadata: grpc.Metadata,
-  ) {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
 }

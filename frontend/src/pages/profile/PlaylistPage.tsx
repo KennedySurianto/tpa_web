@@ -11,7 +11,6 @@ import type {
   Playlist,
   UpdatePlaylistRequest,
   UpdatePlaylistResponse,
-  Video,
 } from "../../api/gen/playlist";
 import { playlistClient } from "../../api/grpc/playlistClient";
 import { videoClient } from "../../api/grpc/videoClient";
@@ -36,6 +35,7 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import type { Video } from "../../api/gen/video";
 
 const PlaylistPage: React.FC = () => {
   const { user, getAuthMetadata } = useAuth();

@@ -21,6 +21,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import ChatLayout from "./pages/chat/ChatLayout";
 import VideoPage from "./pages/video/VideoPage";
 import ManageVideosPage from "./pages/video/ManageVideosPage";
+import EditVideoPage from "./pages/video/EditVideoPage";
 
 const App = () => {
   return (
@@ -56,6 +57,7 @@ const App = () => {
                 <Route path="/following" element={<FollowingPage />} />
                 <Route path="/playlist" element={<PlaylistPage />} />
                 <Route path="/manage-videos" element={<ManageVideosPage />} />
+                <Route path="/edit-video/:videoId" element={<EditVideoPage />} />
               </Route>
             </Route>
           </Routes>

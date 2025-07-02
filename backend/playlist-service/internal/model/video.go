@@ -23,4 +23,5 @@ type Video struct {
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	DeletedAt     *time.Time `json:"deleted_at,omitempty"` // nullable
+	IsPublished   bool 		 `gorm:"column:is_published" json:"is_published"`
 }

@@ -44,7 +44,7 @@ func (c *PlaylistController) GetPlaylist(ctx context.Context, req *pb.GetPlaylis
 	}
 
 	// Collect video details for each video ID in the playlist
-	var videoDetails []*pb.Video
+	var videoDetails []*videopb.Video
 	for _, videoID := range p.VideoIDs {
 		// Fetch video details by ID using the service method
 		videoResp, err := c.svc.GetVideoById(ctx, uint64(videoID), req.CurrentUserId)
@@ -54,7 +54,7 @@ func (c *PlaylistController) GetPlaylist(ctx context.Context, req *pb.GetPlaylis
 		if videoResp != nil {
 			// Convert video from video-service to model.Video and map to protobuf
 			videoModel := c.convertVideoToModel(videoResp)
-			videoDetails = append(videoDetails, &pb.Video{
+			videoDetails = append(videoDetails, &videopb.Video{
 				Id:            uint32(videoModel.ID),
 				UserId:        uint32(videoModel.UserID),
 				VideoUrl:      videoModel.VideoURL,
@@ -73,6 +73,7 @@ func (c *PlaylistController) GetPlaylist(ctx context.Context, req *pb.GetPlaylis
 				CreatedAt:     timestamppb.New(videoModel.CreatedAt),
 				UpdatedAt:     timestamppb.New(videoModel.UpdatedAt),
 				DeletedAt:     func() *timestamppb.Timestamp { if videoModel.DeletedAt != nil { return timestamppb.New(*videoModel.DeletedAt) }; return nil }(),
+				IsPublished: videoModel.IsPublished,
 			})
 		}
 	}
@@ -141,7 +142,7 @@ func (c *PlaylistController) GetPlaylistsByUserId(ctx context.Context, req *pb.G
 		fmt.Printf("Debug: Processing playlist with ID %d, Name: %s\n", p.ID, p.Name)
 
 		// Fetch video details from video-service
-		var videoDetails []*pb.Video
+		var videoDetails []*videopb.Video
 		for _, videoID := range p.VideoIDs {
 			// Debug: Fetching video details for the current video ID
 			fmt.Printf("Debug: Fetching video details for VideoID: %d\n", videoID)
@@ -158,7 +159,7 @@ func (c *PlaylistController) GetPlaylistsByUserId(ctx context.Context, req *pb.G
 
 				// Convert video from video-service to model.Video and directly append to result
 				videoModel := c.convertVideoToModel(videoResp)
-				videoDetails = append(videoDetails, &pb.Video{
+				videoDetails = append(videoDetails, &videopb.Video{
 					Id:            uint32(videoModel.ID),
 					UserId:        uint32(videoModel.UserID),
 					VideoUrl:      videoModel.VideoURL,
@@ -177,6 +178,7 @@ func (c *PlaylistController) GetPlaylistsByUserId(ctx context.Context, req *pb.G
 					CreatedAt:     timestamppb.New(videoModel.CreatedAt),
 					UpdatedAt:     timestamppb.New(videoModel.UpdatedAt),
 					DeletedAt:     func() *timestamppb.Timestamp { if videoModel.DeletedAt != nil { return timestamppb.New(*videoModel.DeletedAt) }; return nil }(),
+					IsPublished: videoModel.IsPublished,
 				})
 			} else {
 				// Debug: Video not found or missing

@@ -28,4 +28,6 @@ type Video struct {
 	AllowComments bool `json:"allow_comments"`
 	AllowDuet     bool `json:"allow_duet"`
 	AllowStitch   bool `json:"allow_stitch"`
+
+	IsPublished  bool   `gorm:"column:is_published" json:"is_published"`
 }

@@ -57,6 +57,7 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 		Model(&model.Video{}).
 		Where("privacy = ?", "public"). // Only show public videos
 		Where("deleted_at IS NULL").     // Exclude soft-deleted
+		Where("is_published = ?", true).     // published videos only
 		Order("created_at DESC").
 		Limit(int(limit))
 

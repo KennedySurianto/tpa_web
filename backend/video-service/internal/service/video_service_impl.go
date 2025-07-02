@@ -107,6 +107,7 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 		ViewsCount: 0,
 		LikesCount: 0,
 		CommentsCount: 0,
+		IsPublished: req.IsPublished,
 	}
 	if err := s.videoRepo.CreateVideoTx(tx, video); err != nil {
 		tx.Rollback()
@@ -181,6 +182,9 @@ func (s *VideoServiceImpl) UpdateVideo(req *pb.UpdateVideoRequest) (*model.Video
 	}
 	if req.AllowStitch != nil {
 		video.AllowStitch = *req.AllowStitch
+	}
+	if req.IsPublished != nil {
+		video.IsPublished = *req.IsPublished
 	}
 
 	err = s.videoRepo.UpdateVideo(video)

@@ -16,14 +16,16 @@ export interface LikeRequest {
   videoId: number;
 }
 
-export interface LikeResponse {}
+export interface LikeResponse {
+}
 
 export interface UnlikeRequest {
   userId: number;
   videoId: number;
 }
 
-export interface UnlikeResponse {}
+export interface UnlikeResponse {
+}
 
 export interface IsLikedRequest {
   userId: number;
@@ -427,10 +429,7 @@ function createBaseGetVideoLikeCountRequest(): GetVideoLikeCountRequest {
 }
 
 export const GetVideoLikeCountRequest: MessageFns<GetVideoLikeCountRequest> = {
-  encode(
-    message: GetVideoLikeCountRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetVideoLikeCountRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.videoId !== 0) {
       writer.uint32(8).uint32(message.videoId);
     }
@@ -473,14 +472,10 @@ export const GetVideoLikeCountRequest: MessageFns<GetVideoLikeCountRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(
-    base?: I,
-  ): GetVideoLikeCountRequest {
+  create<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(base?: I): GetVideoLikeCountRequest {
     return GetVideoLikeCountRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(
-    object: I,
-  ): GetVideoLikeCountRequest {
+  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountRequest>, I>>(object: I): GetVideoLikeCountRequest {
     const message = createBaseGetVideoLikeCountRequest();
     message.videoId = object.videoId ?? 0;
     return message;
@@ -492,10 +487,7 @@ function createBaseGetVideoLikeCountResponse(): GetVideoLikeCountResponse {
 }
 
 export const GetVideoLikeCountResponse: MessageFns<GetVideoLikeCountResponse> = {
-  encode(
-    message: GetVideoLikeCountResponse,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetVideoLikeCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.count !== "0") {
       writer.uint32(8).uint64(message.count);
     }
@@ -538,14 +530,10 @@ export const GetVideoLikeCountResponse: MessageFns<GetVideoLikeCountResponse> = 
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(
-    base?: I,
-  ): GetVideoLikeCountResponse {
+  create<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(base?: I): GetVideoLikeCountResponse {
     return GetVideoLikeCountResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(
-    object: I,
-  ): GetVideoLikeCountResponse {
+  fromPartial<I extends Exact<DeepPartial<GetVideoLikeCountResponse>, I>>(object: I): GetVideoLikeCountResponse {
     const message = createBaseGetVideoLikeCountResponse();
     message.count = object.count ?? "0";
     return message;
@@ -557,10 +545,7 @@ function createBaseGetLikesByUserIdRequest(): GetLikesByUserIdRequest {
 }
 
 export const GetLikesByUserIdRequest: MessageFns<GetLikesByUserIdRequest> = {
-  encode(
-    message: GetLikesByUserIdRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetLikesByUserIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.userId !== 0) {
       writer.uint32(8).uint32(message.userId);
     }
@@ -603,14 +588,10 @@ export const GetLikesByUserIdRequest: MessageFns<GetLikesByUserIdRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(
-    base?: I,
-  ): GetLikesByUserIdRequest {
+  create<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(base?: I): GetLikesByUserIdRequest {
     return GetLikesByUserIdRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(
-    object: I,
-  ): GetLikesByUserIdRequest {
+  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdRequest>, I>>(object: I): GetLikesByUserIdRequest {
     const message = createBaseGetLikesByUserIdRequest();
     message.userId = object.userId ?? 0;
     return message;
@@ -622,10 +603,7 @@ function createBaseGetLikesByUserIdResponse(): GetLikesByUserIdResponse {
 }
 
 export const GetLikesByUserIdResponse: MessageFns<GetLikesByUserIdResponse> = {
-  encode(
-    message: GetLikesByUserIdResponse,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: GetLikesByUserIdResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     writer.uint32(10).fork();
     for (const v of message.videoIds) {
       writer.uint64(v);
@@ -670,9 +648,7 @@ export const GetLikesByUserIdResponse: MessageFns<GetLikesByUserIdResponse> = {
 
   fromJSON(object: any): GetLikesByUserIdResponse {
     return {
-      videoIds: globalThis.Array.isArray(object?.videoIds)
-        ? object.videoIds.map((e: any) => globalThis.String(e))
-        : [],
+      videoIds: globalThis.Array.isArray(object?.videoIds) ? object.videoIds.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
@@ -684,14 +660,10 @@ export const GetLikesByUserIdResponse: MessageFns<GetLikesByUserIdResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(
-    base?: I,
-  ): GetLikesByUserIdResponse {
+  create<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(base?: I): GetLikesByUserIdResponse {
     return GetLikesByUserIdResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(
-    object: I,
-  ): GetLikesByUserIdResponse {
+  fromPartial<I extends Exact<DeepPartial<GetLikesByUserIdResponse>, I>>(object: I): GetLikesByUserIdResponse {
     const message = createBaseGetLikesByUserIdResponse();
     message.videoIds = object.videoIds?.map((e) => e) || [];
     return message;
@@ -732,10 +704,7 @@ export class LikeServiceClientImpl implements LikeService {
     return this.rpc.unary(LikeServiceUnlikeDesc, UnlikeRequest.fromPartial(request), metadata);
   }
 
-  IsLiked(
-    request: DeepPartial<IsLikedRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<IsLikedResponse> {
+  IsLiked(request: DeepPartial<IsLikedRequest>, metadata?: grpc.Metadata): Promise<IsLikedResponse> {
     return this.rpc.unary(LikeServiceIsLikedDesc, IsLikedRequest.fromPartial(request), metadata);
   }
 
@@ -743,22 +712,14 @@ export class LikeServiceClientImpl implements LikeService {
     request: DeepPartial<GetVideoLikeCountRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideoLikeCountResponse> {
-    return this.rpc.unary(
-      LikeServiceGetVideoLikeCountDesc,
-      GetVideoLikeCountRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(LikeServiceGetVideoLikeCountDesc, GetVideoLikeCountRequest.fromPartial(request), metadata);
   }
 
   GetLikesByUserId(
     request: DeepPartial<GetLikesByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetLikesByUserIdResponse> {
-    return this.rpc.unary(
-      LikeServiceGetLikesByUserIdDesc,
-      GetLikesByUserIdRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(LikeServiceGetLikesByUserIdDesc, GetLikesByUserIdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -924,10 +885,9 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-        : (metadata ?? this.options.metadata);
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -939,11 +899,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(
-              response.statusMessage,
-              response.status,
-              response.trailers,
-            );
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -954,19 +910,14 @@ export class GrpcWebImpl {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends globalThis.Array<infer U>
-    ? globalThis.Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -974,11 +925,7 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(
-    message: string,
-    public code: grpc.Code,
-    public metadata: grpc.Metadata,
-  ) {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
 }

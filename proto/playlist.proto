@@ -6,6 +6,8 @@ option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/playl
 
 import "google/protobuf/timestamp.proto";
 
+import "video.proto";
+
 service PlaylistService {
 	rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
 	rpc GetPlaylist (GetPlaylistRequest) returns (Playlist);
@@ -35,45 +37,45 @@ message User {
 	bytes avatar = 3;
 }
 
-message Video {
-	uint32 id = 1;
-	google.protobuf.Timestamp created_at = 2;
-	google.protobuf.Timestamp updated_at = 3;
-	google.protobuf.Timestamp deleted_at = 4;
+// message Video {
+// 	uint32 id = 1;
+// 	google.protobuf.Timestamp created_at = 2;
+// 	google.protobuf.Timestamp updated_at = 3;
+// 	google.protobuf.Timestamp deleted_at = 4;
 	
-	// Video metadata
-	uint32 user_id = 5;
-	string video_url = 6;
-	bytes thumbnail = 7;
-	string caption = 8;
-	optional string description = 9;
-	int32 duration = 10;
+// 	// Video metadata
+// 	uint32 user_id = 5;
+// 	string video_url = 6;
+// 	bytes thumbnail = 7;
+// 	string caption = 8;
+// 	optional string description = 9;
+// 	int32 duration = 10;
 	
-	// Optional associations
-	optional uint32 sound_id = 11;
-	string privacy = 12;
+// 	// Optional associations
+// 	optional uint32 sound_id = 11;
+// 	string privacy = 12;
 	
-	// Cached metrics
-	uint32 views_count = 13;
-	uint32 likes_count = 14;
-	uint32 comments_count = 15;
+// 	// Cached metrics
+// 	uint32 views_count = 13;
+// 	uint32 likes_count = 14;
+// 	uint32 comments_count = 15;
 	
-	// Feature flags
-	bool allow_comments = 16;
-	bool allow_duet = 17;
-	bool allow_stitch = 18;
+// 	// Feature flags
+// 	bool allow_comments = 16;
+// 	bool allow_duet = 17;
+// 	bool allow_stitch = 18;
 
-	User user = 19;
+// 	User user = 19;
 
-	bool is_liked = 20;
-	uint64 like_count = 21;
-}
+// 	bool is_liked = 20;
+// 	uint64 like_count = 21;
+// }
 
 message Playlist {
     uint64 id = 1;
     string name = 2;
     uint64 user_id = 3;
-    repeated Video videos = 4;
+    repeated video.Video videos = 4;
     google.protobuf.Timestamp created_at = 6;
     google.protobuf.Timestamp updated_at = 7;
     google.protobuf.Timestamp deleted_at = 8;

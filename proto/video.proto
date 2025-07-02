@@ -44,6 +44,8 @@ message Video {
 
   bool is_liked = 20;
   uint64 like_count = 21;
+
+  bool is_published = 22;
 }
 
 // Request/Response messages
@@ -62,6 +64,8 @@ message CreateVideoRequest {
 
   bytes video_data = 12;         // Raw binary video data
   string content_type = 13;      // e.g. "video/mp4"
+
+  bool is_published = 14;
 }
 
 message CreateVideoResponse {
@@ -85,6 +89,7 @@ message UpdateVideoRequest {
   optional bool allow_comments = 5;
   optional bool allow_duet = 6;
   optional bool allow_stitch = 7;
+  optional bool is_published = 8;
 }
 
 message UpdateVideoResponse {
