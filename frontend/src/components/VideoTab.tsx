@@ -1,13 +1,13 @@
-import type React from "react"
-import { Link, useNavigate } from "react-router-dom"
-import type { Video } from "../api/gen/video"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react"
+import type React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import type { Video } from "../api/gen/video";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react";
 
 interface VideoGridProps {
-  videos: Video[]
-  isOwnProfile: boolean
-  isVideoTab: boolean
+  videos: Video[];
+  isOwnProfile: boolean;
+  isVideoTab: boolean;
 }
 
 const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }) => {
@@ -52,30 +52,26 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
 
       {/* Display Video Cards */}
       {videos.map((video) => (
-        <div
-          key={video.id}
-          className="video-card"
-          onClick={() => navigate(`/video/${video.id}`)}
-        >
+        <div key={video.id} className="video-card" onClick={() => navigate(`/video/${video.id}`)}>
           <div className="video-thumbnail">
             {video.thumbnail.length !== 0 ? (
               <img
-          src={avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=200&width=150"}
-          alt={`Thumbnail ${video.id}`}
-          className="thumbnail-image"
+                src={avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=200&width=150"}
+                alt={`Thumbnail ${video.id}`}
+                className="thumbnail-image"
               />
             ) : (
               <video
-          className="thumbnail-video"
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          onLoadedMetadata={(e) => {
-            ;(e.target as HTMLVideoElement).currentTime = 0
-          }}
+                className="thumbnail-video"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                  (e.target as HTMLVideoElement).currentTime = 0;
+                }}
               >
-          <source src={video.videoUrl} type="video/mp4" />
+                <source src={video.videoUrl} type="video/mp4" />
               </video>
             )}
           </div>
@@ -413,7 +409,7 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default VideoTab
+export default VideoTab;

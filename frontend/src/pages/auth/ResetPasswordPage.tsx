@@ -1,8 +1,8 @@
-import type React from "react"
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { AuthServiceClientImpl, GrpcWebImpl, type ResetPasswordRequest } from "../../api/gen/auth"
-import { BrowserHeaders } from "browser-headers"
+import type React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthServiceClientImpl, GrpcWebImpl, type ResetPasswordRequest } from "../../api/gen/auth";
+import { BrowserHeaders } from "browser-headers";
 import {
   Mail,
   Phone,
@@ -16,165 +16,167 @@ import {
   Send,
   RotateCcw,
   Loader2,
-} from "lucide-react"
+} from "lucide-react";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
   transport: undefined,
   metadata: new BrowserHeaders(),
-})
+});
 
-const authClient = new AuthServiceClientImpl(transport)
+const authClient = new AuthServiceClientImpl(transport);
 
 const ResetPasswordPage: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
     otp: "",
     newPassword: "",
-  })
-  const [isPhoneReset, setIsPhoneReset] = useState(false)
-  const [error, setError] = useState("")
-  const [sendingOtp, setSendingOtp] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
-  const [verifyingOtp, setVerifyingOtp] = useState(false)
-  const [otpVerified, setOtpVerified] = useState(false)
-  const [resettingPassword, setResettingPassword] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  });
+  const [isPhoneReset, setIsPhoneReset] = useState(false);
+  const [error, setError] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
+    });
     // Clear error when user starts typing
-    if (error) setError("")
-  }
+    if (error) setError("");
+  };
 
   const handleSendCode = async () => {
     if (!formData.email) {
-      setError("Please enter your email address first")
-      return
+      setError("Please enter your email address first");
+      return;
     }
 
-    setSendingOtp(true)
-    setError("")
-    console.log("Send verification code to:", formData.email)
+    setSendingOtp(true);
+    setError("");
+    console.log("Send verification code to:", formData.email);
 
     try {
       const response = await authClient.SendOTP({
         email: formData.email,
-      })
+      });
 
-      setOtpSent(true)
-      console.log("OTP sent successfully:", response.message)
+      setOtpSent(true);
+      console.log("OTP sent successfully:", response.message);
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Failed to send verification code"
-      setError(errorMessage)
-      console.error("Failed to send verification code:", err)
+      const errorMessage = err?.message || err?.toString() || "Failed to send verification code";
+      setError(errorMessage);
+      console.error("Failed to send verification code:", err);
     } finally {
-      setSendingOtp(false)
+      setSendingOtp(false);
     }
-  }
+  };
 
   const handleVerifyOtp = async () => {
     if (!formData.otp || formData.otp.length !== 6) {
-      setError("Please enter a valid 6-digit code")
-      return
+      setError("Please enter a valid 6-digit code");
+      return;
     }
 
-    setVerifyingOtp(true)
-    setError("")
+    setVerifyingOtp(true);
+    setError("");
 
     try {
       const response = await authClient.VerifyOTP({
         email: formData.email,
         otp: formData.otp,
-      })
+      });
 
       if (response.success) {
-        setOtpVerified(true)
-        console.log("OTP verified successfully:", response.message)
+        setOtpVerified(true);
+        console.log("OTP verified successfully:", response.message);
       } else {
-        setError(response.message || "Invalid verification code")
+        setError(response.message || "Invalid verification code");
       }
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Failed to verify code"
-      setError(errorMessage)
-      console.error("Failed to verify OTP:", err)
+      const errorMessage = err?.message || err?.toString() || "Failed to verify code";
+      setError(errorMessage);
+      console.error("Failed to verify OTP:", err);
     } finally {
-      setVerifyingOtp(false)
+      setVerifyingOtp(false);
     }
-  }
+  };
 
   const handleResendCode = async () => {
-    setFormData((prev) => ({ ...prev, otp: "" }))
-    setOtpVerified(false)
-    await handleSendCode()
-  }
+    setFormData((prev) => ({ ...prev, otp: "" }));
+    setOtpVerified(false);
+    await handleSendCode();
+  };
 
   const handleResetPassword = async () => {
     if (!formData.newPassword) {
-      setError("Please enter a new password")
-      return
+      setError("Please enter a new password");
+      return;
     }
     if (formData.newPassword.length < 8) {
-      setError("Password must be at least 8 characters long")
-      return
+      setError("Password must be at least 8 characters long");
+      return;
     }
     if (!otpVerified) {
-      setError("Please verify your code first")
-      return
+      setError("Please verify your code first");
+      return;
     }
 
-    setResettingPassword(true)
-    setError("")
+    setResettingPassword(true);
+    setError("");
 
     try {
       const req: ResetPasswordRequest = {
         email: formData.email,
         otp: formData.otp,
         newPassword: formData.newPassword,
-      }
-      const response = await authClient.ResetPassword(req)
+      };
+      const response = await authClient.ResetPassword(req);
 
-      console.log("Password reset successful:", response.message)
+      console.log("Password reset successful:", response.message);
 
       // Redirect to login page with success message
       navigate("/login", {
         state: {
-          message: response.message || "Password reset successfully. Please log in with your new password.",
+          message:
+            response.message ||
+            "Password reset successfully. Please log in with your new password.",
         },
-      })
+      });
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Failed to reset password"
-      setError(errorMessage)
-      console.error("Failed to reset password:", err)
+      const errorMessage = err?.message || err?.toString() || "Failed to reset password";
+      setError(errorMessage);
+      console.error("Failed to reset password:", err);
     } finally {
-      setResettingPassword(false)
+      setResettingPassword(false);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!otpSent) {
-      handleSendCode()
+      handleSendCode();
     } else if (!otpVerified) {
-      handleVerifyOtp()
+      handleVerifyOtp();
     } else {
-      handleResetPassword()
+      handleResetPassword();
     }
-  }
+  };
 
   const getSubmitButtonText = () => {
-    if (resettingPassword) return "Resetting Password..."
-    if (verifyingOtp) return "Verifying Code..."
-    if (sendingOtp) return "Sending Code..."
-    if (!otpSent) return "Send Verification Code"
-    if (!otpVerified) return "Verify Code"
-    return "Reset Password"
-  }
+    if (resettingPassword) return "Resetting Password...";
+    if (verifyingOtp) return "Verifying Code...";
+    if (sendingOtp) return "Sending Code...";
+    if (!otpSent) return "Send Verification Code";
+    if (!otpVerified) return "Verify Code";
+    return "Reset Password";
+  };
 
   const isSubmitDisabled = () => {
     return (
@@ -184,14 +186,14 @@ const ResetPasswordPage: React.FC = () => {
       (!formData.email && !otpSent) ||
       (otpSent && !otpVerified && !formData.otp) ||
       (otpVerified && !formData.newPassword)
-    )
-  }
+    );
+  };
 
   const getCurrentStep = () => {
-    if (!otpSent) return 1
-    if (!otpVerified) return 2
-    return 3
-  }
+    if (!otpSent) return 1;
+    if (!otpVerified) return 2;
+    return 3;
+  };
 
   return (
     <div
@@ -292,7 +294,9 @@ const ResetPasswordPage: React.FC = () => {
                   height: "32px",
                   borderRadius: "50%",
                   background:
-                    step <= getCurrentStep() ? "linear-gradient(135deg, #3b82f6, #1d4ed8)" : "rgba(255, 255, 255, 0.1)",
+                    step <= getCurrentStep()
+                      ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+                      : "rgba(255, 255, 255, 0.1)",
                   color: step <= getCurrentStep() ? "white" : "rgba(255, 255, 255, 0.5)",
                   display: "flex",
                   alignItems: "center",
@@ -308,7 +312,9 @@ const ResetPasswordPage: React.FC = () => {
               </div>
             ))}
           </div>
-          <div style={{ height: "4px", background: "rgba(255, 255, 255, 0.1)", borderRadius: "2px" }}>
+          <div
+            style={{ height: "4px", background: "rgba(255, 255, 255, 0.1)", borderRadius: "2px" }}
+          >
             <div
               style={{
                 height: "100%",
@@ -342,7 +348,14 @@ const ResetPasswordPage: React.FC = () => {
             </p>
           )}
           {otpSent && !otpVerified && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
               <Send size={16} style={{ color: "#10b981" }} />
               <p style={{ color: "#10b981", fontSize: "14px", margin: 0 }}>
                 Verification code sent to {formData.email}
@@ -350,9 +363,18 @@ const ResetPasswordPage: React.FC = () => {
             </div>
           )}
           {otpVerified && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
               <CheckCircle size={16} style={{ color: "#10b981" }} />
-              <p style={{ color: "#10b981", fontSize: "14px", margin: 0 }}>Code verified! Enter your new password</p>
+              <p style={{ color: "#10b981", fontSize: "14px", margin: 0 }}>
+                Code verified! Enter your new password
+              </p>
             </div>
           )}
         </div>
@@ -437,7 +459,13 @@ const ResetPasswordPage: React.FC = () => {
               {/* Input field */}
               <div style={{ position: "relative" }}>
                 <div
-                  style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }}
+                  style={{
+                    position: "absolute",
+                    left: "16px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 1,
+                  }}
                 >
                   {isPhoneReset ? (
                     <Phone size={20} style={{ color: "rgba(255, 255, 255, 0.5)" }} />
@@ -486,7 +514,13 @@ const ResetPasswordPage: React.FC = () => {
                 </label>
                 <div style={{ position: "relative" }}>
                   <div
-                    style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }}
+                    style={{
+                      position: "absolute",
+                      left: "16px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      zIndex: 1,
+                    }}
                   >
                     {isPhoneReset ? (
                       <Phone size={20} style={{ color: "rgba(255, 255, 255, 0.3)" }} />
@@ -515,9 +549,18 @@ const ResetPasswordPage: React.FC = () => {
               <div style={{ display: "flex", gap: "12px" }}>
                 <div style={{ flex: 1, position: "relative" }}>
                   <div
-                    style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }}
+                    style={{
+                      position: "absolute",
+                      left: "16px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      zIndex: 1,
+                    }}
                   >
-                    <Shield size={20} style={{ color: otpVerified ? "#10b981" : "rgba(255, 255, 255, 0.5)" }} />
+                    <Shield
+                      size={20}
+                      style={{ color: otpVerified ? "#10b981" : "rgba(255, 255, 255, 0.5)" }}
+                    />
                   </div>
                   <input
                     type="text"
@@ -531,7 +574,9 @@ const ResetPasswordPage: React.FC = () => {
                     style={{
                       width: "100%",
                       padding: "16px 16px 16px 52px",
-                      background: otpVerified ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.05)",
+                      background: otpVerified
+                        ? "rgba(16, 185, 129, 0.1)"
+                        : "rgba(255, 255, 255, 0.05)",
                       border: `1px solid ${otpVerified ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
                       borderRadius: "12px",
                       color: otpVerified ? "#10b981" : "white",
@@ -549,7 +594,9 @@ const ResetPasswordPage: React.FC = () => {
                   className="button-hover"
                   style={{
                     padding: "16px",
-                    background: otpVerified ? "rgba(16, 185, 129, 0.2)" : "rgba(255, 255, 255, 0.05)",
+                    background: otpVerified
+                      ? "rgba(16, 185, 129, 0.2)"
+                      : "rgba(255, 255, 255, 0.05)",
                     border: `1px solid ${otpVerified ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
                     borderRadius: "12px",
                     color: otpVerified ? "#10b981" : "white",
@@ -578,7 +625,13 @@ const ResetPasswordPage: React.FC = () => {
             <div style={{ marginBottom: "24px" }}>
               <div style={{ position: "relative" }}>
                 <div
-                  style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }}
+                  style={{
+                    position: "absolute",
+                    left: "16px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 1,
+                  }}
                 >
                   <Lock size={20} style={{ color: "rgba(255, 255, 255, 0.5)" }} />
                 </div>
@@ -621,7 +674,14 @@ const ResetPasswordPage: React.FC = () => {
                 </button>
               </div>
               {formData.newPassword && formData.newPassword.length < 8 && (
-                <p style={{ color: "#ef4444", fontSize: "12px", marginTop: "8px", marginLeft: "4px" }}>
+                <p
+                  style={{
+                    color: "#ef4444",
+                    fontSize: "12px",
+                    marginTop: "8px",
+                    marginLeft: "4px",
+                  }}
+                >
                   Password must be at least 8 characters long
                 </p>
               )}
@@ -692,7 +752,7 @@ const ResetPasswordPage: React.FC = () => {
         `}
       </style>
     </div>
-  )
-}
+  );
+};
 
-export default ResetPasswordPage
+export default ResetPasswordPage;

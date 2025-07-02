@@ -4,33 +4,33 @@ import { GetVideosByUserIdRequest, Video } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
 export function useFriendVideos() {
-    const { user, getAuthMetadata } = useAuth();
-    const [videos, setVideos] = useState<Video[]>([]);
-    const [loading, setLoading] = useState(true);
+  const { user, getAuthMetadata } = useAuth();
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchFriendVideos = async () => {
-            setLoading(true);
-            const req: GetVideosByUserIdRequest = { 
-                userId: Number(user?.id) || 0, 
-                currentUserId: Number(user?.id) || 0 
-            };
+  useEffect(() => {
+    const fetchFriendVideos = async () => {
+      setLoading(true);
+      const req: GetVideosByUserIdRequest = {
+        userId: Number(user?.id) || 0,
+        currentUserId: Number(user?.id) || 0,
+      };
 
-            try {
-                const res = await videoClient.GetFriendVideos(req, getAuthMetadata());
-                if (res && res.videos && res.videos.length !== 0) {
-                    setVideos(res.videos || []);
-                }
-            } catch (err) {
-                console.error("Failed to fetch friend videos:", err);
-                setVideos([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+      try {
+        const res = await videoClient.GetFriendVideos(req, getAuthMetadata());
+        if (res && res.videos && res.videos.length !== 0) {
+          setVideos(res.videos || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch friend videos:", err);
+        setVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        fetchFriendVideos();
-    }, [user]);
+    fetchFriendVideos();
+  }, [user]);
 
-    return { videos, setVideos, loading };
+  return { videos, setVideos, loading };
 }

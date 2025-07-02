@@ -64,8 +64,7 @@ export interface UnsendMessageRequest {
   receiverId: number;
 }
 
-export interface Empty {
-}
+export interface Empty {}
 
 export interface SetTypingStatusRequest {
   senderId: string;
@@ -446,9 +445,12 @@ export const SendMessageResponse: MessageFns<SendMessageResponse> = {
   create<I extends Exact<DeepPartial<SendMessageResponse>, I>>(base?: I): SendMessageResponse {
     return SendMessageResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SendMessageResponse>, I>>(object: I): SendMessageResponse {
+  fromPartial<I extends Exact<DeepPartial<SendMessageResponse>, I>>(
+    object: I,
+  ): SendMessageResponse {
     const message = createBaseSendMessageResponse();
-    message.chat = (object.chat !== undefined && object.chat !== null) ? Chat.fromPartial(object.chat) : undefined;
+    message.chat =
+      object.chat !== undefined && object.chat !== null ? Chat.fromPartial(object.chat) : undefined;
     return message;
   },
 };
@@ -458,7 +460,10 @@ function createBaseGetChatsByUserIDRequest(): GetChatsByUserIDRequest {
 }
 
 export const GetChatsByUserIDRequest: MessageFns<GetChatsByUserIDRequest> = {
-  encode(message: GetChatsByUserIDRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetChatsByUserIDRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.userId !== "0") {
       writer.uint32(8).uint64(message.userId);
     }
@@ -501,10 +506,14 @@ export const GetChatsByUserIDRequest: MessageFns<GetChatsByUserIDRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetChatsByUserIDRequest>, I>>(base?: I): GetChatsByUserIDRequest {
+  create<I extends Exact<DeepPartial<GetChatsByUserIDRequest>, I>>(
+    base?: I,
+  ): GetChatsByUserIDRequest {
     return GetChatsByUserIDRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetChatsByUserIDRequest>, I>>(object: I): GetChatsByUserIDRequest {
+  fromPartial<I extends Exact<DeepPartial<GetChatsByUserIDRequest>, I>>(
+    object: I,
+  ): GetChatsByUserIDRequest {
     const message = createBaseGetChatsByUserIDRequest();
     message.userId = object.userId ?? "0";
     return message;
@@ -516,7 +525,10 @@ function createBaseGetChatsByUserIDResponse(): GetChatsByUserIDResponse {
 }
 
 export const GetChatsByUserIDResponse: MessageFns<GetChatsByUserIDResponse> = {
-  encode(message: GetChatsByUserIDResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetChatsByUserIDResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     for (const v of message.chats) {
       Chat.encode(v!, writer.uint32(10).fork()).join();
     }
@@ -548,7 +560,11 @@ export const GetChatsByUserIDResponse: MessageFns<GetChatsByUserIDResponse> = {
   },
 
   fromJSON(object: any): GetChatsByUserIDResponse {
-    return { chats: globalThis.Array.isArray(object?.chats) ? object.chats.map((e: any) => Chat.fromJSON(e)) : [] };
+    return {
+      chats: globalThis.Array.isArray(object?.chats)
+        ? object.chats.map((e: any) => Chat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: GetChatsByUserIDResponse): unknown {
@@ -559,10 +575,14 @@ export const GetChatsByUserIDResponse: MessageFns<GetChatsByUserIDResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetChatsByUserIDResponse>, I>>(base?: I): GetChatsByUserIDResponse {
+  create<I extends Exact<DeepPartial<GetChatsByUserIDResponse>, I>>(
+    base?: I,
+  ): GetChatsByUserIDResponse {
     return GetChatsByUserIDResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetChatsByUserIDResponse>, I>>(object: I): GetChatsByUserIDResponse {
+  fromPartial<I extends Exact<DeepPartial<GetChatsByUserIDResponse>, I>>(
+    object: I,
+  ): GetChatsByUserIDResponse {
     const message = createBaseGetChatsByUserIDResponse();
     message.chats = object.chats?.map((e) => Chat.fromPartial(e)) || [];
     return message;
@@ -574,7 +594,10 @@ function createBaseGetChatsWithUserRequest(): GetChatsWithUserRequest {
 }
 
 export const GetChatsWithUserRequest: MessageFns<GetChatsWithUserRequest> = {
-  encode(message: GetChatsWithUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetChatsWithUserRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.user1Id !== "0") {
       writer.uint32(8).uint64(message.user1Id);
     }
@@ -634,10 +657,14 @@ export const GetChatsWithUserRequest: MessageFns<GetChatsWithUserRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(base?: I): GetChatsWithUserRequest {
+  create<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(
+    base?: I,
+  ): GetChatsWithUserRequest {
     return GetChatsWithUserRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(object: I): GetChatsWithUserRequest {
+  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserRequest>, I>>(
+    object: I,
+  ): GetChatsWithUserRequest {
     const message = createBaseGetChatsWithUserRequest();
     message.user1Id = object.user1Id ?? "0";
     message.user2Id = object.user2Id ?? "0";
@@ -650,7 +677,10 @@ function createBaseGetChatsWithUserResponse(): GetChatsWithUserResponse {
 }
 
 export const GetChatsWithUserResponse: MessageFns<GetChatsWithUserResponse> = {
-  encode(message: GetChatsWithUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetChatsWithUserResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     for (const v of message.chats) {
       Chat.encode(v!, writer.uint32(10).fork()).join();
     }
@@ -682,7 +712,11 @@ export const GetChatsWithUserResponse: MessageFns<GetChatsWithUserResponse> = {
   },
 
   fromJSON(object: any): GetChatsWithUserResponse {
-    return { chats: globalThis.Array.isArray(object?.chats) ? object.chats.map((e: any) => Chat.fromJSON(e)) : [] };
+    return {
+      chats: globalThis.Array.isArray(object?.chats)
+        ? object.chats.map((e: any) => Chat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: GetChatsWithUserResponse): unknown {
@@ -693,10 +727,14 @@ export const GetChatsWithUserResponse: MessageFns<GetChatsWithUserResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(base?: I): GetChatsWithUserResponse {
+  create<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(
+    base?: I,
+  ): GetChatsWithUserResponse {
     return GetChatsWithUserResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(object: I): GetChatsWithUserResponse {
+  fromPartial<I extends Exact<DeepPartial<GetChatsWithUserResponse>, I>>(
+    object: I,
+  ): GetChatsWithUserResponse {
     const message = createBaseGetChatsWithUserResponse();
     message.chats = object.chats?.map((e) => Chat.fromPartial(e)) || [];
     return message;
@@ -786,7 +824,9 @@ export const UnsendMessageRequest: MessageFns<UnsendMessageRequest> = {
   create<I extends Exact<DeepPartial<UnsendMessageRequest>, I>>(base?: I): UnsendMessageRequest {
     return UnsendMessageRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UnsendMessageRequest>, I>>(object: I): UnsendMessageRequest {
+  fromPartial<I extends Exact<DeepPartial<UnsendMessageRequest>, I>>(
+    object: I,
+  ): UnsendMessageRequest {
     const message = createBaseUnsendMessageRequest();
     message.chatId = object.chatId ?? 0;
     message.senderId = object.senderId ?? 0;
@@ -918,10 +958,14 @@ export const SetTypingStatusRequest: MessageFns<SetTypingStatusRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(base?: I): SetTypingStatusRequest {
+  create<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(
+    base?: I,
+  ): SetTypingStatusRequest {
     return SetTypingStatusRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(object: I): SetTypingStatusRequest {
+  fromPartial<I extends Exact<DeepPartial<SetTypingStatusRequest>, I>>(
+    object: I,
+  ): SetTypingStatusRequest {
     const message = createBaseSetTypingStatusRequest();
     message.senderId = object.senderId ?? "0";
     message.receiverId = object.receiverId ?? "0";
@@ -932,8 +976,14 @@ export const SetTypingStatusRequest: MessageFns<SetTypingStatusRequest> = {
 
 /** Chat service definition */
 export interface ChatService {
-  SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse>;
-  UnsendMessage(request: DeepPartial<UnsendMessageRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  SendMessage(
+    request: DeepPartial<SendMessageRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SendMessageResponse>;
+  UnsendMessage(
+    request: DeepPartial<UnsendMessageRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty>;
   GetChatsByUserID(
     request: DeepPartial<GetChatsByUserIDRequest>,
     metadata?: grpc.Metadata,
@@ -943,7 +993,10 @@ export interface ChatService {
     metadata?: grpc.Metadata,
   ): Promise<GetChatsWithUserResponse>;
   /** typing status */
-  SetTypingStatus(request: DeepPartial<SetTypingStatusRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  SetTypingStatus(
+    request: DeepPartial<SetTypingStatusRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty>;
 }
 
 export class ChatServiceClientImpl implements ChatService {
@@ -958,30 +1011,59 @@ export class ChatServiceClientImpl implements ChatService {
     this.SetTypingStatus = this.SetTypingStatus.bind(this);
   }
 
-  SendMessage(request: DeepPartial<SendMessageRequest>, metadata?: grpc.Metadata): Promise<SendMessageResponse> {
-    return this.rpc.unary(ChatServiceSendMessageDesc, SendMessageRequest.fromPartial(request), metadata);
+  SendMessage(
+    request: DeepPartial<SendMessageRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SendMessageResponse> {
+    return this.rpc.unary(
+      ChatServiceSendMessageDesc,
+      SendMessageRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  UnsendMessage(request: DeepPartial<UnsendMessageRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(ChatServiceUnsendMessageDesc, UnsendMessageRequest.fromPartial(request), metadata);
+  UnsendMessage(
+    request: DeepPartial<UnsendMessageRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty> {
+    return this.rpc.unary(
+      ChatServiceUnsendMessageDesc,
+      UnsendMessageRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetChatsByUserID(
     request: DeepPartial<GetChatsByUserIDRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetChatsByUserIDResponse> {
-    return this.rpc.unary(ChatServiceGetChatsByUserIDDesc, GetChatsByUserIDRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      ChatServiceGetChatsByUserIDDesc,
+      GetChatsByUserIDRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetChatsWithUser(
     request: DeepPartial<GetChatsWithUserRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetChatsWithUserResponse> {
-    return this.rpc.unary(ChatServiceGetChatsWithUserDesc, GetChatsWithUserRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      ChatServiceGetChatsWithUserDesc,
+      GetChatsWithUserRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  SetTypingStatus(request: DeepPartial<SetTypingStatusRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(ChatServiceSetTypingStatusDesc, SetTypingStatusRequest.fromPartial(request), metadata);
+  SetTypingStatus(
+    request: DeepPartial<SetTypingStatusRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty> {
+    return this.rpc.unary(
+      ChatServiceSetTypingStatusDesc,
+      SetTypingStatusRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -1147,9 +1229,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -1161,7 +1244,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -1197,14 +1284,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -1212,7 +1304,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

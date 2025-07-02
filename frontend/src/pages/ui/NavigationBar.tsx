@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -25,96 +25,96 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
-import { useAuth } from "../../utils/AuthProvider"
-import type { FollowList, UserRequest } from "../../api/gen/follow"
-import { followClient } from "../../api/grpc/followClient"
-import type { User as UserType } from "../../api/gen/user"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
-import debounce from "../../utils/debounce"
+} from "lucide-react";
+import { useAuth } from "../../utils/AuthProvider";
+import type { FollowList, UserRequest } from "../../api/gen/follow";
+import { followClient } from "../../api/grpc/followClient";
+import type { User as UserType } from "../../api/gen/user";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
+import debounce from "../../utils/debounce";
 
 const NavigationBar: React.FC = () => {
-  const { user, isAuthenticated, logout, getAuthMetadata } = useAuth()
-  const location = useLocation()
-  const navigate = useNavigate()
-  const [search, setSearch] = useState("")
-  const [theme, setTheme] = useState<"auto" | "dark" | "light">("auto")
-  const [showMoreDropdown, setShowMoreDropdown] = useState(false)
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [followings, setFollowings] = useState<UserType[]>([])
-  const [showAllFollowings, setShowAllFollowings] = useState(false)
-  const [followingsLoading, setFollowingsLoading] = useState(false)
+  const { user, isAuthenticated, logout, getAuthMetadata } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [theme, setTheme] = useState<"auto" | "dark" | "light">("auto");
+  const [showMoreDropdown, setShowMoreDropdown] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [followings, setFollowings] = useState<UserType[]>([]);
+  const [showAllFollowings, setShowAllFollowings] = useState(false);
+  const [followingsLoading, setFollowingsLoading] = useState(false);
 
-  const sidebarContentRef = useRef<HTMLDivElement>(null)
+  const sidebarContentRef = useRef<HTMLDivElement>(null);
 
   // Create debounced search function with useCallback to prevent recreation
   const debouncedSearch = useCallback(
     debounce((q: string) => {
       if (q.trim()) {
-        navigate(`/search?q=${encodeURIComponent(q.trim())}`)
+        navigate(`/search?q=${encodeURIComponent(q.trim())}`);
       }
     }, 500),
     [navigate],
-  )
+  );
 
   // Handle search input change
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value
-      setSearch(value)
+      const value = e.target.value;
+      setSearch(value);
       if (value.trim()) {
-        debouncedSearch(value)
+        debouncedSearch(value);
       }
     },
     [debouncedSearch],
-  )
+  );
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768)
-    }
+      setIsMobile(window.innerWidth <= 768);
+    };
 
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch followings when user is authenticated
   useEffect(() => {
     const fetchFollowings = async () => {
       if (!isAuthenticated || !user?.id) {
-        setFollowings([])
-        return
+        setFollowings([]);
+        return;
       }
 
-      setFollowingsLoading(true)
+      setFollowingsLoading(true);
       try {
         const req: UserRequest = {
           userId: Number(user.id),
-        }
-        const res: FollowList = await followClient.GetFollowing(req, getAuthMetadata())
+        };
+        const res: FollowList = await followClient.GetFollowing(req, getAuthMetadata());
         if (res && res.follows) {
           if (Array.isArray(res.follows) && res.follows.length > 0 && res.follows[0].user) {
-            setFollowings(res.follows.map((f) => f.user).filter((u): u is UserType => !!u))
+            setFollowings(res.follows.map((f) => f.user).filter((u): u is UserType => !!u));
           }
         }
       } catch (error) {
-        console.error("Failed to fetch followings:", error)
+        console.error("Failed to fetch followings:", error);
       } finally {
-        setFollowingsLoading(false)
+        setFollowingsLoading(false);
       }
-    }
+    };
 
-    fetchFollowings()
-  }, [isAuthenticated, user?.id, getAuthMetadata])
+    fetchFollowings();
+  }, [isAuthenticated, user?.id, getAuthMetadata]);
 
   // Memoize navigation items to prevent recreation on every render
   const navigationItems = useMemo(() => {
     const publicNavItems = [
       { path: "/home", label: "For You", icon: Home },
       { path: "/explore", label: "Explore", icon: Compass },
-    ]
+    ];
 
     const authenticatedNavItems = [
       { path: "/upload", label: "Upload", icon: Upload },
@@ -124,12 +124,12 @@ const NavigationBar: React.FC = () => {
       { path: "/friends", label: "Friends", icon: Users },
       { path: "/messages", label: "Messages", icon: MessageCircle },
       { path: "/live", label: "Live", icon: Radio },
-    ]
+    ];
 
     const guestNavItems = [
       { path: "/login", label: "Login", icon: LogIn },
       { path: "/register", label: "Sign Up", icon: UserPlus },
-    ]
+    ];
 
     return {
       publicNavItems,
@@ -138,36 +138,39 @@ const NavigationBar: React.FC = () => {
       baseNavItems: isAuthenticated
         ? [...publicNavItems, ...authenticatedNavItems]
         : [...publicNavItems, ...guestNavItems],
-    }
-  }, [isAuthenticated, user?.username])
+    };
+  }, [isAuthenticated, user?.username]);
 
   const handleThemeChange = useCallback((newTheme: "auto" | "dark" | "light") => {
-    setTheme(newTheme)
-    document.documentElement.setAttribute("data-theme", newTheme)
-    localStorage.setItem("theme", newTheme)
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
     scrollToBottom();
-  }, [])
+  }, []);
 
   const handleProtectedNavigation = useCallback(
     (path: string, e: React.MouseEvent) => {
-      if (!isAuthenticated && navigationItems.authenticatedNavItems.some((item) => item.path === path)) {
-        e.preventDefault()
-        alert("Please log in to access this feature")
+      if (
+        !isAuthenticated &&
+        navigationItems.authenticatedNavItems.some((item) => item.path === path)
+      ) {
+        e.preventDefault();
+        alert("Please log in to access this feature");
       }
     },
     [isAuthenticated, navigationItems.authenticatedNavItems],
-  )
+  );
 
   const getThemeIcon = useCallback((themeMode: string) => {
     switch (themeMode) {
       case "light":
-        return Sun
+        return Sun;
       case "dark":
-        return Moon
+        return Moon;
       default:
-        return Monitor
+        return Monitor;
     }
-  }, [])
+  }, []);
 
   const scrollToBottom = () => {
     // Scroll to bottom when opening the dropdown
@@ -176,31 +179,33 @@ const NavigationBar: React.FC = () => {
         sidebarContentRef.current?.scrollTo({
           top: sidebarContentRef.current.scrollHeight,
           behavior: "auto",
-        })
-      }, 0)
+        });
+      }, 0);
     }
-  }
+  };
 
   const handleMoreClick = useCallback(
     (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setShowMoreDropdown(!showMoreDropdown)
+      e.preventDefault();
+      e.stopPropagation();
+      setShowMoreDropdown(!showMoreDropdown);
       scrollToBottom();
     },
     [showMoreDropdown],
-  )
+  );
 
   const handleViewMoreFollowings = useCallback(
     (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setShowAllFollowings(!showAllFollowings)
+      e.preventDefault();
+      e.stopPropagation();
+      setShowAllFollowings(!showAllFollowings);
       scrollToBottom();
-  }, [showAllFollowings])
+    },
+    [showAllFollowings],
+  );
 
-  const displayedFollowings = showAllFollowings ? followings : followings.slice(0, 5)
-  const hasMoreFollowings = followings.length > 5
+  const displayedFollowings = showAllFollowings ? followings : followings.slice(0, 5);
+  const hasMoreFollowings = followings.length > 5;
 
   const SidebarContent = React.memo(() => (
     <div className="sidebar-content" ref={sidebarContentRef}>
@@ -246,9 +251,11 @@ const NavigationBar: React.FC = () => {
         <nav className="nav-list">
           {/* Main Navigation Items */}
           {navigationItems.baseNavItems.map(({ path, label, icon: Icon }) => {
-            const isActive = location.pathname === path
-            const isProtected = navigationItems.authenticatedNavItems.some((item) => item.path === path)
-            const isDisabled = !isAuthenticated && isProtected
+            const isActive = location.pathname === path;
+            const isProtected = navigationItems.authenticatedNavItems.some(
+              (item) => item.path === path,
+            );
+            const isDisabled = !isAuthenticated && isProtected;
 
             return (
               <Link
@@ -256,16 +263,19 @@ const NavigationBar: React.FC = () => {
                 to={path}
                 className={`nav-item ${isActive ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
                 onClick={(e) => handleProtectedNavigation(path, e)}
-                >
+              >
                 <Icon size={20} className="nav-icon" />
                 <span className="nav-label">{label}</span>
                 {isProtected && !isAuthenticated && <Lock size={12} className="lock-icon" />}
               </Link>
-            )
+            );
           })}
 
           {/* More Button */}
-          <div className={`nav-item more-button ${showMoreDropdown ? "active" : ""}`} onClick={handleMoreClick}>
+          <div
+            className={`nav-item more-button ${showMoreDropdown ? "active" : ""}`}
+            onClick={handleMoreClick}
+          >
             <MoreHorizontal size={20} className="nav-icon" />
             <span className="nav-label">More</span>
           </div>
@@ -278,7 +288,7 @@ const NavigationBar: React.FC = () => {
                 <div className="dropdown-title">Theme</div>
                 <div className="theme-options">
                   {["auto", "light", "dark"].map((mode) => {
-                    const ThemeIcon = getThemeIcon(mode)
+                    const ThemeIcon = getThemeIcon(mode);
                     return (
                       <div
                         key={mode}
@@ -288,7 +298,7 @@ const NavigationBar: React.FC = () => {
                         <ThemeIcon size={16} />
                         <span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -342,13 +352,19 @@ const NavigationBar: React.FC = () => {
                       >
                         <div className="following-avatar">
                           <img
-                            src={following.avatar ? avatarBytesToUrl(following.avatar) || defaultAvatar : defaultAvatar}
+                            src={
+                              following.avatar
+                                ? avatarBytesToUrl(following.avatar) || defaultAvatar
+                                : defaultAvatar
+                            }
                             alt={following.username}
                             className="avatar-image"
                           />
                         </div>
                         <div className="following-info">
-                          <span className="following-name">{following.displayName || following.username}</span>
+                          <span className="following-name">
+                            {following.displayName || following.username}
+                          </span>
                           <span className="following-username">@{following.username}</span>
                         </div>
                       </Link>
@@ -376,7 +392,7 @@ const NavigationBar: React.FC = () => {
         </nav>
       </div>
     </div>
-  ))
+  ));
 
   return (
     <>
@@ -915,7 +931,7 @@ const NavigationBar: React.FC = () => {
         }
       `}</style>
     </>
-  )
-}
+  );
+};
 
-export default NavigationBar
+export default NavigationBar;

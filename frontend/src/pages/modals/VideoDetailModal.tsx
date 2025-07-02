@@ -1,6 +1,6 @@
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import type { Video } from "../../api/gen/video"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import type { Video } from "../../api/gen/video";
 import {
   X,
   Heart,
@@ -23,28 +23,28 @@ import {
   ThumbsUp,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
+} from "lucide-react";
 
 interface VideoDetailModalProps {
-  video: Video | null
-  isOpen: boolean
-  onClose: () => void
+  video: Video | null;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface Comment {
-  id: string
+  id: string;
   user: {
-    id: string
-    username: string
-    avatar?: string
-    isVerified?: boolean
-  }
-  content: string
-  timestamp: string
-  likes: number
-  isLiked: boolean
-  replies?: Comment[]
-  isReplying?: boolean
+    id: string;
+    username: string;
+    avatar?: string;
+    isVerified?: boolean;
+  };
+  content: string;
+  timestamp: string;
+  likes: number;
+  isLiked: boolean;
+  replies?: Comment[];
+  isReplying?: boolean;
 }
 
 // Mock comments data - replace with actual API calls
@@ -101,87 +101,87 @@ const mockComments: Comment[] = [
     likes: 8,
     isLiked: true,
   },
-]
+];
 
 export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpen, onClose }) => {
-  const [isPlaying, setIsPlaying] = useState(true)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-  const [showComments, setShowComments] = useState(true)
-  const [comments, setComments] = useState<Comment[]>(mockComments)
-  const [newComment, setNewComment] = useState("")
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyText, setReplyText] = useState("")
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
-  const [showMoreActions, setShowMoreActions] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const modalRef = useRef<HTMLDivElement>(null)
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [showComments, setShowComments] = useState(true);
+  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [showMoreActions, setShowMoreActions] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && video) {
-      setIsLiked(video.isLiked || false)
-      document.body.style.overflow = "hidden"
+      setIsLiked(video.isLiked || false);
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = "unset"
-    }
-  }, [isOpen, video])
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, video]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose()
+        onClose();
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      return () => document.removeEventListener("keydown", handleEscape)
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
-        videoRef.current.pause()
+        videoRef.current.pause();
       } else {
-        videoRef.current.play()
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
     }
-  }
+  };
 
   const handleLike = () => {
-    setIsLiked(!isLiked)
+    setIsLiked(!isLiked);
     // Add API call here
-  }
+  };
 
   const handleSave = () => {
-    setIsSaved(!isSaved)
+    setIsSaved(!isSaved);
     // Add API call here
-  }
+  };
 
   const handleShare = () => {
     // Implement share functionality
-    console.log("Share video")
-  }
+    console.log("Share video");
+  };
 
   const handleAddComment = () => {
     if (newComment.trim()) {
@@ -196,11 +196,11 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
         timestamp: "now",
         likes: 0,
         isLiked: false,
-      }
-      setComments([comment, ...comments])
-      setNewComment("")
+      };
+      setComments([comment, ...comments]);
+      setNewComment("");
     }
-  }
+  };
 
   const handleReply = (commentId: string) => {
     if (replyText.trim()) {
@@ -215,7 +215,7 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
         timestamp: "now",
         likes: 0,
         isLiked: false,
-      }
+      };
 
       setComments(
         comments.map((comment) => {
@@ -223,25 +223,25 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
             return {
               ...comment,
               replies: [...(comment.replies || []), reply],
-            }
+            };
           }
-          return comment
+          return comment;
         }),
-      )
-      setReplyText("")
-      setReplyingTo(null)
+      );
+      setReplyText("");
+      setReplyingTo(null);
     }
-  }
+  };
 
   const toggleCommentExpansion = (commentId: string) => {
-    const newExpanded = new Set(expandedComments)
+    const newExpanded = new Set(expandedComments);
     if (newExpanded.has(commentId)) {
-      newExpanded.delete(commentId)
+      newExpanded.delete(commentId);
     } else {
-      newExpanded.add(commentId)
+      newExpanded.add(commentId);
     }
-    setExpandedComments(newExpanded)
-  }
+    setExpandedComments(newExpanded);
+  };
 
   const handleCommentLike = (commentId: string) => {
     setComments(
@@ -251,14 +251,14 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
             ...comment,
             isLiked: !comment.isLiked,
             likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-          }
+          };
         }
-        return comment
+        return comment;
       }),
-    )
-  }
+    );
+  };
 
-  if (!isOpen || !video) return null
+  if (!isOpen || !video) return null;
 
   return (
     <div className="modal-overlay" onClick={handleBackdropClick}>
@@ -392,7 +392,11 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                     className="comment-input"
                     onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
                   />
-                  <button className="send-button" onClick={handleAddComment} disabled={!newComment.trim()}>
+                  <button
+                    className="send-button"
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                  >
                     <Send size={16} />
                   </button>
                 </div>
@@ -403,7 +407,10 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                 {comments.map((comment) => (
                   <div key={comment.id} className="comment-item">
                     <div className="comment-avatar">
-                      <img src={comment.user.avatar || "/placeholder.svg"} alt={comment.user.username} />
+                      <img
+                        src={comment.user.avatar || "/placeholder.svg"}
+                        alt={comment.user.username}
+                      />
                     </div>
                     <div className="comment-content">
                       <div className="comment-header">
@@ -424,7 +431,9 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                         </button>
                         <button
                           className="comment-action"
-                          onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          onClick={() =>
+                            setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                          }
                         >
                           <Reply size={12} />
                           Reply
@@ -442,7 +451,10 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                             className="comment-input small"
                             onKeyPress={(e) => e.key === "Enter" && handleReply(comment.id)}
                           />
-                          <button className="send-button small" onClick={() => handleReply(comment.id)}>
+                          <button
+                            className="send-button small"
+                            onClick={() => handleReply(comment.id)}
+                          >
                             <Send size={14} />
                           </button>
                         </div>
@@ -451,7 +463,10 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                       {/* Replies */}
                       {comment.replies && comment.replies.length > 0 && (
                         <div className="replies-section">
-                          <button className="show-replies" onClick={() => toggleCommentExpansion(comment.id)}>
+                          <button
+                            className="show-replies"
+                            onClick={() => toggleCommentExpansion(comment.id)}
+                          >
                             {expandedComments.has(comment.id) ? (
                               <>
                                 <ChevronUp size={12} />
@@ -470,16 +485,23 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
                               {comment.replies.map((reply) => (
                                 <div key={reply.id} className="reply-item">
                                   <div className="comment-avatar small">
-                                    <img src={reply.user.avatar || "/placeholder.svg"} alt={reply.user.username} />
+                                    <img
+                                      src={reply.user.avatar || "/placeholder.svg"}
+                                      alt={reply.user.username}
+                                    />
                                   </div>
                                   <div className="comment-content">
                                     <div className="comment-header">
-                                      <span className="comment-username">@{reply.user.username}</span>
+                                      <span className="comment-username">
+                                        @{reply.user.username}
+                                      </span>
                                       <span className="comment-timestamp">{reply.timestamp}</span>
                                     </div>
                                     <p className="comment-text">{reply.content}</p>
                                     <div className="comment-actions">
-                                      <button className={`comment-action ${reply.isLiked ? "liked" : ""}`}>
+                                      <button
+                                        className={`comment-action ${reply.isLiked ? "liked" : ""}`}
+                                      >
                                         <ThumbsUp size={12} />
                                         <span>{reply.likes}</span>
                                       </button>
@@ -1122,5 +1144,5 @@ export const VideoDetailModal: React.FC<VideoDetailModalProps> = ({ video, isOpe
         }
       `}</style>
     </div>
-  )
-}
+  );
+};

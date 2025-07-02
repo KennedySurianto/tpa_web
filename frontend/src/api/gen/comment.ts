@@ -345,7 +345,9 @@ export const Comment: MessageFns<Comment> = {
       replyTo: isSet(object.replyTo) ? Comment.fromJSON(object.replyTo) : undefined,
       likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
       isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
-      replies: globalThis.Array.isArray(object?.replies) ? object.replies.map((e: any) => Comment.fromJSON(e)) : [],
+      replies: globalThis.Array.isArray(object?.replies)
+        ? object.replies.map((e: any) => Comment.fromJSON(e))
+        : [],
     };
   },
 
@@ -402,10 +404,12 @@ export const Comment: MessageFns<Comment> = {
     message.videoId = object.videoId ?? "0";
     message.content = object.content ?? "";
     message.replyToId = object.replyToId ?? "0";
-    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
-    message.replyTo = (object.replyTo !== undefined && object.replyTo !== null)
-      ? Comment.fromPartial(object.replyTo)
-      : undefined;
+    message.user =
+      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
+    message.replyTo =
+      object.replyTo !== undefined && object.replyTo !== null
+        ? Comment.fromPartial(object.replyTo)
+        : undefined;
     message.likeCount = object.likeCount ?? "0";
     message.isLiked = object.isLiked ?? false;
     message.replies = object.replies?.map((e) => Comment.fromPartial(e)) || [];
@@ -527,7 +531,9 @@ export const GetCommentsResponse: MessageFns<GetCommentsResponse> = {
 
   fromJSON(object: any): GetCommentsResponse {
     return {
-      comments: globalThis.Array.isArray(object?.comments) ? object.comments.map((e: any) => Comment.fromJSON(e)) : [],
+      comments: globalThis.Array.isArray(object?.comments)
+        ? object.comments.map((e: any) => Comment.fromJSON(e))
+        : [],
     };
   },
 
@@ -542,7 +548,9 @@ export const GetCommentsResponse: MessageFns<GetCommentsResponse> = {
   create<I extends Exact<DeepPartial<GetCommentsResponse>, I>>(base?: I): GetCommentsResponse {
     return GetCommentsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetCommentsResponse>, I>>(object: I): GetCommentsResponse {
+  fromPartial<I extends Exact<DeepPartial<GetCommentsResponse>, I>>(
+    object: I,
+  ): GetCommentsResponse {
     const message = createBaseGetCommentsResponse();
     message.comments = object.comments?.map((e) => Comment.fromPartial(e)) || [];
     return message;
@@ -647,7 +655,9 @@ export const CreateCommentRequest: MessageFns<CreateCommentRequest> = {
   create<I extends Exact<DeepPartial<CreateCommentRequest>, I>>(base?: I): CreateCommentRequest {
     return CreateCommentRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateCommentRequest>, I>>(object: I): CreateCommentRequest {
+  fromPartial<I extends Exact<DeepPartial<CreateCommentRequest>, I>>(
+    object: I,
+  ): CreateCommentRequest {
     const message = createBaseCreateCommentRequest();
     message.userId = object.userId ?? 0;
     message.videoId = object.videoId ?? 0;
@@ -708,11 +718,14 @@ export const CreateCommentResponse: MessageFns<CreateCommentResponse> = {
   create<I extends Exact<DeepPartial<CreateCommentResponse>, I>>(base?: I): CreateCommentResponse {
     return CreateCommentResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateCommentResponse>, I>>(object: I): CreateCommentResponse {
+  fromPartial<I extends Exact<DeepPartial<CreateCommentResponse>, I>>(
+    object: I,
+  ): CreateCommentResponse {
     const message = createBaseCreateCommentResponse();
-    message.comment = (object.comment !== undefined && object.comment !== null)
-      ? Comment.fromPartial(object.comment)
-      : undefined;
+    message.comment =
+      object.comment !== undefined && object.comment !== null
+        ? Comment.fromPartial(object.comment)
+        : undefined;
     return message;
   },
 };
@@ -765,10 +778,14 @@ export const GetCommentCountRequest: MessageFns<GetCommentCountRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(base?: I): GetCommentCountRequest {
+  create<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(
+    base?: I,
+  ): GetCommentCountRequest {
     return GetCommentCountRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(object: I): GetCommentCountRequest {
+  fromPartial<I extends Exact<DeepPartial<GetCommentCountRequest>, I>>(
+    object: I,
+  ): GetCommentCountRequest {
     const message = createBaseGetCommentCountRequest();
     message.videoId = object.videoId ?? 0;
     return message;
@@ -780,7 +797,10 @@ function createBaseGetCommentCountResponse(): GetCommentCountResponse {
 }
 
 export const GetCommentCountResponse: MessageFns<GetCommentCountResponse> = {
-  encode(message: GetCommentCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetCommentCountResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.count !== "0") {
       writer.uint32(8).uint64(message.count);
     }
@@ -823,10 +843,14 @@ export const GetCommentCountResponse: MessageFns<GetCommentCountResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(base?: I): GetCommentCountResponse {
+  create<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(
+    base?: I,
+  ): GetCommentCountResponse {
     return GetCommentCountResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(object: I): GetCommentCountResponse {
+  fromPartial<I extends Exact<DeepPartial<GetCommentCountResponse>, I>>(
+    object: I,
+  ): GetCommentCountResponse {
     const message = createBaseGetCommentCountResponse();
     message.count = object.count ?? "0";
     return message;
@@ -884,7 +908,9 @@ export const DeleteCommentRequest: MessageFns<DeleteCommentRequest> = {
   create<I extends Exact<DeepPartial<DeleteCommentRequest>, I>>(base?: I): DeleteCommentRequest {
     return DeleteCommentRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DeleteCommentRequest>, I>>(object: I): DeleteCommentRequest {
+  fromPartial<I extends Exact<DeepPartial<DeleteCommentRequest>, I>>(
+    object: I,
+  ): DeleteCommentRequest {
     const message = createBaseDeleteCommentRequest();
     message.id = object.id ?? "0";
     return message;
@@ -942,7 +968,9 @@ export const DeleteCommentResponse: MessageFns<DeleteCommentResponse> = {
   create<I extends Exact<DeepPartial<DeleteCommentResponse>, I>>(base?: I): DeleteCommentResponse {
     return DeleteCommentResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DeleteCommentResponse>, I>>(object: I): DeleteCommentResponse {
+  fromPartial<I extends Exact<DeepPartial<DeleteCommentResponse>, I>>(
+    object: I,
+  ): DeleteCommentResponse {
     const message = createBaseDeleteCommentResponse();
     message.success = object.success ?? false;
     return message;
@@ -951,13 +979,22 @@ export const DeleteCommentResponse: MessageFns<DeleteCommentResponse> = {
 
 /** Service definition */
 export interface CommentService {
-  GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse>;
-  CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse>;
+  GetComments(
+    request: DeepPartial<GetCommentsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetCommentsResponse>;
+  CreateComment(
+    request: DeepPartial<CreateCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateCommentResponse>;
   GetCommentCount(
     request: DeepPartial<GetCommentCountRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetCommentCountResponse>;
-  DeleteComment(request: DeepPartial<DeleteCommentRequest>, metadata?: grpc.Metadata): Promise<DeleteCommentResponse>;
+  DeleteComment(
+    request: DeepPartial<DeleteCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<DeleteCommentResponse>;
 }
 
 export class CommentServiceClientImpl implements CommentService {
@@ -971,23 +1008,48 @@ export class CommentServiceClientImpl implements CommentService {
     this.DeleteComment = this.DeleteComment.bind(this);
   }
 
-  GetComments(request: DeepPartial<GetCommentsRequest>, metadata?: grpc.Metadata): Promise<GetCommentsResponse> {
-    return this.rpc.unary(CommentServiceGetCommentsDesc, GetCommentsRequest.fromPartial(request), metadata);
+  GetComments(
+    request: DeepPartial<GetCommentsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetCommentsResponse> {
+    return this.rpc.unary(
+      CommentServiceGetCommentsDesc,
+      GetCommentsRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  CreateComment(request: DeepPartial<CreateCommentRequest>, metadata?: grpc.Metadata): Promise<CreateCommentResponse> {
-    return this.rpc.unary(CommentServiceCreateCommentDesc, CreateCommentRequest.fromPartial(request), metadata);
+  CreateComment(
+    request: DeepPartial<CreateCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateCommentResponse> {
+    return this.rpc.unary(
+      CommentServiceCreateCommentDesc,
+      CreateCommentRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetCommentCount(
     request: DeepPartial<GetCommentCountRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetCommentCountResponse> {
-    return this.rpc.unary(CommentServiceGetCommentCountDesc, GetCommentCountRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      CommentServiceGetCommentCountDesc,
+      GetCommentCountRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  DeleteComment(request: DeepPartial<DeleteCommentRequest>, metadata?: grpc.Metadata): Promise<DeleteCommentResponse> {
-    return this.rpc.unary(CommentServiceDeleteCommentDesc, DeleteCommentRequest.fromPartial(request), metadata);
+  DeleteComment(
+    request: DeepPartial<DeleteCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<DeleteCommentResponse> {
+    return this.rpc.unary(
+      CommentServiceDeleteCommentDesc,
+      DeleteCommentRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -1130,9 +1192,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -1144,7 +1207,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -1180,14 +1247,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -1195,7 +1267,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

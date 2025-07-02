@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Heart,
   MessageCircle,
@@ -16,82 +16,86 @@ import {
   UserPlus,
   Subtitles,
   Loader2,
-} from "lucide-react"
-import type { Video } from "../api/gen/video"
-import { useAuth } from "../utils/AuthProvider"
-import { followClient } from "../api/grpc/followClient"
-import type { LikeRequest, UnlikeRequest } from "../api/gen/like"
-import { likeClient } from "../api/grpc/likeClient"
-import { videoClient } from "../api/grpc/videoClient"
-import CommentBar from "../pages/ui/CommentBar"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import defaultAvatar from "../assets/default.jpg"
-import ShareVideoModal from "../pages/modals/ShareVideoModal"
+} from "lucide-react";
+import type { Video } from "../api/gen/video";
+import { useAuth } from "../utils/AuthProvider";
+import { followClient } from "../api/grpc/followClient";
+import type { LikeRequest, UnlikeRequest } from "../api/gen/like";
+import { likeClient } from "../api/grpc/likeClient";
+import { videoClient } from "../api/grpc/videoClient";
+import CommentBar from "../pages/ui/CommentBar";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import defaultAvatar from "../assets/default.jpg";
+import ShareVideoModal from "../pages/modals/ShareVideoModal";
 
 interface props {
-  videos: Video[]
-  setVideos: React.Dispatch<React.SetStateAction<Video[]>>
-  loading: boolean
+  videos: Video[];
+  setVideos: React.Dispatch<React.SetStateAction<Video[]>>;
+  loading: boolean;
 }
 
 const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
-  const { user, getAuthMetadata } = useAuth()
-  const navigate = useNavigate()
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
-  const [volume, setVolume] = useState(0.5)
-  const [isMuted, setIsMuted] = useState(true)
-  const [showVolumeControl, setShowVolumeControl] = useState(false)
-  const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null)
-  const [showComments, setShowComments] = useState<boolean>(false)
-  const [errorMessage, setErrorMessage] = useState<string>("")
-  const [currentVideoTime, setCurrentVideoTime] = useState(0)
-  const [currentVideoDuration, setCurrentVideoDuration] = useState(0)
-  const [canComment, setCanComment] = useState<boolean>(true)
-  const [captionsMap, setCaptionsMap] = useState<{ [videoId: number]: { en: string[]; id: string[] } }>({})
-  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en")
-  const [showCaptions, setShowCaptions] = useState<boolean>(false)
-  const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({})
-  const [expandedCaptions, setExpandedCaptions] = useState<{ [videoId: number]: boolean }>({})
-  const [expandedDescriptions, setExpandedDescriptions] = useState<{ [videoId: number]: boolean }>({})
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [videoUrl, setVideoUrl] = useState<string>("")
-  const [downloadUrl, setDownloadUrl] = useState<string>("")
-  const [caption, setCaption] = useState<string>("")
-  const [isPlaying, setIsPlaying] = useState<{ [videoId: number]: boolean }>({})
+  const { user, getAuthMetadata } = useAuth();
+  const navigate = useNavigate();
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(true);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+  const [showComments, setShowComments] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
+  const [canComment, setCanComment] = useState<boolean>(true);
+  const [captionsMap, setCaptionsMap] = useState<{
+    [videoId: number]: { en: string[]; id: string[] };
+  }>({});
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
+  const [showCaptions, setShowCaptions] = useState<boolean>(false);
+  const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({});
+  const [expandedCaptions, setExpandedCaptions] = useState<{ [videoId: number]: boolean }>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<{ [videoId: number]: boolean }>(
+    {},
+  );
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [downloadUrl, setDownloadUrl] = useState<string>("");
+  const [caption, setCaption] = useState<string>("");
+  const [isPlaying, setIsPlaying] = useState<{ [videoId: number]: boolean }>({});
 
   const scrollToVideo = (index: number) => {
-    setCurrentVideoIndex(index)
-    setSelectedVideoId(videos[index]?.id)
+    setCurrentVideoIndex(index);
+    setSelectedVideoId(videos[index]?.id);
     requestAnimationFrame(() => {
-      const targetVideo = videoRefs.current[index]
+      const targetVideo = videoRefs.current[index];
       if (targetVideo) {
-        targetVideo.scrollIntoView({ behavior: "smooth", block: "start" })
+        targetVideo.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-    })
-  }
+    });
+  };
 
   const toggleCaption = (videoId: number) => {
-    setExpandedCaptions((prev) => ({ ...prev, [videoId]: !prev[videoId] }))
-  }
+    setExpandedCaptions((prev) => ({ ...prev, [videoId]: !prev[videoId] }));
+  };
 
   const toggleDescription = (videoId: number) => {
-    setExpandedDescriptions((prev) => ({ ...prev, [videoId]: !prev[videoId] }))
-  }
+    setExpandedDescriptions((prev) => ({ ...prev, [videoId]: !prev[videoId] }));
+  };
 
   const fetchFollowers = async (userId: number) => {
     try {
-      const res = await followClient.GetFollowers({ userId })
-      const followerIds = res.follows.map((f) => f.followerId)
-      setFollowersMap((prev) => ({ ...prev, [userId]: followerIds }))
+      const res = await followClient.GetFollowers({ userId });
+      const followerIds = res.follows.map((f) => f.followerId);
+      setFollowersMap((prev) => ({ ...prev, [userId]: followerIds }));
     } catch (err) {
-      console.error("Failed to fetch followers", err)
+      console.error("Failed to fetch followers", err);
     }
-  }
+  };
 
   const fetchCaptions = async (videoId: number) => {
     try {
-      const res = await videoClient.GetCaptions({ videoId })
+      const res = await videoClient.GetCaptions({ videoId });
       if (res && res.captions) {
         setCaptionsMap((prev) => ({
           ...prev,
@@ -99,67 +103,69 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
             en: res.captions["en"]?.lines || [],
             id: res.captions["id"]?.lines || [],
           },
-        }))
+        }));
       }
     } catch (err) {
-      console.error("Failed to fetch captions:", err)
+      console.error("Failed to fetch captions:", err);
     }
-  }
+  };
 
   useEffect(() => {
     if (selectedVideoId && !captionsMap[selectedVideoId]) {
-      fetchCaptions(selectedVideoId)
+      fetchCaptions(selectedVideoId);
     }
-  }, [selectedVideoId])
+  }, [selectedVideoId]);
 
   const formatTime = (timeInSeconds: number): string => {
-    const minutes = Math.floor(timeInSeconds / 60)
-    const seconds = Math.floor(timeInSeconds % 60)
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = Number.parseFloat(e.target.value)
-    setCurrentVideoTime(newTime)
+    const newTime = Number.parseFloat(e.target.value);
+    setCurrentVideoTime(newTime);
 
-    const activeVideo = videoRefs.current.find((video) => video && video.dataset.id === String(selectedVideoId))
+    const activeVideo = videoRefs.current.find(
+      (video) => video && video.dataset.id === String(selectedVideoId),
+    );
 
     if (activeVideo) {
-      activeVideo.currentTime = newTime
+      activeVideo.currentTime = newTime;
     }
-  }
+  };
 
   useEffect(() => {
     const activeVideo = videoRefs.current.find(
       (video) => video && Number.parseInt(video.dataset.id || "") === selectedVideoId,
-    )
-    if (!activeVideo) return
+    );
+    if (!activeVideo) return;
 
     const updateTime = () => {
-      setCurrentVideoTime(activeVideo.currentTime)
-      setCurrentVideoDuration(activeVideo.duration || 0)
-    }
+      setCurrentVideoTime(activeVideo.currentTime);
+      setCurrentVideoDuration(activeVideo.duration || 0);
+    };
 
-    activeVideo.addEventListener("timeupdate", updateTime)
+    activeVideo.addEventListener("timeupdate", updateTime);
     return () => {
-      activeVideo.removeEventListener("timeupdate", updateTime)
-    }
-  }, [selectedVideoId])
+      activeVideo.removeEventListener("timeupdate", updateTime);
+    };
+  }, [selectedVideoId]);
 
   const handleLike = async (videoId: number) => {
-    console.log(`Liked video ${videoId}`)
+    console.log(`Liked video ${videoId}`);
     try {
       if (!user || !user.id) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const req: LikeRequest = {
         userId: Number(user.id),
         videoId: videoId,
-      }
+      };
 
-      const res = await likeClient.Like(req, getAuthMetadata())
+      const res = await likeClient.Like(req, getAuthMetadata());
       if (res) {
         setVideos((prevVideos) =>
           prevVideos.map((video) =>
@@ -167,28 +173,28 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               ? { ...video, isLiked: true, likeCount: (Number(video.likeCount) + 1).toString() }
               : video,
           ),
-        )
+        );
       }
     } catch (err) {
-      console.error("Failed to like video", err)
-      setErrorMessage("Failed to like the video.")
+      console.error("Failed to like video", err);
+      setErrorMessage("Failed to like the video.");
     }
-  }
+  };
 
   const handleUnlike = async (videoId: number) => {
-    console.log(`Unliked video ${videoId}`)
+    console.log(`Unliked video ${videoId}`);
     try {
       if (!user || !user.id) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const req: UnlikeRequest = {
         userId: Number(user.id),
         videoId: videoId,
-      }
+      };
 
-      const res = await likeClient.Unlike(req, getAuthMetadata())
+      const res = await likeClient.Unlike(req, getAuthMetadata());
       if (res) {
         setVideos((prevVideos) =>
           prevVideos.map((video) =>
@@ -196,150 +202,150 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               ? { ...video, isLiked: false, likeCount: (Number(video.likeCount) - 1).toString() }
               : video,
           ),
-        )
+        );
       }
     } catch (err) {
-      console.error("Failed to unlike video", err)
-      setErrorMessage("Failed to unlike the video.")
+      console.error("Failed to unlike video", err);
+      setErrorMessage("Failed to unlike the video.");
     }
-  }
+  };
 
   const handleComment = (videoId: number) => {
     if (selectedVideoId === videoId && showComments) {
-      setShowComments(false)
+      setShowComments(false);
     } else {
-      setSelectedVideoId(videoId)
-      setShowComments(true)
+      setSelectedVideoId(videoId);
+      setShowComments(true);
     }
-  }
+  };
 
   const handleCloseComments = () => {
-    setShowComments(false)
-    setSelectedVideoId(null)
-  }
+    setShowComments(false);
+    setSelectedVideoId(null);
+  };
 
   const handleShare = (videoId: number, videoUrl: string, caption: string) => {
-    console.log(`Share video ${videoId}`)
-    setVideoUrl(`${window.location.origin}/video/${videoId}`)
-    setDownloadUrl(videoUrl)
-    setCaption(caption)
-    setIsModalOpen(true)
-  }
+    console.log(`Share video ${videoId}`);
+    setVideoUrl(`${window.location.origin}/video/${videoId}`);
+    setDownloadUrl(videoUrl);
+    setCaption(caption);
+    setIsModalOpen(true);
+  };
 
   const handleSave = (videoId: number) => {
-    console.log(`Saved video ${videoId}`)
+    console.log(`Saved video ${videoId}`);
     // TODO: add save logic here
-  }
+  };
 
   const handleUserClick = (username: string) => {
-    console.log(`Navigating to /${username}`)
-    navigate(`/${username}`)
-  }
+    console.log(`Navigating to /${username}`);
+    navigate(`/${username}`);
+  };
 
   const getVolumeIcon = () => {
-    if (isMuted || volume === 0) return VolumeX
-    if (volume > 0.5) return Volume2
-    if (volume > 0.25) return Volume1
-    return Volume
-  }
+    if (isMuted || volume === 0) return VolumeX;
+    if (volume > 0.5) return Volume2;
+    if (volume > 0.25) return Volume1;
+    return Volume;
+  };
 
   const handleVideoClick = (index: number) => {
-    const video = videoRefs.current[index]
+    const video = videoRefs.current[index];
     if (video) {
       if (video.paused) {
-        video.play().catch(console.error)
-        setIsPlaying((prev) => ({ ...prev, [videos[index].id]: true }))
+        video.play().catch(console.error);
+        setIsPlaying((prev) => ({ ...prev, [videos[index].id]: true }));
       } else {
-        video.pause()
-        setIsPlaying((prev) => ({ ...prev, [videos[index].id]: false }))
+        video.pause();
+        setIsPlaying((prev) => ({ ...prev, [videos[index].id]: false }));
       }
     }
-  }
+  };
 
   useEffect(() => {
     videoRefs.current.forEach((video) => {
       if (video) {
-        video.volume = volume
-        video.muted = isMuted
+        video.volume = volume;
+        video.muted = isMuted;
       }
-    })
-  }, [volume, isMuted])
+    });
+  }, [volume, isMuted]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const container = document.querySelector(".video-feed-container")
-      if (!container) return
+      const container = document.querySelector(".video-feed-container");
+      if (!container) return;
 
-      const containerRect = container.getBoundingClientRect()
-      const containerHeight = containerRect.height
+      const containerRect = container.getBoundingClientRect();
+      const containerHeight = containerRect.height;
 
-      let currentVideoId: number | null = null
+      let currentVideoId: number | null = null;
 
       videoRefs.current.forEach((video, index) => {
-        if (!video) return
+        if (!video) return;
 
-        const videoRect = video.getBoundingClientRect()
-        const videoCenter = videoRect.top + videoRect.height / 2
-        const isVideoInView = videoCenter >= 0 && videoCenter <= containerHeight
+        const videoRect = video.getBoundingClientRect();
+        const videoCenter = videoRect.top + videoRect.height / 2;
+        const isVideoInView = videoCenter >= 0 && videoCenter <= containerHeight;
 
         if (isVideoInView) {
-          video.play().catch(console.error)
-          setIsPlaying((prev) => ({ ...prev, [videos[index].id]: true }))
-          currentVideoId = videos[index]?.id || null
-          setCanComment(videos[index]?.allowComments ?? true)
+          video.play().catch(console.error);
+          setIsPlaying((prev) => ({ ...prev, [videos[index].id]: true }));
+          currentVideoId = videos[index]?.id || null;
+          setCanComment(videos[index]?.allowComments ?? true);
           if (currentVideoIndex !== index) {
-            setCurrentVideoIndex(index)
+            setCurrentVideoIndex(index);
           }
         } else {
-          video.pause()
-          video.currentTime = 0
-          setIsPlaying((prev) => ({ ...prev, [videos[index].id]: false }))
+          video.pause();
+          video.currentTime = 0;
+          setIsPlaying((prev) => ({ ...prev, [videos[index].id]: false }));
         }
-      })
+      });
 
       if (currentVideoId !== null && currentVideoId !== selectedVideoId) {
-        setSelectedVideoId(currentVideoId)
-        const videoOwnerId = videos.find((v) => v.id === currentVideoId)?.user?.id
+        setSelectedVideoId(currentVideoId);
+        const videoOwnerId = videos.find((v) => v.id === currentVideoId)?.user?.id;
         if (videoOwnerId && !(videoOwnerId in followersMap)) {
-          fetchFollowers(Number(videoOwnerId))
+          fetchFollowers(Number(videoOwnerId));
         }
       }
-    }
+    };
 
-    const container = document.querySelector(".video-feed-container")
+    const container = document.querySelector(".video-feed-container");
     if (container) {
-      container.addEventListener("scroll", handleScroll)
-      setTimeout(handleScroll, 100)
+      container.addEventListener("scroll", handleScroll);
+      setTimeout(handleScroll, 100);
     }
 
     return () => {
       if (container) {
-        container.removeEventListener("scroll", handleScroll)
+        container.removeEventListener("scroll", handleScroll);
       }
-    }
-  }, [videos, selectedVideoId, navigate])
+    };
+  }, [videos, selectedVideoId, navigate]);
 
   useEffect(() => {
     if (videoRefs.current[0] && videos.length > 0) {
-      videoRefs.current[0].play().catch(console.error)
-      setSelectedVideoId(videos[0].id)
-      setIsPlaying((prev) => ({ ...prev, [videos[0].id]: true }))
+      videoRefs.current[0].play().catch(console.error);
+      setSelectedVideoId(videos[0].id);
+      setIsPlaying((prev) => ({ ...prev, [videos[0].id]: true }));
     }
-  }, [videos])
+  }, [videos]);
 
   const handleFollow = async (videoOwnerId: number) => {
-    if (!user?.id) return
+    if (!user?.id) return;
 
     try {
-      await followClient.Follow({ followerId: Number(user.id), followedId: videoOwnerId })
+      await followClient.Follow({ followerId: Number(user.id), followedId: videoOwnerId });
       setFollowersMap((prev) => ({
         ...prev,
         [videoOwnerId]: [...(prev[videoOwnerId] || []), Number(user.id)],
-      }))
+      }));
     } catch (err) {
-      console.error("Failed to follow", err)
+      console.error("Failed to follow", err);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -372,7 +378,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
           }
         `}</style>
       </div>
-    )
+    );
   }
 
   return (
@@ -385,10 +391,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
             <div className="video-container">
               <video
                 ref={(el) => {
-                  videoRefs.current[index] = el
+                  videoRefs.current[index] = el;
                   if (el) {
-                    el.volume = volume
-                    el.muted = isMuted
+                    el.volume = volume;
+                    el.muted = isMuted;
                   }
                 }}
                 data-id={video.id}
@@ -406,8 +412,8 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                 <button
                   className="play-pause-button"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleVideoClick(index)
+                    e.stopPropagation();
+                    handleVideoClick(index);
                   }}
                 >
                   {isPlaying[video.id] ? <Pause size={32} /> : <Play size={32} />}
@@ -423,8 +429,8 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                 <button
                   className="volume-button"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    setIsMuted(!isMuted)
+                    e.stopPropagation();
+                    setIsMuted(!isMuted);
                   }}
                 >
                   {React.createElement(getVolumeIcon(), { size: 20 })}
@@ -435,7 +441,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     <span className="volume-percentage">{Math.round(volume * 100)}%</span>
                     <div className="volume-slider-track">
                       <div className="volume-slider-fill" style={{ height: `${volume * 100}%` }} />
-                      <div className="volume-slider-handle" style={{ bottom: `${volume * 100}%` }} />
+                      <div
+                        className="volume-slider-handle"
+                        style={{ bottom: `${volume * 100}%` }}
+                      />
                       <input
                         type="range"
                         min="0"
@@ -443,10 +452,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                         step="0.01"
                         value={volume}
                         onChange={(e) => {
-                          const newVolume = Number.parseFloat(e.target.value)
-                          setVolume(newVolume)
+                          const newVolume = Number.parseFloat(e.target.value);
+                          setVolume(newVolume);
                           if (newVolume > 0 && isMuted) {
-                            setIsMuted(false)
+                            setIsMuted(false);
                           }
                         }}
                         className="volume-input"
@@ -490,14 +499,21 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                 <div className="profile-container">
                   <div className="profile-avatar-container">
                     <img
-                      src={video.user?.avatar ? avatarBytesToUrl(video.user.avatar) || defaultAvatar : defaultAvatar}
+                      src={
+                        video.user?.avatar
+                          ? avatarBytesToUrl(video.user.avatar) || defaultAvatar
+                          : defaultAvatar
+                      }
                       alt={`${video.user?.username || "User"}'s profile`}
                       className="profile-avatar"
                       onClick={() => video.user?.username && handleUserClick(video.user.username)}
                     />
                     {video.user?.id !== user?.id &&
                       !followersMap[Number(video.user?.id)]?.includes(Number(user?.id)) && (
-                        <button onClick={() => handleFollow(Number(video.user?.id))} className="follow-button">
+                        <button
+                          onClick={() => handleFollow(Number(video.user?.id))}
+                          className="follow-button"
+                        >
                           <UserPlus size={12} />
                         </button>
                       )}
@@ -518,29 +534,35 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               {video.description && (
                 <div className="video-description">
                   {(() => {
-                    const desc = video.description
-                    const isExpanded = expandedDescriptions[video.id]
-                    const maxLength = 120
+                    const desc = video.description;
+                    const isExpanded = expandedDescriptions[video.id];
+                    const maxLength = 120;
                     if (desc.length <= maxLength || isExpanded) {
                       return (
                         <>
                           {desc}
                           {desc.length > maxLength && (
-                            <button className="expand-button" onClick={() => toggleDescription(video.id)}>
+                            <button
+                              className="expand-button"
+                              onClick={() => toggleDescription(video.id)}
+                            >
                               See less
                             </button>
                           )}
                         </>
-                      )
+                      );
                     }
                     return (
                       <>
                         {desc.slice(0, maxLength)}...
-                        <button className="expand-button" onClick={() => toggleDescription(video.id)}>
+                        <button
+                          className="expand-button"
+                          onClick={() => toggleDescription(video.id)}
+                        >
                           See more
                         </button>
                       </>
-                    )
+                    );
                   })()}
                 </div>
               )}
@@ -549,21 +571,25 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               {showCaptions && (
                 <div className="captions-display">
                   {(() => {
-                    const fullCaption = captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption || ""
-                    const isExpanded = expandedCaptions[video.id]
-                    const maxLength = 100
-                    if (!fullCaption) return null
+                    const fullCaption =
+                      captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption || "";
+                    const isExpanded = expandedCaptions[video.id];
+                    const maxLength = 100;
+                    if (!fullCaption) return null;
                     if (fullCaption.length <= maxLength || isExpanded) {
                       return (
                         <>
                           {fullCaption}
                           {fullCaption.length > maxLength && (
-                            <button className="expand-button" onClick={() => toggleCaption(video.id)}>
+                            <button
+                              className="expand-button"
+                              onClick={() => toggleCaption(video.id)}
+                            >
                               See less
                             </button>
                           )}
                         </>
-                      )
+                      );
                     }
                     return (
                       <>
@@ -572,7 +598,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                           See more
                         </button>
                       </>
-                    )
+                    );
                   })()}
                 </div>
               )}
@@ -605,7 +631,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                   </button>
 
                   {video.allowComments && (
-                    <button onClick={() => handleComment(video.id)} className="action-button comment-button">
+                    <button
+                      onClick={() => handleComment(video.id)}
+                      className="action-button comment-button"
+                    >
                       <MessageCircle size={20} />
                       <span>{video.commentsCount}</span>
                     </button>
@@ -619,7 +648,10 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     <span>Share</span>
                   </button>
 
-                  <button onClick={() => handleSave(video.id)} className="action-button save-button">
+                  <button
+                    onClick={() => handleSave(video.id)}
+                    className="action-button save-button"
+                  >
                     <Bookmark size={20} />
                     <span>Save</span>
                   </button>
@@ -661,7 +693,11 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
 
       {/* Comment Sidebar */}
       {showComments && selectedVideoId && (
-        <CommentBar videoId={selectedVideoId} onClose={handleCloseComments} canComment={canComment} />
+        <CommentBar
+          videoId={selectedVideoId}
+          onClose={handleCloseComments}
+          canComment={canComment}
+        />
       )}
 
       <ShareVideoModal
@@ -1192,7 +1228,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default VideoScroll
+export default VideoScroll;

@@ -1,127 +1,124 @@
-import type React from "react"
-import { useEffect, useRef, useState, useCallback, useMemo } from "react"
-import { useLocation } from "react-router-dom"
-import { Search, Users, Video, TrendingUp, AlertCircle, Loader2 } from "lucide-react"
-import type { User, UserListResponse } from "../../api/gen/user"
-import { userClient } from "../../api/grpc/userClient"
-import type { GetVideosResponse, Video as VideoType } from "../../api/gen/video"
-import { videoClient } from "../../api/grpc/videoClient"
-import { UserCard } from "../../components/UserCard"
-import { VideoCard } from "../../components/VideoCard"
-import jaroDistance from "../../utils/jaroDistance"
-import debounce from "../../utils/debounce"
+import type React from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { Search, Users, Video, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import type { User, UserListResponse } from "../../api/gen/user";
+import { userClient } from "../../api/grpc/userClient";
+import type { GetVideosResponse, Video as VideoType } from "../../api/gen/video";
+import { videoClient } from "../../api/grpc/videoClient";
+import { UserCard } from "../../components/UserCard";
+import { VideoCard } from "../../components/VideoCard";
+import jaroDistance from "../../utils/jaroDistance";
+import debounce from "../../utils/debounce";
 
 const SearchPage: React.FC = () => {
-  const [allUsers, setAllUsers] = useState<User[]>([])
-  const [allVideos, setAllVideos] = useState<VideoType[]>([])
-  const [tab, setTab] = useState("top")
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
-  const [filteredVideos, setFilteredVideos] = useState<VideoType[]>([])
-  const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const [dataFetched, setDataFetched] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const location = useLocation()
-  const searchQuery = new URLSearchParams(location.search).get("q") || ""
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allVideos, setAllVideos] = useState<VideoType[]>([]);
+  const [tab, setTab] = useState("top");
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [filteredVideos, setFilteredVideos] = useState<VideoType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [dataFetched, setDataFetched] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const searchQuery = new URLSearchParams(location.search).get("q") || "";
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const res: UserListResponse = await userClient.GetAllUsers({})
-        setAllUsers(res.users)
-        setDataFetched(true)
+        const res: UserListResponse = await userClient.GetAllUsers({});
+        setAllUsers(res.users);
+        setDataFetched(true);
       } catch (error) {
-        console.error("Failed to fetch users:", error)
-        setErrorMessage("An error occurred while fetching users.")
+        console.error("Failed to fetch users:", error);
+        setErrorMessage("An error occurred while fetching users.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const fetchVideos = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const res: GetVideosResponse = await videoClient.GetAllVideos({})
-        setAllVideos(res.videos)
-        setDataFetched(true)
+        const res: GetVideosResponse = await videoClient.GetAllVideos({});
+        setAllVideos(res.videos);
+        setDataFetched(true);
       } catch (error) {
-        console.error("Failed to fetch videos:", error)
-        setErrorMessage("An error occurred while fetching videos.")
+        console.error("Failed to fetch videos:", error);
+        setErrorMessage("An error occurred while fetching videos.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchVideos()
-  }, [])
+    fetchVideos();
+  }, []);
 
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string, currentPage: number, users: User[], videos: VideoType[]) => {
-        setLoading(true)
+        setLoading(true);
         const matchedUsers = users.filter(
           (u) => jaroDistance(u.username?.toLowerCase() ?? "", query.toLowerCase()) > 0.7,
-        )
-        const matchedVideos = videos.filter((v) => jaroDistance(v.caption.toLowerCase(), query.toLowerCase()) > 0.7)
+        );
+        const matchedVideos = videos.filter(
+          (v) => jaroDistance(v.caption.toLowerCase(), query.toLowerCase()) > 0.7,
+        );
 
-        setFilteredUsers(matchedUsers.slice(0, currentPage * 5))
-        setFilteredVideos(matchedVideos.slice(0, currentPage * 5))
-        setLoading(false)
+        setFilteredUsers(matchedUsers.slice(0, currentPage * 5));
+        setFilteredVideos(matchedVideos.slice(0, currentPage * 5));
+        setLoading(false);
       }, 300),
     [],
-  )
+  );
 
   useEffect(() => {
     if (searchQuery.trim() && allUsers.length > 0) {
-      debouncedSearch(searchQuery, page, allUsers, allVideos)
+      debouncedSearch(searchQuery, page, allUsers, allVideos);
     } else {
-      setFilteredUsers([])
-      setFilteredVideos([])
+      setFilteredUsers([]);
+      setFilteredVideos([]);
     }
-  }, [searchQuery, page, allUsers, allVideos, debouncedSearch])
+  }, [searchQuery, page, allUsers, allVideos, debouncedSearch]);
 
   const handleTabChange = useCallback((newValue: string) => {
-    setTab(newValue)
-    setPage(1) // Reset page when changing tabs
-  }, [])
+    setTab(newValue);
+    setPage(1); // Reset page when changing tabs
+  }, []);
 
   const onScroll = useCallback(() => {
-    const container = scrollRef.current
-    if (!container) return
+    const container = scrollRef.current;
+    if (!container) return;
 
-    const isBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10
+    const isBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
 
     if (isBottom && !loading) {
-      setPage((prev) => prev + 1)
+      setPage((prev) => prev + 1);
     }
-  }, [loading])
+  }, [loading]);
 
   useEffect(() => {
-    const current = scrollRef.current
-    if (current) current.addEventListener("scroll", onScroll)
-    return () => current?.removeEventListener("scroll", onScroll)
-  }, [onScroll])
+    const current = scrollRef.current;
+    if (current) current.addEventListener("scroll", onScroll);
+    return () => current?.removeEventListener("scroll", onScroll);
+  }, [onScroll]);
 
   const renderUserCard = useCallback(
     (user: User) => <UserCard key={user.id} user={user} currentUserId={Number(user?.id)} />,
     [],
-  )
+  );
 
   const renderVideoCard = useCallback(
-    (video: VideoType) => (
-      <VideoCard
-        key={video.id}
-        video={video}
-      />
-    ),
+    (video: VideoType) => <VideoCard key={video.id} video={video} />,
     [],
-  )
+  );
 
   const tabs = useMemo(
     () => [
@@ -130,10 +127,10 @@ const SearchPage: React.FC = () => {
       { id: "videos", label: "Videos", icon: Video },
     ],
     [],
-  )
+  );
 
-  const hasResults = filteredUsers.length > 0 || filteredVideos.length > 0
-  const showNoResults = !loading && dataFetched && !hasResults && searchQuery.trim()
+  const hasResults = filteredUsers.length > 0 || filteredVideos.length > 0;
+  const showNoResults = !loading && dataFetched && !hasResults && searchQuery.trim();
 
   return (
     <div className="search-page">
@@ -159,7 +156,11 @@ const SearchPage: React.FC = () => {
       <div className="tabs-container">
         <div className="tabs">
           {tabs.map(({ id, label, icon: Icon }) => (
-            <button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => handleTabChange(id)}>
+            <button
+              key={id}
+              className={`tab ${tab === id ? "active" : ""}`}
+              onClick={() => handleTabChange(id)}
+            >
               <Icon size={18} />
               <span>{label}</span>
             </button>
@@ -196,7 +197,9 @@ const SearchPage: React.FC = () => {
                       <h3>Users</h3>
                       <span className="count">{filteredUsers.length}</span>
                     </div>
-                    <div className="results-grid users-grid">{filteredUsers.slice(0, 5).map(renderUserCard)}</div>
+                    <div className="results-grid users-grid">
+                      {filteredUsers.slice(0, 5).map(renderUserCard)}
+                    </div>
                   </div>
                 )}
 
@@ -207,7 +210,9 @@ const SearchPage: React.FC = () => {
                       <h3>Videos</h3>
                       <span className="count">{filteredVideos.length}</span>
                     </div>
-                    <div className="results-grid videos-grid">{filteredVideos.slice(0, 5).map(renderVideoCard)}</div>
+                    <div className="results-grid videos-grid">
+                      {filteredVideos.slice(0, 5).map(renderVideoCard)}
+                    </div>
                   </div>
                 )}
               </>
@@ -231,7 +236,9 @@ const SearchPage: React.FC = () => {
                   <h3>All Videos</h3>
                   <span className="count">{filteredVideos.length}</span>
                 </div>
-                <div className="results-grid videos-grid">{filteredVideos.map(renderVideoCard)}</div>
+                <div className="results-grid videos-grid">
+                  {filteredVideos.map(renderVideoCard)}
+                </div>
               </div>
             )}
           </div>
@@ -590,7 +597,7 @@ const SearchPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default SearchPage
+export default SearchPage;

@@ -37,9 +37,7 @@ export interface Video {
   id: number;
   createdAt?: Date | undefined;
   updatedAt?: Date | undefined;
-  deletedAt?:
-    | Date
-    | undefined;
+  deletedAt?: Date | undefined;
   /** Video metadata */
   userId: number;
   videoUrl: string;
@@ -174,7 +172,9 @@ export const CreatePlaylistRequest: MessageFns<CreatePlaylistRequest> = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      videoIds: globalThis.Array.isArray(object?.videoIds) ? object.videoIds.map((e: any) => globalThis.String(e)) : [],
+      videoIds: globalThis.Array.isArray(object?.videoIds)
+        ? object.videoIds.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -195,7 +195,9 @@ export const CreatePlaylistRequest: MessageFns<CreatePlaylistRequest> = {
   create<I extends Exact<DeepPartial<CreatePlaylistRequest>, I>>(base?: I): CreatePlaylistRequest {
     return CreatePlaylistRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreatePlaylistRequest>, I>>(object: I): CreatePlaylistRequest {
+  fromPartial<I extends Exact<DeepPartial<CreatePlaylistRequest>, I>>(
+    object: I,
+  ): CreatePlaylistRequest {
     const message = createBaseCreatePlaylistRequest();
     message.name = object.name ?? "";
     message.userId = object.userId ?? "0";
@@ -252,10 +254,14 @@ export const CreatePlaylistResponse: MessageFns<CreatePlaylistResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreatePlaylistResponse>, I>>(base?: I): CreatePlaylistResponse {
+  create<I extends Exact<DeepPartial<CreatePlaylistResponse>, I>>(
+    base?: I,
+  ): CreatePlaylistResponse {
     return CreatePlaylistResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreatePlaylistResponse>, I>>(object: I): CreatePlaylistResponse {
+  fromPartial<I extends Exact<DeepPartial<CreatePlaylistResponse>, I>>(
+    object: I,
+  ): CreatePlaylistResponse {
     const message = createBaseCreatePlaylistResponse();
     message.playlistId = object.playlistId ?? "0";
     return message;
@@ -825,7 +831,8 @@ export const Video: MessageFns<Video> = {
     message.allowComments = object.allowComments ?? false;
     message.allowDuet = object.allowDuet ?? false;
     message.allowStitch = object.allowStitch ?? false;
-    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.user =
+      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
     message.isLiked = object.isLiked ?? false;
     message.likeCount = object.likeCount ?? "0";
     return message;
@@ -947,7 +954,9 @@ export const Playlist: MessageFns<Playlist> = {
       id: isSet(object.id) ? globalThis.String(object.id) : "0",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      videos: globalThis.Array.isArray(object?.videos) ? object.videos.map((e: any) => Video.fromJSON(e)) : [],
+      videos: globalThis.Array.isArray(object?.videos)
+        ? object.videos.map((e: any) => Video.fromJSON(e))
+        : [],
       createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
       updatedAt: isSet(object.updatedAt) ? fromJsonTimestamp(object.updatedAt) : undefined,
       deletedAt: isSet(object.deletedAt) ? fromJsonTimestamp(object.deletedAt) : undefined,
@@ -1001,7 +1010,10 @@ function createBaseGetPlaylistByUserIdResponse(): GetPlaylistByUserIdResponse {
 }
 
 export const GetPlaylistByUserIdResponse: MessageFns<GetPlaylistByUserIdResponse> = {
-  encode(message: GetPlaylistByUserIdResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetPlaylistByUserIdResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     for (const v of message.playlists) {
       Playlist.encode(v!, writer.uint32(10).fork()).join();
     }
@@ -1048,10 +1060,14 @@ export const GetPlaylistByUserIdResponse: MessageFns<GetPlaylistByUserIdResponse
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetPlaylistByUserIdResponse>, I>>(base?: I): GetPlaylistByUserIdResponse {
+  create<I extends Exact<DeepPartial<GetPlaylistByUserIdResponse>, I>>(
+    base?: I,
+  ): GetPlaylistByUserIdResponse {
     return GetPlaylistByUserIdResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetPlaylistByUserIdResponse>, I>>(object: I): GetPlaylistByUserIdResponse {
+  fromPartial<I extends Exact<DeepPartial<GetPlaylistByUserIdResponse>, I>>(
+    object: I,
+  ): GetPlaylistByUserIdResponse {
     const message = createBaseGetPlaylistByUserIdResponse();
     message.playlists = object.playlists?.map((e) => Playlist.fromPartial(e)) || [];
     return message;
@@ -1109,7 +1125,9 @@ export const DeletePlaylistRequest: MessageFns<DeletePlaylistRequest> = {
   create<I extends Exact<DeepPartial<DeletePlaylistRequest>, I>>(base?: I): DeletePlaylistRequest {
     return DeletePlaylistRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DeletePlaylistRequest>, I>>(object: I): DeletePlaylistRequest {
+  fromPartial<I extends Exact<DeepPartial<DeletePlaylistRequest>, I>>(
+    object: I,
+  ): DeletePlaylistRequest {
     const message = createBaseDeletePlaylistRequest();
     message.id = object.id ?? "0";
     return message;
@@ -1164,10 +1182,14 @@ export const DeletePlaylistResponse: MessageFns<DeletePlaylistResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<DeletePlaylistResponse>, I>>(base?: I): DeletePlaylistResponse {
+  create<I extends Exact<DeepPartial<DeletePlaylistResponse>, I>>(
+    base?: I,
+  ): DeletePlaylistResponse {
     return DeletePlaylistResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DeletePlaylistResponse>, I>>(object: I): DeletePlaylistResponse {
+  fromPartial<I extends Exact<DeepPartial<DeletePlaylistResponse>, I>>(
+    object: I,
+  ): DeletePlaylistResponse {
     const message = createBaseDeletePlaylistResponse();
     message.success = object.success ?? false;
     return message;
@@ -1248,7 +1270,9 @@ export const UpdatePlaylistRequest: MessageFns<UpdatePlaylistRequest> = {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "0",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      videoIds: globalThis.Array.isArray(object?.videoIds) ? object.videoIds.map((e: any) => globalThis.String(e)) : [],
+      videoIds: globalThis.Array.isArray(object?.videoIds)
+        ? object.videoIds.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1269,7 +1293,9 @@ export const UpdatePlaylistRequest: MessageFns<UpdatePlaylistRequest> = {
   create<I extends Exact<DeepPartial<UpdatePlaylistRequest>, I>>(base?: I): UpdatePlaylistRequest {
     return UpdatePlaylistRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistRequest>, I>>(object: I): UpdatePlaylistRequest {
+  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistRequest>, I>>(
+    object: I,
+  ): UpdatePlaylistRequest {
     const message = createBaseUpdatePlaylistRequest();
     message.id = object.id ?? "0";
     message.name = object.name ?? "";
@@ -1326,10 +1352,14 @@ export const UpdatePlaylistResponse: MessageFns<UpdatePlaylistResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(base?: I): UpdatePlaylistResponse {
+  create<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(
+    base?: I,
+  ): UpdatePlaylistResponse {
     return UpdatePlaylistResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(object: I): UpdatePlaylistResponse {
+  fromPartial<I extends Exact<DeepPartial<UpdatePlaylistResponse>, I>>(
+    object: I,
+  ): UpdatePlaylistResponse {
     const message = createBaseUpdatePlaylistResponse();
     message.playlistId = object.playlistId ?? "0";
     return message;
@@ -1341,7 +1371,10 @@ export interface PlaylistService {
     request: DeepPartial<CreatePlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CreatePlaylistResponse>;
-  GetPlaylist(request: DeepPartial<GetPlaylistRequest>, metadata?: grpc.Metadata): Promise<Playlist>;
+  GetPlaylist(
+    request: DeepPartial<GetPlaylistRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Playlist>;
   GetPlaylistsByUserId(
     request: DeepPartial<GetPlaylistRequest>,
     metadata?: grpc.Metadata,
@@ -1372,32 +1405,55 @@ export class PlaylistServiceClientImpl implements PlaylistService {
     request: DeepPartial<CreatePlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CreatePlaylistResponse> {
-    return this.rpc.unary(PlaylistServiceCreatePlaylistDesc, CreatePlaylistRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      PlaylistServiceCreatePlaylistDesc,
+      CreatePlaylistRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  GetPlaylist(request: DeepPartial<GetPlaylistRequest>, metadata?: grpc.Metadata): Promise<Playlist> {
-    return this.rpc.unary(PlaylistServiceGetPlaylistDesc, GetPlaylistRequest.fromPartial(request), metadata);
+  GetPlaylist(
+    request: DeepPartial<GetPlaylistRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Playlist> {
+    return this.rpc.unary(
+      PlaylistServiceGetPlaylistDesc,
+      GetPlaylistRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetPlaylistsByUserId(
     request: DeepPartial<GetPlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetPlaylistByUserIdResponse> {
-    return this.rpc.unary(PlaylistServiceGetPlaylistsByUserIdDesc, GetPlaylistRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      PlaylistServiceGetPlaylistsByUserIdDesc,
+      GetPlaylistRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   DeletePlaylist(
     request: DeepPartial<DeletePlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<DeletePlaylistResponse> {
-    return this.rpc.unary(PlaylistServiceDeletePlaylistDesc, DeletePlaylistRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      PlaylistServiceDeletePlaylistDesc,
+      DeletePlaylistRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   UpdatePlaylist(
     request: DeepPartial<UpdatePlaylistRequest>,
     metadata?: grpc.Metadata,
   ): Promise<UpdatePlaylistResponse> {
-    return this.rpc.unary(PlaylistServiceUpdatePlaylistDesc, UpdatePlaylistRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      PlaylistServiceUpdatePlaylistDesc,
+      UpdatePlaylistRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -1563,9 +1619,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -1577,7 +1634,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -1613,14 +1674,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
@@ -1650,7 +1716,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

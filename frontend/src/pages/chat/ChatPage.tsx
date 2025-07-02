@@ -1,6 +1,6 @@
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { useParams } from "react-router-dom"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import {
   Send,
   Paperclip,
@@ -13,100 +13,100 @@ import {
   CheckCheck,
   Clock,
   MessageCircle,
-} from "lucide-react"
-import { useAuth } from "../../utils/AuthProvider"
+} from "lucide-react";
+import { useAuth } from "../../utils/AuthProvider";
 import type {
   GetChatsWithUserRequest,
   SendMessageRequest,
   SetTypingStatusRequest,
   UnsendMessageRequest,
-} from "../../api/gen/chat"
-import type { GetUserByUsernameRequest, User } from "../../api/gen/user"
-import { userClient } from "../../api/grpc/userClient"
-import { chatClient } from "../../api/grpc/chatClient"
-import ChatWebSocket from "../../components/ChatWebSocket"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
-import BreathingBubble from "../../components/BreathingBubble"
+} from "../../api/gen/chat";
+import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
+import { userClient } from "../../api/grpc/userClient";
+import { chatClient } from "../../api/grpc/chatClient";
+import ChatWebSocket from "../../components/ChatWebSocket";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
+import BreathingBubble from "../../components/BreathingBubble";
 
 type Message = {
-  id: number // local message ID for React rendering
-  messageId?: string // server-side message ID
-  sender: string
-  text: string
-  imageBytes?: Uint8Array // actual image
-  deleted?: boolean
-  timestamp?: string
-  status?: "sending" | "sent" | "delivered" | "read"
-}
+  id: number; // local message ID for React rendering
+  messageId?: string; // server-side message ID
+  sender: string;
+  text: string;
+  imageBytes?: Uint8Array; // actual image
+  deleted?: boolean;
+  timestamp?: string;
+  status?: "sending" | "sent" | "delivered" | "read";
+};
 
 export default function ChatPage() {
-  const { user, getAuthMetadata } = useAuth()
-  const { receiverUsername } = useParams<{ receiverUsername: string }>()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [receiver, setReceiver] = useState<User | null>(null)
-  const [input, setInput] = useState("")
-  const nextId = useRef(1)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [isTyping, setIsTyping] = useState<boolean>(false)
-  const typingTimeout = useRef<NodeJS.Timeout | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { user, getAuthMetadata } = useAuth();
+  const { receiverUsername } = useParams<{ receiverUsername: string }>();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [receiver, setReceiver] = useState<User | null>(null);
+  const [input, setInput] = useState("");
+  const nextId = useRef(1);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleTyping = () => {
     if (typingTimeout.current) {
-      clearTimeout(typingTimeout.current)
+      clearTimeout(typingTimeout.current);
     }
 
-    sendTypingStatus(true)
+    sendTypingStatus(true);
     typingTimeout.current = setTimeout(() => {
-      sendTypingStatus(false)
-    }, 1500)
-  }
+      sendTypingStatus(false);
+    }, 1500);
+  };
 
   const sendTypingStatus = async (isTyping: boolean) => {
-    if (!user || !receiver) return
+    if (!user || !receiver) return;
 
     const req: SetTypingStatusRequest = {
       senderId: user.id,
       receiverId: receiver.id,
       isTyping: isTyping, // true for typing, false for stop typing
-    }
+    };
 
     try {
-      await chatClient.SetTypingStatus(req, getAuthMetadata())
-      console.log("Success set typing status :", isTyping)
+      await chatClient.SetTypingStatus(req, getAuthMetadata());
+      console.log("Success set typing status :", isTyping);
     } catch (err) {
-      console.log("Error set typing status: ", err)
+      console.log("Error set typing status: ", err);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!receiverUsername) return
+      if (!receiverUsername) return;
 
       try {
-        const req: GetUserByUsernameRequest = { username: receiverUsername }
-        const res: User = await userClient.GetUserByUsername(req)
-        if (res) setReceiver(res)
+        const req: GetUserByUsernameRequest = { username: receiverUsername };
+        const res: User = await userClient.GetUserByUsername(req);
+        if (res) setReceiver(res);
       } catch (err) {
-        console.error("Error fetching user:", err)
+        console.error("Error fetching user:", err);
       }
-    }
+    };
 
-    fetchUser()
-  }, [receiverUsername])
+    fetchUser();
+  }, [receiverUsername]);
 
   useEffect(() => {
-    if (!user || !receiver) return
+    if (!user || !receiver) return;
 
     const fetchMessages = async () => {
       try {
         const req: GetChatsWithUserRequest = {
           user1Id: user.id,
           user2Id: receiver.id.toString(),
-        }
+        };
 
-        const res = await chatClient.GetChatsWithUser(req, getAuthMetadata())
+        const res = await chatClient.GetChatsWithUser(req, getAuthMetadata());
         if (res) {
           const loadedMessages: Message[] = res.chats.map((chat) => ({
             id: nextId.current++,
@@ -117,44 +117,49 @@ export default function ChatPage() {
             deleted: chat.deletedAt && chat.deletedAt !== "" ? true : false,
             timestamp: chat.createdAt,
             status: "delivered",
-          }))
+          }));
 
-          setMessages(loadedMessages)
+          setMessages(loadedMessages);
         }
       } catch (err) {
-        console.error("Failed to fetch messages:", err)
+        console.error("Failed to fetch messages:", err);
       }
-    }
+    };
 
-    fetchMessages()
-  }, [user, receiver])
+    fetchMessages();
+  }, [user, receiver]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [messages]);
 
   const handleIncomingMessage = (msg: any) => {
     if (msg.type === "unsend") {
       setMessages((prev) =>
-        prev.map((m) => (m.messageId === msg.messageId ? { ...m, deleted: true, text: "", imageBytes: undefined } : m)),
-      )
-      return
+        prev.map((m) =>
+          m.messageId === msg.messageId
+            ? { ...m, deleted: true, text: "", imageBytes: undefined }
+            : m,
+        ),
+      );
+      return;
     } else if (msg.type === "typing") {
-      console.log("typing incoming msg: ", msg)
+      console.log("typing incoming msg: ", msg);
       if (msg.is_typing) {
-        setIsTyping(true)
+        setIsTyping(true);
       } else {
-        setIsTyping(false)
+        setIsTyping(false);
       }
-      return
+      return;
     }
 
-    const isFromReceiver = msg.sender_id === Number(receiver?.id)
-    const isFromMe = user && msg.sender_id === Number(user.id) && msg.receiver_id === Number(receiver?.id)
+    const isFromReceiver = msg.sender_id === Number(receiver?.id);
+    const isFromMe =
+      user && msg.sender_id === Number(user.id) && msg.receiver_id === Number(receiver?.id);
 
-    if (!isFromReceiver && !isFromMe) return
+    if (!isFromReceiver && !isFromMe) return;
 
-    const senderName = isFromMe ? user.username : receiver?.username || "Unknown"
+    const senderName = isFromMe ? user.username : receiver?.username || "Unknown";
 
     const imageBytes: Uint8Array | undefined = msg.image
       ? new Uint8Array(
@@ -162,9 +167,9 @@ export default function ChatPage() {
             .split("")
             .map((c) => c.charCodeAt(0)),
         )
-      : undefined
+      : undefined;
 
-    console.log("incoming message imageBytes: ", imageBytes)
+    console.log("incoming message imageBytes: ", imageBytes);
 
     const newMessage: Message = {
       id: nextId.current++,
@@ -174,72 +179,78 @@ export default function ChatPage() {
       imageBytes,
       timestamp: new Date().toISOString(),
       status: "delivered",
-    }
+    };
 
-    setMessages((prev) => [...prev, newMessage])
-  }
+    setMessages((prev) => [...prev, newMessage]);
+  };
 
   const sendMessage = async (type: string) => {
-    if (!input.trim()) return
-    if (!user || !receiver) return
+    if (!input.trim()) return;
+    if (!user || !receiver) return;
 
-    const text = input.trim()
+    const text = input.trim();
     const myMessage: Message = {
       id: nextId.current++,
       sender: user.username,
       text,
       timestamp: new Date().toISOString(),
       status: "sending",
-    }
+    };
 
-    setMessages((prev) => [...prev, myMessage])
-    setInput("")
+    setMessages((prev) => [...prev, myMessage]);
+    setInput("");
 
     const req: SendMessageRequest = {
       senderId: user.id,
       receiverId: receiver.id,
       type,
       message: text,
-    }
+    };
 
     try {
-      const resp = await chatClient.SendMessage(req, getAuthMetadata())
+      const resp = await chatClient.SendMessage(req, getAuthMetadata());
       if (resp && resp.chat && resp.chat.id) {
         setMessages((prev) =>
-          prev.map((m) => (m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m)),
-        )
+          prev.map((m) =>
+            m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m,
+          ),
+        );
       }
     } catch (err) {
-      console.error("Send message failed:", err)
-      setMessages((prev) => prev.map((m) => (m.id === myMessage.id ? { ...m, status: "sent" } : m)))
+      console.error("Send message failed:", err);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === myMessage.id ? { ...m, status: "sent" } : m)),
+      );
     }
-  }
+  };
 
   const handleUnsendMessage = async (message: Message) => {
-    if (!message.messageId || !user || !receiver) return
+    if (!message.messageId || !user || !receiver) return;
 
     try {
       const req: UnsendMessageRequest = {
         chatId: Number(message.messageId),
         senderId: Number(user.id),
         receiverId: Number(receiver.id),
-      }
+      };
 
-      await chatClient.UnsendMessage(req, getAuthMetadata())
+      await chatClient.UnsendMessage(req, getAuthMetadata());
       setMessages((prev) =>
-        prev.map((m) => (m.messageId === message.messageId ? { ...m, deleted: true, text: "" } : m)),
-      )
+        prev.map((m) =>
+          m.messageId === message.messageId ? { ...m, deleted: true, text: "" } : m,
+        ),
+      );
     } catch (err) {
-      console.error("Unsend failed:", err)
+      console.error("Unsend failed:", err);
     }
-  }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !user || !receiver) return
+    const file = e.target.files?.[0];
+    if (!file || !user || !receiver) return;
 
-    const arrayBuffer = await file.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
 
     const myMessage: Message = {
       id: nextId.current++,
@@ -248,9 +259,9 @@ export default function ChatPage() {
       imageBytes: uint8Array,
       timestamp: new Date().toISOString(),
       status: "sending",
-    }
+    };
 
-    setMessages((prev) => [...prev, myMessage])
+    setMessages((prev) => [...prev, myMessage]);
 
     const req: SendMessageRequest = {
       senderId: user.id,
@@ -258,53 +269,57 @@ export default function ChatPage() {
       type: "image",
       message: "",
       image: uint8Array,
-    }
+    };
 
     try {
-      const resp = await chatClient.SendMessage(req, getAuthMetadata())
+      const resp = await chatClient.SendMessage(req, getAuthMetadata());
       if (resp && resp.chat && resp.chat.id) {
         setMessages((prev) =>
-          prev.map((m) => (m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m)),
-        )
+          prev.map((m) =>
+            m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m,
+          ),
+        );
       }
     } catch (err) {
-      console.error("Send image failed:", err)
-      setMessages((prev) => prev.map((m) => (m.id === myMessage.id ? { ...m, status: "sent" } : m)))
+      console.error("Send image failed:", err);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === myMessage.id ? { ...m, status: "sent" } : m)),
+      );
     }
 
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage("text")
+      e.preventDefault();
+      sendMessage("text");
     }
-  }
+  };
 
   const formatTime = (timestamp?: string) => {
-    if (!timestamp) return ""
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case "sending":
-        return <Clock size={12} className="status-icon sending" />
+        return <Clock size={12} className="status-icon sending" />;
       case "sent":
-        return <Check size={12} className="status-icon sent" />
+        return <Check size={12} className="status-icon sent" />;
       case "delivered":
-        return <CheckCheck size={12} className="status-icon delivered" />
+        return <CheckCheck size={12} className="status-icon delivered" />;
       case "read":
-        return <CheckCheck size={12} className="status-icon read" />
+        return <CheckCheck size={12} className="status-icon read" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   if (!user) {
     return (
@@ -314,7 +329,7 @@ export default function ChatPage() {
           <p>Please log in to access the chat</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!receiverUsername || !receiver) {
@@ -328,7 +343,9 @@ export default function ChatPage() {
             </div>
             <div className="empty-text-content">
               <h2 className="empty-title">No Conversation Selected</h2>
-              <p className="empty-description">Choose a friend from your conversations to start chatting</p>
+              <p className="empty-description">
+                Choose a friend from your conversations to start chatting
+              </p>
               <div className="empty-features">
                 <div className="feature-item">
                   <Send size={16} />
@@ -525,12 +542,16 @@ export default function ChatPage() {
           }
         `}</style>
       </>
-    )
+    );
   }
 
   return (
     <>
-      <ChatWebSocket key={`${user.id}-${receiver?.id}`} userId={Number(user.id)} onMessage={handleIncomingMessage} />
+      <ChatWebSocket
+        key={`${user.id}-${receiver?.id}`}
+        userId={Number(user.id)}
+        onMessage={handleIncomingMessage}
+      />
 
       <div className="chat-container">
         {/* Header */}
@@ -542,16 +563,18 @@ export default function ChatPage() {
             <div className="user-info">
               <div className="avatar-container">
                 <img
-                  src={receiver?.avatar ? avatarBytesToUrl(receiver.avatar) || defaultAvatar : defaultAvatar}
+                  src={
+                    receiver?.avatar
+                      ? avatarBytesToUrl(receiver.avatar) || defaultAvatar
+                      : defaultAvatar
+                  }
                   alt={receiver?.username}
                   className="user-avatar"
                 />
               </div>
               <div className="user-details">
                 <h3 className="username">{receiver?.displayName || receiver?.username}</h3>
-                <span className="status">
-                  {isTyping && "typing..."}
-                </span>
+                <span className="status">{isTyping && "typing..."}</span>
               </div>
             </div>
           </div>
@@ -579,7 +602,11 @@ export default function ChatPage() {
                 {message.sender !== user.username && (
                   <div className="message-avatar">
                     <img
-                      src={receiver?.avatar ? avatarBytesToUrl(receiver.avatar) || defaultAvatar : defaultAvatar}
+                      src={
+                        receiver?.avatar
+                          ? avatarBytesToUrl(receiver.avatar) || defaultAvatar
+                          : defaultAvatar
+                      }
                       alt={message.sender}
                       className="avatar-small"
                     />
@@ -587,7 +614,9 @@ export default function ChatPage() {
                 )}
 
                 <div className="message-bubble-container">
-                  <div className={`message-bubble ${message.sender === user.username ? "sent" : "received"}`}>
+                  <div
+                    className={`message-bubble ${message.sender === user.username ? "sent" : "received"}`}
+                  >
                     {message.deleted ? (
                       <div className="deleted-message">
                         <span>Message was deleted</span>
@@ -633,7 +662,11 @@ export default function ChatPage() {
               <div className="typing-indicator-wrapper">
                 <div className="message-avatar">
                   <img
-                    src={receiver?.avatar ? avatarBytesToUrl(receiver.avatar) || defaultAvatar : defaultAvatar}
+                    src={
+                      receiver?.avatar
+                        ? avatarBytesToUrl(receiver.avatar) || defaultAvatar
+                        : defaultAvatar
+                    }
                     alt={receiver?.username}
                     className="avatar-small"
                   />
@@ -649,18 +682,28 @@ export default function ChatPage() {
         {/* Input Area */}
         <div className="input-container">
           <div className="input-wrapper">
-            <button className="attachment-button" onClick={() => fileInputRef.current?.click()} title="Attach file">
+            <button
+              className="attachment-button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach file"
+            >
               <Paperclip size={20} />
             </button>
 
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="file-input" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="file-input"
+            />
 
             <div className="text-input-container">
               <textarea
                 value={input}
                 onChange={(e) => {
-                  setInput(e.target.value)
-                  handleTyping()
+                  setInput(e.target.value);
+                  handleTyping();
                 }}
                 onKeyDown={onKeyDown}
                 placeholder={`Message ${receiver?.displayName || receiver?.username}...`}
@@ -1162,5 +1205,5 @@ export default function ChatPage() {
         }
       `}</style>
     </>
-  )
+  );
 }

@@ -1,28 +1,34 @@
-import type React from "react"
-import { useNavigate } from "react-router-dom"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
-import { X, Users, ExternalLink, CheckCircle } from "lucide-react"
-import type { User } from "../../api/gen/user"
+import type React from "react";
+import { useNavigate } from "react-router-dom";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
+import { X, Users, ExternalLink, CheckCircle } from "lucide-react";
+import type { User } from "../../api/gen/user";
 
 interface UserListModalProps {
-  users: User[]
-  label: string
-  verb: string
-  isOpen: boolean
-  onClose: () => void
+  users: User[];
+  label: string;
+  verb: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const UserListModal: React.FC<UserListModalProps> = ({ users, label, verb, isOpen, onClose }) => {
-  const navigate = useNavigate()
+export const UserListModal: React.FC<UserListModalProps> = ({
+  users,
+  label,
+  verb,
+  isOpen,
+  onClose,
+}) => {
+  const navigate = useNavigate();
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={handleBackdropClick}>
@@ -69,8 +75,8 @@ export const UserListModal: React.FC<UserListModalProps> = ({ users, label, verb
                   </div>
                   <button
                     onClick={() => {
-                      onClose()
-                      navigate(`/${u.username}`)
+                      onClose();
+                      navigate(`/${u.username}`);
                     }}
                     className="view-profile-button"
                   >
@@ -445,5 +451,5 @@ export const UserListModal: React.FC<UserListModalProps> = ({ users, label, verb
         }
       `}</style>
     </div>
-  )
-}
+  );
+};

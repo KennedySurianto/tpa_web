@@ -1,17 +1,17 @@
-import type React from "react"
-import { Heart, User, Calendar } from "lucide-react"
-import type { Video } from "../api/gen/video"
-import defaultAvatar from "../assets/default.jpg"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import { useNavigate } from "react-router-dom"
+import type React from "react";
+import { Heart, User, Calendar } from "lucide-react";
+import type { Video } from "../api/gen/video";
+import defaultAvatar from "../assets/default.jpg";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import { useNavigate } from "react-router-dom";
 
 interface VideoCardProps {
-  video: Video
+  video: Video;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
-  const user = video.user
-  const thumbnailUrl = avatarBytesToUrl(video.thumbnail)
+  const user = video.user;
+  const thumbnailUrl = avatarBytesToUrl(video.thumbnail);
   const navigate = useNavigate();
 
   const formattedTime = video.createdAt
@@ -20,7 +20,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         day: "numeric",
         year: "numeric",
       })
-    : "Unknown"
+    : "Unknown";
 
   return (
     <div
@@ -42,14 +42,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         overflowY: "auto",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-8px) scale(1.02)"
-        e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2)"
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.3)"
+        e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+        e.currentTarget.style.boxShadow =
+          "0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2)";
+        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.3)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0) scale(1)"
-        e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.2)"
-        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
+        e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.2)";
+        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
       }}
     >
       {/* Thumbnail or Video Preview */}
@@ -73,10 +74,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
               transition: "transform 0.3s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.05)"
+              e.currentTarget.style.transform = "scale(1.05)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)"
+              e.currentTarget.style.transform = "scale(1)";
             }}
           />
         ) : (
@@ -91,10 +92,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
               transition: "transform 0.3s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.05)"
+              e.currentTarget.style.transform = "scale(1.05)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)"
+              e.currentTarget.style.transform = "scale(1)";
             }}
           />
         )}
@@ -192,10 +193,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
                 transition: "border-color 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.5)"
+                e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.5)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
               }}
             />
             <div
@@ -337,5 +338,5 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};

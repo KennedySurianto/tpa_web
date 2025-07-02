@@ -1,6 +1,6 @@
-import type React from "react"
-import { useEffect, useState } from "react"
-import { useAuth } from "../../utils/AuthProvider"
+import type React from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../utils/AuthProvider";
 import type {
   CreatePlaylistRequest,
   CreatePlaylistResponse,
@@ -12,11 +12,11 @@ import type {
   UpdatePlaylistRequest,
   UpdatePlaylistResponse,
   Video,
-} from "../../api/gen/playlist"
-import { playlistClient } from "../../api/grpc/playlistClient"
-import { videoClient } from "../../api/grpc/videoClient"
-import { useNavigate } from "react-router-dom"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
+} from "../../api/gen/playlist";
+import { playlistClient } from "../../api/grpc/playlistClient";
+import { videoClient } from "../../api/grpc/videoClient";
+import { useNavigate } from "react-router-dom";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import {
   ArrowLeft,
   Plus,
@@ -35,182 +35,189 @@ import {
   List,
   AlertTriangle,
   Loader2,
-} from "lucide-react"
+} from "lucide-react";
 
 const PlaylistPage: React.FC = () => {
-  const { user, getAuthMetadata } = useAuth()
-  const [playlists, setPlaylists] = useState<Playlist[]>([])
-  const [allVideos, setAllVideos] = useState<Video[]>([])
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [createName, setCreateName] = useState("")
-  const [createSelected, setCreateSelected] = useState<Video[]>([])
-  const [editName, setEditName] = useState("")
-  const [editSelected, setEditSelected] = useState<Video[]>([])
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-  const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
+  const { user, getAuthMetadata } = useAuth();
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [allVideos, setAllVideos] = useState<Video[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createSelected, setCreateSelected] = useState<Video[]>([]);
+  const [editName, setEditName] = useState("");
+  const [editSelected, setEditSelected] = useState<Video[]>([]);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user?.id) return
-      setLoading(true)
+      if (!user?.id) return;
+      setLoading(true);
 
       const req: GetPlaylistRequest = {
         id: user?.id.toString(),
         currentUserId: user?.id.toString(),
-      }
+      };
 
       try {
-        const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req)
-        setPlaylists(res.playlists)
-        console.log("fetched playlists: ", res.playlists)
+        const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req);
+        setPlaylists(res.playlists);
+        console.log("fetched playlists: ", res.playlists);
       } catch (error) {
-        console.error("Failed to fetch playlists:", error)
-        setErrorMessage("Failed to fetch playlists. Please try again later.")
+        console.error("Failed to fetch playlists:", error);
+        setErrorMessage("Failed to fetch playlists. Please try again later.");
       }
 
       try {
         const userVideosRes = await videoClient.GetVideosByUserId({
           userId: Number(user.id),
           currentUserId: Number(user.id),
-        })
-        setAllVideos(userVideosRes.videos)
-        console.log("fetched videos: ", userVideosRes.videos)
+        });
+        setAllVideos(userVideosRes.videos);
+        console.log("fetched videos: ", userVideosRes.videos);
       } catch (error) {
-        console.error("Failed to fetch videos:", error)
-        setErrorMessage("Failed to fetch videos. Please try again later.")
+        console.error("Failed to fetch videos:", error);
+        setErrorMessage("Failed to fetch videos. Please try again later.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [user])
+    fetchData();
+  }, [user]);
 
   const openEdit = (p: Playlist) => {
-    setSelectedPlaylist(p)
-    setEditName(p.name)
-    setEditSelected([...p.videos])
-  }
+    setSelectedPlaylist(p);
+    setEditName(p.name);
+    setEditSelected([...p.videos]);
+  };
 
   const saveEdit = async () => {
-    if (!selectedPlaylist) return
+    if (!selectedPlaylist) return;
 
     const updatedPlaylist: UpdatePlaylistRequest = {
       id: selectedPlaylist.id,
       name: editName,
       videoIds: editSelected.map((v) => v.id.toString()),
-    }
+    };
 
     try {
-      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(updatedPlaylist, getAuthMetadata())
+      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(
+        updatedPlaylist,
+        getAuthMetadata(),
+      );
       if (res && res.playlistId) {
         const updated = playlists.map((p) =>
-          p.id === selectedPlaylist.id
-            ? { ...p, name: editName, videos: editSelected }
-            : p,
-        )
-        setPlaylists(updated)
-        setSelectedPlaylist(null)
-        setEditName("")
-        setEditSelected([])
+          p.id === selectedPlaylist.id ? { ...p, name: editName, videos: editSelected } : p,
+        );
+        setPlaylists(updated);
+        setSelectedPlaylist(null);
+        setEditName("");
+        setEditSelected([]);
       }
     } catch (error) {
-      console.error("Failed to update playlist:", error)
-      setErrorMessage("Failed to update playlist. Please try again later.")
+      console.error("Failed to update playlist:", error);
+      setErrorMessage("Failed to update playlist. Please try again later.");
     }
-  }
+  };
 
   const createPlaylist = async () => {
-    if (!user?.id) return
+    if (!user?.id) return;
 
     if (!createName || createSelected.length === 0) {
-      setErrorMessage("Playlist name and at least one video are required")
-      return
+      setErrorMessage("Playlist name and at least one video are required");
+      return;
     }
 
     const req: CreatePlaylistRequest = {
       name: createName,
       userId: user?.id ?? "0",
       videoIds: createSelected.map((v) => v.id.toString()),
-    }
+    };
 
     try {
-      const res: CreatePlaylistResponse = await playlistClient.CreatePlaylist(req, getAuthMetadata())
+      const res: CreatePlaylistResponse = await playlistClient.CreatePlaylist(
+        req,
+        getAuthMetadata(),
+      );
       if (res && res.playlistId) {
         const newPlaylist = {
           id: res.playlistId,
           name: createName,
           userId: user?.id ?? "0",
           videos: createSelected,
-        }
-        setPlaylists((prev) => [...prev, newPlaylist])
-        setIsCreateModalOpen(false)
-        setCreateName("")
-        setCreateSelected([])
+        };
+        setPlaylists((prev) => [...prev, newPlaylist]);
+        setIsCreateModalOpen(false);
+        setCreateName("");
+        setCreateSelected([]);
       }
     } catch (error) {
-      console.error("Failed to create playlist:", error)
-      setErrorMessage("Failed to create playlist. Please try again later.")
+      console.error("Failed to create playlist:", error);
+      setErrorMessage("Failed to create playlist. Please try again later.");
     }
-  }
+  };
 
   const deletePlaylist = async () => {
-    if (!playlistToDelete?.id) return
+    if (!playlistToDelete?.id) return;
 
     const req: DeletePlaylistRequest = {
       id: playlistToDelete.id,
-    }
+    };
 
     try {
-      const res: DeletePlaylistResponse = await playlistClient.DeletePlaylist(req, getAuthMetadata());
+      const res: DeletePlaylistResponse = await playlistClient.DeletePlaylist(
+        req,
+        getAuthMetadata(),
+      );
 
       if (res && res.success) {
-        setPlaylists((prev) => prev.filter((p) => p.id !== playlistToDelete.id))
-        setIsDeleteConfirmOpen(false)
-        setPlaylistToDelete(null)
-        console.log("Playlist deleted:", playlistToDelete)
+        setPlaylists((prev) => prev.filter((p) => p.id !== playlistToDelete.id));
+        setIsDeleteConfirmOpen(false);
+        setPlaylistToDelete(null);
+        console.log("Playlist deleted:", playlistToDelete);
       }
     } catch (error) {
-      console.error("Failed to delete playlist:", error)
-      setErrorMessage("Failed to delete playlist. Please try again later.")
+      console.error("Failed to delete playlist:", error);
+      setErrorMessage("Failed to delete playlist. Please try again later.");
     }
-  }
+  };
 
   const toggleVideoSelection = (video: Video, isEditMode = false) => {
-    const currentSelected = isEditMode ? editSelected : createSelected
-    const setCurrentSelected = isEditMode ? setEditSelected : setCreateSelected
-    const isSelected = currentSelected.some((v) => v.id === video.id)
+    const currentSelected = isEditMode ? editSelected : createSelected;
+    const setCurrentSelected = isEditMode ? setEditSelected : setCreateSelected;
+    const isSelected = currentSelected.some((v) => v.id === video.id);
 
     if (isSelected) {
-      setCurrentSelected((prev) => prev.filter((v) => v.id !== video.id))
+      setCurrentSelected((prev) => prev.filter((v) => v.id !== video.id));
     } else {
-      setCurrentSelected((prev) => [...prev, video])
+      setCurrentSelected((prev) => [...prev, video]);
     }
-  }
+  };
 
   const filteredVideos = allVideos.filter(
     (video) =>
       video.caption.toLowerCase().includes(searchQuery.toLowerCase()) ||
       video.description?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const formatViews = (views: number) => {
-    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
-    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
-    return views.toString()
-  }
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
+    return views.toString();
+  };
 
   const renderVideoSelectionModal = (
     title: string,
@@ -271,7 +278,10 @@ const PlaylistPage: React.FC = () => {
                     <div className="video-thumbnail">
                       {video.thumbnail && video.thumbnail.length > 0 ? (
                         <img
-                          src={avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=120&width=200"}
+                          src={
+                            avatarBytesToUrl(video.thumbnail) ||
+                            "/placeholder.svg?height=120&width=200"
+                          }
                           alt={video.caption}
                           className="thumbnail-image"
                         />
@@ -332,13 +342,13 @@ const PlaylistPage: React.FC = () => {
                       onDragStart={() => setDraggedIndex(index)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => {
-                        if (draggedIndex === null || draggedIndex === index) return
-                        const reordered = [...selectedVideos]
-                        const [dragged] = reordered.splice(draggedIndex, 1)
-                        reordered.splice(index, 0, dragged)
-                        const setList = isEditMode ? setEditSelected : setCreateSelected
-                        setList(reordered)
-                        setDraggedIndex(null)
+                        if (draggedIndex === null || draggedIndex === index) return;
+                        const reordered = [...selectedVideos];
+                        const [dragged] = reordered.splice(draggedIndex, 1);
+                        reordered.splice(index, 0, dragged);
+                        const setList = isEditMode ? setEditSelected : setCreateSelected;
+                        setList(reordered);
+                        setDraggedIndex(null);
                       }}
                     >
                       <div className="drag-handle">
@@ -348,7 +358,10 @@ const PlaylistPage: React.FC = () => {
                       <div className="item-thumbnail">
                         {video.thumbnail && video.thumbnail.length > 0 ? (
                           <img
-                            src={avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=40&width=60"}
+                            src={
+                              avatarBytesToUrl(video.thumbnail) ||
+                              "/placeholder.svg?height=40&width=60"
+                            }
                             alt={video.caption}
                             className="mini-thumbnail"
                           />
@@ -366,8 +379,8 @@ const PlaylistPage: React.FC = () => {
 
                       <button
                         onClick={(e) => {
-                          e.stopPropagation()
-                          toggleVideoSelection(video, isEditMode)
+                          e.stopPropagation();
+                          toggleVideoSelection(video, isEditMode);
                         }}
                         className="remove-button"
                       >
@@ -391,13 +404,17 @@ const PlaylistPage: React.FC = () => {
           <button onClick={onCancel} className="cancel-button">
             Cancel
           </button>
-          <button onClick={onSave} className="save-button" disabled={!name || selectedVideos.length === 0}>
+          <button
+            onClick={onSave}
+            className="save-button"
+            disabled={!name || selectedVideos.length === 0}
+          >
             {isEditMode ? "Save Changes" : "Create Playlist"}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 
   if (loading) {
     return (
@@ -405,7 +422,7 @@ const PlaylistPage: React.FC = () => {
         <Loader2 size={32} className="loading-spinner" />
         <p>Loading playlists...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -443,7 +460,9 @@ const PlaylistPage: React.FC = () => {
                 <div key={index} className="thumbnail-slot">
                   {video.thumbnail && video.thumbnail.length > 0 ? (
                     <img
-                      src={avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=80&width=80"}
+                      src={
+                        avatarBytesToUrl(video.thumbnail) || "/placeholder.svg?height=80&width=80"
+                      }
                       alt={`Video ${index + 1}`}
                       className="playlist-thumbnail"
                     />
@@ -470,7 +489,10 @@ const PlaylistPage: React.FC = () => {
                 </span>
                 <span className="stat">
                   <Clock size={14} />
-                  {Math.floor(playlist.videos.reduce((acc, video) => acc + (video.duration || 0), 0) / 60)} min
+                  {Math.floor(
+                    playlist.videos.reduce((acc, video) => acc + (video.duration || 0), 0) / 60,
+                  )}{" "}
+                  min
                 </span>
               </div>
             </div>
@@ -482,8 +504,8 @@ const PlaylistPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  setPlaylistToDelete(playlist)
-                  setIsDeleteConfirmOpen(true)
+                  setPlaylistToDelete(playlist);
+                  setIsDeleteConfirmOpen(true);
                 }}
                 className="action-button delete"
               >
@@ -516,10 +538,10 @@ const PlaylistPage: React.FC = () => {
           createSelected,
           createPlaylist,
           () => {
-            setIsCreateModalOpen(false)
-            setCreateName("")
-            setCreateSelected([])
-            setSearchQuery("")
+            setIsCreateModalOpen(false);
+            setCreateName("");
+            setCreateSelected([]);
+            setSearchQuery("");
           },
         )}
 
@@ -532,10 +554,10 @@ const PlaylistPage: React.FC = () => {
           editSelected,
           saveEdit,
           () => {
-            setSelectedPlaylist(null)
-            setEditName("")
-            setEditSelected([])
-            setSearchQuery("")
+            setSelectedPlaylist(null);
+            setEditName("");
+            setEditSelected([]);
+            setSearchQuery("");
           },
           true,
         )}
@@ -559,8 +581,8 @@ const PlaylistPage: React.FC = () => {
             <div className="modal-footer">
               <button
                 onClick={() => {
-                  setIsDeleteConfirmOpen(false)
-                  setPlaylistToDelete(null)
+                  setIsDeleteConfirmOpen(false);
+                  setPlaylistToDelete(null);
                 }}
                 className="cancel-button"
               >
@@ -1383,7 +1405,7 @@ const PlaylistPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default PlaylistPage
+export default PlaylistPage;

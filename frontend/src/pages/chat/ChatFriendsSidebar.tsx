@@ -1,134 +1,134 @@
-import type React from "react"
-import { useCallback, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Search, X, MessageCircle, Users, Clock, Loader2 } from "lucide-react"
-import type { User } from "../../api/gen/user"
-import { useAuth } from "../../utils/AuthProvider"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
-import debounce from "../../utils/debounce"
-import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow"
-import { followClient } from "../../api/grpc/followClient"
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, X, MessageCircle, Users, Clock, Loader2 } from "lucide-react";
+import type { User } from "../../api/gen/user";
+import { useAuth } from "../../utils/AuthProvider";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
+import debounce from "../../utils/debounce";
+import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow";
+import { followClient } from "../../api/grpc/followClient";
 
 export default function ChatFriendsSidebar() {
-  const { user, getAuthMetadata } = useAuth()
-  const [friends, setFriends] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const navigate = useNavigate()
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
-  const [limit] = useState(10)
+  const { user, getAuthMetadata } = useAuth();
+  const [friends, setFriends] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
 
   // Initial fetch
   useEffect(() => {
     const fetchInitialFriends = async () => {
-      if (!user || !user.id) return
+      if (!user || !user.id) return;
 
-      setLoading(true)
+      setLoading(true);
       const req: GetFriendsRequest = {
         userId: user.id,
         page: 1, // Always start with page 1
         limit: limit,
-      }
+      };
 
       try {
-        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata());
 
         if (res) {
-          setFriends(res.users)
-          setHasMore(res.hasMore)
-          setPage(2) // Set to 2 for next fetch
+          setFriends(res.users);
+          setHasMore(res.hasMore);
+          setPage(2); // Set to 2 for next fetch
         }
       } catch (err) {
-        console.error("Failed to fetch friends:", err)
+        console.error("Failed to fetch friends:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchInitialFriends()
-  }, [user, limit])
+    fetchInitialFriends();
+  }, [user, limit]);
 
   // Fetch more friends function
   const fetchMoreFriends = useCallback(
     async (pageToFetch: number) => {
-      if (!user || !user.id) return
+      if (!user || !user.id) return;
 
-      setLoadingMore(true)
+      setLoadingMore(true);
       const req: GetFriendsRequest = {
         userId: user.id,
         page: pageToFetch,
         limit: limit,
-      }
+      };
 
       try {
-        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata());
 
         if (res) {
-          setFriends((prev) => [...prev, ...res.users])
-          setHasMore(res.hasMore)
+          setFriends((prev) => [...prev, ...res.users]);
+          setHasMore(res.hasMore);
         }
       } catch (err) {
-        console.error("Failed to fetch more friends:", err)
+        console.error("Failed to fetch more friends:", err);
       } finally {
-        setLoadingMore(false)
+        setLoadingMore(false);
       }
     },
     [user, limit],
-  )
+  );
 
   const handleSearch = useCallback(
     debounce((query: string) => setSearchQuery(query), 300),
     [],
-  )
+  );
 
   const filteredFriends = friends.filter(
     (friend) =>
       friend.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       friend.displayName?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-      const target = e.target as HTMLDivElement
-      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1
+      const target = e.target as HTMLDivElement;
+      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1;
 
       if (bottom && hasMore && !loadingMore && !searchQuery) {
-        console.log("Reached the bottom, fetching more...")
-        const nextPage = page
-        setPage((prev) => prev + 1)
-        fetchMoreFriends(nextPage)
+        console.log("Reached the bottom, fetching more...");
+        const nextPage = page;
+        setPage((prev) => prev + 1);
+        fetchMoreFriends(nextPage);
       }
     },
     [hasMore, loadingMore, page, fetchMoreFriends, searchQuery],
-  )
+  );
 
   const clearSearch = () => {
-    setSearchQuery("")
-    const searchInput = document.querySelector(".search-input") as HTMLInputElement
+    setSearchQuery("");
+    const searchInput = document.querySelector(".search-input") as HTMLInputElement;
     if (searchInput) {
-      searchInput.value = ""
+      searchInput.value = "";
     }
-  }
+  };
 
   const getTimeAgo = (timestamp?: string) => {
-    if (!timestamp) return "2m"
+    if (!timestamp) return "2m";
 
-    const now = Date.now()
-    const time = new Date(timestamp).getTime() // Use Date constructor instead of parseInt
-    const diff = now - time
+    const now = Date.now();
+    const time = new Date(timestamp).getTime(); // Use Date constructor instead of parseInt
+    const diff = now - time;
 
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-    if (days > 0) return `${days}d`
-    if (hours > 0) return `${hours}h`
-    if (minutes > 0) return `${minutes}m`
-    return "now"
-  }
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return "now";
+  };
 
   return (
     <div className="sidebar-container">
@@ -183,19 +183,31 @@ export default function ChatFriendsSidebar() {
             <div className="empty-icon">
               <MessageCircle size={48} />
             </div>
-            <h4 className="empty-title">{searchQuery ? "No conversations found" : "No conversations yet"}</h4>
+            <h4 className="empty-title">
+              {searchQuery ? "No conversations found" : "No conversations yet"}
+            </h4>
             <p className="empty-description">
-              {searchQuery ? "Try searching with a different name" : "Start a conversation with your friends"}
+              {searchQuery
+                ? "Try searching with a different name"
+                : "Start a conversation with your friends"}
             </p>
           </div>
         ) : (
           <>
             {filteredFriends.map((friend) => (
-              <div key={friend.id} className="friend-item" onClick={() => navigate(`/${friend.username}/message`)}>
+              <div
+                key={friend.id}
+                className="friend-item"
+                onClick={() => navigate(`/${friend.username}/message`)}
+              >
                 <div className="friend-avatar-container">
                   <div className="friend-avatar">
                     <img
-                      src={friend.avatar ? avatarBytesToUrl(friend.avatar) || defaultAvatar : defaultAvatar}
+                      src={
+                        friend.avatar
+                          ? avatarBytesToUrl(friend.avatar) || defaultAvatar
+                          : defaultAvatar
+                      }
                       alt={friend.username}
                       className="avatar-image"
                     />
@@ -216,7 +228,9 @@ export default function ChatFriendsSidebar() {
                   </div>
 
                   <div className="friend-message">
-                    <span className="message-preview">Hey, how are you doing? Let's catch up soon!</span>
+                    <span className="message-preview">
+                      Hey, how are you doing? Let's catch up soon!
+                    </span>
                     <div className="message-meta">
                       <div className="unread-badge">2</div>
                     </div>
@@ -658,5 +672,5 @@ export default function ChatFriendsSidebar() {
         }
       `}</style>
     </div>
-  )
+  );
 }

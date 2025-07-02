@@ -1,7 +1,7 @@
-import type { User } from "../api/gen/user"
+import type { User } from "../api/gen/user";
 
 interface Props {
-  receiver: User | null
+  receiver: User | null;
 }
 
 const BreathingBubble = ({ receiver }: Props) => {
@@ -111,7 +111,7 @@ const BreathingBubble = ({ receiver }: Props) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default BreathingBubble
+export default BreathingBubble;

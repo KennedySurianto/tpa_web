@@ -1,6 +1,6 @@
-import type React from "react"
-import NavigationBar from "../ui/NavigationBar"
-import { Outlet } from "react-router-dom"
+import type React from "react";
+import NavigationBar from "../ui/NavigationBar";
+import { Outlet } from "react-router-dom";
 
 const Layout: React.FC = () => {
   return (
@@ -53,7 +53,7 @@ const Layout: React.FC = () => {
                 }
             `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

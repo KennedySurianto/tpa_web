@@ -1,112 +1,125 @@
-import type React from "react"
-import { useState } from "react"
-import { LoginRequest } from "../../api/gen/auth"
-import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "../../utils/AuthProvider"
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, AlertCircle, CheckCircle, Chrome, Sparkles } from "lucide-react"
-import { authClient } from "../../api/grpc/authClient"
+import type React from "react";
+import { useState } from "react";
+import { LoginRequest } from "../../api/gen/auth";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../utils/AuthProvider";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Chrome,
+  Sparkles,
+} from "lucide-react";
+import { authClient } from "../../api/grpc/authClient";
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
-  const [rememberMe, setRememberMe] = useState(false)
-  const [error, setError] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({})
+  });
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
   const validateField = (name: string, value: string) => {
-    const errors: { [key: string]: string } = {}
+    const errors: { [key: string]: string } = {};
 
     if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!value) {
-        errors.email = "Email is required"
+        errors.email = "Email is required";
       } else if (!emailRegex.test(value)) {
-        errors.email = "Please enter a valid email address"
+        errors.email = "Please enter a valid email address";
       }
     }
 
     if (name === "password") {
       if (!value) {
-        errors.password = "Password is required"
+        errors.password = "Password is required";
       } else if (value.length < 6) {
-        errors.password = "Password must be at least 6 characters"
+        errors.password = "Password must be at least 6 characters";
       }
     }
 
-    return errors
-  }
+    return errors;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     // Clear error when user starts typing
-    if (error) setError("")
+    if (error) setError("");
 
     // Clear field-specific errors
     if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: "" }))
+      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
     setFormData({
       ...formData,
       [name]: value,
-    })
+    });
 
     // Real-time validation
-    const errors = validateField(name, value)
-    setFieldErrors((prev) => ({ ...prev, ...errors }))
-  }
+    const errors = validateField(name, value);
+    setFieldErrors((prev) => ({ ...prev, ...errors }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     // Validate all fields
-    const emailErrors = validateField("email", formData.email)
-    const passwordErrors = validateField("password", formData.password)
-    const allErrors = { ...emailErrors, ...passwordErrors }
+    const emailErrors = validateField("email", formData.email);
+    const passwordErrors = validateField("password", formData.password);
+    const allErrors = { ...emailErrors, ...passwordErrors };
 
     if (Object.keys(allErrors).length > 0) {
-      setFieldErrors(allErrors)
-      return
+      setFieldErrors(allErrors);
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     const loginRequest: LoginRequest = {
       email: formData.email,
       password: formData.password,
       rememberMe: rememberMe,
       deviceInfo: navigator.userAgent,
-    }
+    };
 
     try {
-      const response = await authClient.Login(loginRequest)
+      const response = await authClient.Login(loginRequest);
       if (response.success) {
-        console.log("Login successful:", response)
-        login(response)
-        navigate("/home")
+        console.log("Login successful:", response);
+        login(response);
+        navigate("/home");
       } else {
-        setError(response.message || response.error || "Login failed. Please check your credentials.")
+        setError(
+          response.message || response.error || "Login failed. Please check your credentials.",
+        );
       }
     } catch (error: any) {
-      console.error("Login error:", error)
-      setError(error.message || "Please try again later.")
+      console.error("Login error:", error);
+      setError(error.message || "Please try again later.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = () => {
-    console.log("Google login clicked")
+    console.log("Google login clicked");
     // Implement Google OAuth login logic here
-  }
+  };
 
   return (
     <div className="login-container">
@@ -140,7 +153,9 @@ const LoginPage: React.FC = () => {
             {/* Email Field */}
             <div className="form-group">
               <label className="form-label">Email Address</label>
-              <div className={`input-container ${fieldErrors.email ? "error" : ""} ${formData.email ? "filled" : ""}`}>
+              <div
+                className={`input-container ${fieldErrors.email ? "error" : ""} ${formData.email ? "filled" : ""}`}
+              >
                 <Mail size={18} className="input-icon" />
                 <input
                   type="email"
@@ -151,7 +166,9 @@ const LoginPage: React.FC = () => {
                   disabled={isLoading}
                   className="form-input"
                 />
-                {formData.email && !fieldErrors.email && <CheckCircle size={16} className="success-icon" />}
+                {formData.email && !fieldErrors.email && (
+                  <CheckCircle size={16} className="success-icon" />
+                )}
               </div>
               {fieldErrors.email && (
                 <div className="field-error">
@@ -743,7 +760,7 @@ const LoginPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

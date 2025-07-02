@@ -16,16 +16,14 @@ export interface LikeCommentRequest {
   commentId: number;
 }
 
-export interface LikeCommentResponse {
-}
+export interface LikeCommentResponse {}
 
 export interface UnlikeCommentRequest {
   userId: number;
   commentId: number;
 }
 
-export interface UnlikeCommentResponse {
-}
+export interface UnlikeCommentResponse {}
 
 export interface IsCommentLikedRequest {
   userId: number;
@@ -231,7 +229,9 @@ export const UnlikeCommentRequest: MessageFns<UnlikeCommentRequest> = {
   create<I extends Exact<DeepPartial<UnlikeCommentRequest>, I>>(base?: I): UnlikeCommentRequest {
     return UnlikeCommentRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UnlikeCommentRequest>, I>>(object: I): UnlikeCommentRequest {
+  fromPartial<I extends Exact<DeepPartial<UnlikeCommentRequest>, I>>(
+    object: I,
+  ): UnlikeCommentRequest {
     const message = createBaseUnlikeCommentRequest();
     message.userId = object.userId ?? 0;
     message.commentId = object.commentId ?? 0;
@@ -350,7 +350,9 @@ export const IsCommentLikedRequest: MessageFns<IsCommentLikedRequest> = {
   create<I extends Exact<DeepPartial<IsCommentLikedRequest>, I>>(base?: I): IsCommentLikedRequest {
     return IsCommentLikedRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<IsCommentLikedRequest>, I>>(object: I): IsCommentLikedRequest {
+  fromPartial<I extends Exact<DeepPartial<IsCommentLikedRequest>, I>>(
+    object: I,
+  ): IsCommentLikedRequest {
     const message = createBaseIsCommentLikedRequest();
     message.userId = object.userId ?? 0;
     message.commentId = object.commentId ?? 0;
@@ -406,10 +408,14 @@ export const IsCommentLikedResponse: MessageFns<IsCommentLikedResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<IsCommentLikedResponse>, I>>(base?: I): IsCommentLikedResponse {
+  create<I extends Exact<DeepPartial<IsCommentLikedResponse>, I>>(
+    base?: I,
+  ): IsCommentLikedResponse {
     return IsCommentLikedResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<IsCommentLikedResponse>, I>>(object: I): IsCommentLikedResponse {
+  fromPartial<I extends Exact<DeepPartial<IsCommentLikedResponse>, I>>(
+    object: I,
+  ): IsCommentLikedResponse {
     const message = createBaseIsCommentLikedResponse();
     message.liked = object.liked ?? false;
     return message;
@@ -467,7 +473,9 @@ export const GetLikeCountRequest: MessageFns<GetLikeCountRequest> = {
   create<I extends Exact<DeepPartial<GetLikeCountRequest>, I>>(base?: I): GetLikeCountRequest {
     return GetLikeCountRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetLikeCountRequest>, I>>(object: I): GetLikeCountRequest {
+  fromPartial<I extends Exact<DeepPartial<GetLikeCountRequest>, I>>(
+    object: I,
+  ): GetLikeCountRequest {
     const message = createBaseGetLikeCountRequest();
     message.commentId = object.commentId ?? 0;
     return message;
@@ -525,7 +533,9 @@ export const GetLikeCountResponse: MessageFns<GetLikeCountResponse> = {
   create<I extends Exact<DeepPartial<GetLikeCountResponse>, I>>(base?: I): GetLikeCountResponse {
     return GetLikeCountResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetLikeCountResponse>, I>>(object: I): GetLikeCountResponse {
+  fromPartial<I extends Exact<DeepPartial<GetLikeCountResponse>, I>>(
+    object: I,
+  ): GetLikeCountResponse {
     const message = createBaseGetLikeCountResponse();
     message.count = object.count ?? "0";
     return message;
@@ -533,8 +543,14 @@ export const GetLikeCountResponse: MessageFns<GetLikeCountResponse> = {
 };
 
 export interface LikeCommentService {
-  LikeComment(request: DeepPartial<LikeCommentRequest>, metadata?: grpc.Metadata): Promise<LikeCommentResponse>;
-  UnlikeComment(request: DeepPartial<UnlikeCommentRequest>, metadata?: grpc.Metadata): Promise<UnlikeCommentResponse>;
+  LikeComment(
+    request: DeepPartial<LikeCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<LikeCommentResponse>;
+  UnlikeComment(
+    request: DeepPartial<UnlikeCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UnlikeCommentResponse>;
   IsCommentLiked(
     request: DeepPartial<IsCommentLikedRequest>,
     metadata?: grpc.Metadata,
@@ -556,19 +572,37 @@ export class LikeCommentServiceClientImpl implements LikeCommentService {
     this.GetCommentLikeCount = this.GetCommentLikeCount.bind(this);
   }
 
-  LikeComment(request: DeepPartial<LikeCommentRequest>, metadata?: grpc.Metadata): Promise<LikeCommentResponse> {
-    return this.rpc.unary(LikeCommentServiceLikeCommentDesc, LikeCommentRequest.fromPartial(request), metadata);
+  LikeComment(
+    request: DeepPartial<LikeCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<LikeCommentResponse> {
+    return this.rpc.unary(
+      LikeCommentServiceLikeCommentDesc,
+      LikeCommentRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  UnlikeComment(request: DeepPartial<UnlikeCommentRequest>, metadata?: grpc.Metadata): Promise<UnlikeCommentResponse> {
-    return this.rpc.unary(LikeCommentServiceUnlikeCommentDesc, UnlikeCommentRequest.fromPartial(request), metadata);
+  UnlikeComment(
+    request: DeepPartial<UnlikeCommentRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UnlikeCommentResponse> {
+    return this.rpc.unary(
+      LikeCommentServiceUnlikeCommentDesc,
+      UnlikeCommentRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   IsCommentLiked(
     request: DeepPartial<IsCommentLikedRequest>,
     metadata?: grpc.Metadata,
   ): Promise<IsCommentLikedResponse> {
-    return this.rpc.unary(LikeCommentServiceIsCommentLikedDesc, IsCommentLikedRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      LikeCommentServiceIsCommentLikedDesc,
+      IsCommentLikedRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetCommentLikeCount(
@@ -722,9 +756,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -736,7 +771,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -747,14 +786,19 @@ export class GrpcWebImpl {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -762,7 +806,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

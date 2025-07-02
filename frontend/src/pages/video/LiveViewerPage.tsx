@@ -67,7 +67,9 @@ const LiveViewerPage: React.FC = () => {
         const type = message.type;
 
         if (type === "offer" && message.sdpOrCandidate) {
-          await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(message.sdpOrCandidate)));
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(JSON.parse(message.sdpOrCandidate)),
+          );
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
 

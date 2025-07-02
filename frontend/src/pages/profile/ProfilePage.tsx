@@ -1,19 +1,19 @@
-import type React from "react"
-import { useEffect, useState } from "react"
-import type { GetUserByUsernameRequest, User } from "../../api/gen/user"
-import { useNavigate, useParams } from "react-router-dom"
-import { userClient } from "../../api/grpc/userClient"
-import { useAuth } from "../../utils/AuthProvider"
-import type { FollowRequest, UserRequest } from "../../api/gen/follow"
-import { followClient } from "../../api/grpc/followClient"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import type { GetVideosByUserIdRequest, GetVideosResponse, Video } from "../../api/gen/video"
-import { videoClient } from "../../api/grpc/videoClient"
-import { UserListModal } from "../modals/UserListModal"
-import VideoTab from "../../components/VideoTab"
-import PlaylistTab from "../../components/PlaylistTab"
-import { useLikedVideos } from "../../hooks/useLikedVideos"
-import defaultAvatar from "../../assets/default.jpg"
+import type React from "react";
+import { useEffect, useState } from "react";
+import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
+import { useNavigate, useParams } from "react-router-dom";
+import { userClient } from "../../api/grpc/userClient";
+import { useAuth } from "../../utils/AuthProvider";
+import type { FollowRequest, UserRequest } from "../../api/gen/follow";
+import { followClient } from "../../api/grpc/followClient";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import type { GetVideosByUserIdRequest, GetVideosResponse, Video } from "../../api/gen/video";
+import { videoClient } from "../../api/grpc/videoClient";
+import { UserListModal } from "../modals/UserListModal";
+import VideoTab from "../../components/VideoTab";
+import PlaylistTab from "../../components/PlaylistTab";
+import { useLikedVideos } from "../../hooks/useLikedVideos";
+import defaultAvatar from "../../assets/default.jpg";
 import {
   CheckCircle,
   Globe,
@@ -30,208 +30,208 @@ import {
   Star,
   Users,
   UserCheck,
-} from "lucide-react"
-import { useFollowings } from "../../hooks/useFollowings"
-import { useFollowers } from "../../hooks/useFollowers"
+} from "lucide-react";
+import { useFollowings } from "../../hooks/useFollowings";
+import { useFollowers } from "../../hooks/useFollowers";
 
 const ProfilePage: React.FC = () => {
-  const { user, getAuthMetadata, logout } = useAuth()
-  const { username } = useParams<{ username: string }>()
-  const navigate = useNavigate()
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isFollowing, setIsFollowing] = useState<boolean>(false)
-  const [followLoading, setFollowLoading] = useState<boolean>(false)
-  const [followersCount, setFollowersCount] = useState<number>(0)
-  const [followingCount, setFollowingCount] = useState<number>(0)
-  const [videos, setVideos] = useState<Video[]>([])
-  const [isFollowerModalOpen, setFollowerModalOpen] = useState(false)
-  const [isFollowingModalOpen, setFollowingModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("videos")
-  const [totalLikes, setTotalLikes] = useState<number>(0)
+  const { user, getAuthMetadata, logout } = useAuth();
+  const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followLoading, setFollowLoading] = useState<boolean>(false);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isFollowerModalOpen, setFollowerModalOpen] = useState(false);
+  const [isFollowingModalOpen, setFollowingModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("videos");
+  const [totalLikes, setTotalLikes] = useState<number>(0);
 
-  const { 
-    followings, 
-    error: followingsError, 
-    loading: followingsLoading 
+  const {
+    followings,
+    error: followingsError,
+    loading: followingsLoading,
   } = useFollowings(selectedUser?.id ? Number(selectedUser.id) : 0);
-  const { 
-    followers, 
-    error: followersError, 
-    loading: followersLoading 
+  const {
+    followers,
+    error: followersError,
+    loading: followersLoading,
   } = useFollowers(selectedUser?.id ? Number(selectedUser.id) : 0);
 
-  const { videos: likedVideos } = useLikedVideos(selectedUser?.id ? Number(selectedUser.id) : 0)
+  const { videos: likedVideos } = useLikedVideos(selectedUser?.id ? Number(selectedUser.id) : 0);
 
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab)
-  }
+    setActiveTab(tab);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!username) {
-        setError("Username is missing.")
-        setLoading(false)
-        return
+        setError("Username is missing.");
+        setLoading(false);
+        return;
       }
 
       try {
-        const req: GetUserByUsernameRequest = { username }
-        const res: User = await userClient.GetUserByUsername(req)
-        setSelectedUser(res)
+        const req: GetUserByUsernameRequest = { username };
+        const res: User = await userClient.GetUserByUsername(req);
+        setSelectedUser(res);
       } catch (err) {
-        console.error("Error fetching user:", err)
-        setError("Failed to fetch user data.")
+        console.error("Error fetching user:", err);
+        setError("Failed to fetch user data.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUser()
-  }, [username])
+    fetchUser();
+  }, [username]);
 
   useEffect(() => {
-    if (!selectedUser?.id) return
+    if (!selectedUser?.id) return;
 
     const runFollowChecks = async () => {
       if (user?.id) {
-        await checkFollowStatus(Number(user.id), Number(selectedUser.id))
+        await checkFollowStatus(Number(user.id), Number(selectedUser.id));
       }
-      await getFollowCounts(Number(selectedUser.id))
-    }
+      await getFollowCounts(Number(selectedUser.id));
+    };
 
-    runFollowChecks()
-  }, [selectedUser, user])
+    runFollowChecks();
+  }, [selectedUser, user]);
 
   useEffect(() => {
     const fetchVideos = async () => {
-      if (!selectedUser || !selectedUser.id || !user || !user.id) return
+      if (!selectedUser || !selectedUser.id || !user || !user.id) return;
 
       try {
         const req: GetVideosByUserIdRequest = {
           userId: Number(selectedUser?.id) || 0,
           currentUserId: Number(user?.id) || 0,
-        }
+        };
 
-        const res: GetVideosResponse = await videoClient.GetVideosByUserId(req)
+        const res: GetVideosResponse = await videoClient.GetVideosByUserId(req);
         if (res && res.videos) {
-          console.log("res.videos: ", res.videos)
-          setVideos(res.videos)
+          console.log("res.videos: ", res.videos);
+          setVideos(res.videos);
         }
       } catch (err) {
-        console.error(err)
+        console.error(err);
       }
-    }
+    };
 
-    fetchVideos()
-  }, [user, selectedUser])
+    fetchVideos();
+  }, [user, selectedUser]);
 
   const checkFollowStatus = async (followerId: number, followedId: number) => {
     try {
-      const req: UserRequest = { userId: followerId }
-      const res = await followClient.GetFollowing(req)
+      const req: UserRequest = { userId: followerId };
+      const res = await followClient.GetFollowing(req);
 
-      const isUserFollowed = res.follows.some((follow) => follow.followedId === followedId)
-      setIsFollowing(isUserFollowed)
+      const isUserFollowed = res.follows.some((follow) => follow.followedId === followedId);
+      setIsFollowing(isUserFollowed);
     } catch (err) {
-      console.error("Error checking follow status:", err)
+      console.error("Error checking follow status:", err);
     }
-  }
+  };
 
   const getFollowCounts = async (userId: number) => {
     try {
       const [followersRes, followingRes] = await Promise.all([
         followClient.GetFollowers({ userId }),
         followClient.GetFollowing({ userId }),
-      ])
+      ]);
 
-      setFollowersCount(followersRes.follows.length)
-      setFollowingCount(followingRes.follows.length)
+      setFollowersCount(followersRes.follows.length);
+      setFollowingCount(followingRes.follows.length);
     } catch (err) {
-      console.error("Error fetching follow counts:", err)
+      console.error("Error fetching follow counts:", err);
     }
-  }
+  };
 
   useEffect(() => {
-    if (!selectedUser) return
+    if (!selectedUser) return;
 
     const fetchLikeCounts = async () => {
-      const totalLikes = await getLikeCounts(Number(selectedUser.id))
-      console.log("Total likes for user: ", totalLikes)
-      setTotalLikes(totalLikes)
-    }
+      const totalLikes = await getLikeCounts(Number(selectedUser.id));
+      console.log("Total likes for user: ", totalLikes);
+      setTotalLikes(totalLikes);
+    };
 
-    fetchLikeCounts()
-  }, [selectedUser])
+    fetchLikeCounts();
+  }, [selectedUser]);
 
   const getLikeCounts = async (userId: number) => {
     try {
-      const req: GetVideosByUserIdRequest = { userId, currentUserId: Number(user?.id) || 0 }
-      const res: GetVideosResponse = await videoClient.GetVideosByUserId(req)
+      const req: GetVideosByUserIdRequest = { userId, currentUserId: Number(user?.id) || 0 };
+      const res: GetVideosResponse = await videoClient.GetVideosByUserId(req);
       if (res && res.videos) {
-        const totalLikes = res.videos.reduce((acc, video) => acc + Number(video.likeCount), 0)
-        return totalLikes
+        const totalLikes = res.videos.reduce((acc, video) => acc + Number(video.likeCount), 0);
+        return totalLikes;
       }
-      return 0
+      return 0;
     } catch (err) {
-      console.error("Error fetching like counts:", err)
-      return 0
+      console.error("Error fetching like counts:", err);
+      return 0;
     }
-  }
+  };
 
   const handleFollow = async () => {
     if (!user) {
-      console.log("User not authenticated!")
-      logout()
-      return
+      console.log("User not authenticated!");
+      logout();
+      return;
     }
 
     if (!selectedUser || followLoading) {
-      console.log("Please try again later.")
-      setError("Please try again later.")
-      return
+      console.log("Please try again later.");
+      setError("Please try again later.");
+      return;
     }
 
-    const followerId = Number(user.id)
-    const followedId = Number(selectedUser.id)
+    const followerId = Number(user.id);
+    const followedId = Number(selectedUser.id);
 
     if (!(followedId && followerId)) {
-      return
+      return;
     }
 
-    setFollowLoading(true)
+    setFollowLoading(true);
 
     try {
       const req: FollowRequest = {
         followerId: followerId,
         followedId: followedId,
-      }
+      };
 
       if (isFollowing) {
         // Unfollow
-        await followClient.Unfollow(req, getAuthMetadata())
-        setIsFollowing(false)
-        setFollowersCount((prev) => Math.max(0, prev - 1))
-        console.log("UNFOLLOWED")
+        await followClient.Unfollow(req, getAuthMetadata());
+        setIsFollowing(false);
+        setFollowersCount((prev) => Math.max(0, prev - 1));
+        console.log("UNFOLLOWED");
       } else {
         // Follow
-        await followClient.Follow(req, getAuthMetadata())
-        setIsFollowing(true)
-        setFollowersCount((prev) => prev + 1)
-        console.log("FOLLOWED")
+        await followClient.Follow(req, getAuthMetadata());
+        setIsFollowing(true);
+        setFollowersCount((prev) => prev + 1);
+        console.log("FOLLOWED");
       }
     } catch (err) {
-      console.error("Error following/unfollowing:", err)
-      setError("Failed to update follow status.")
+      console.error("Error following/unfollowing:", err);
+      setError("Failed to update follow status.");
     } finally {
-      setFollowLoading(false)
+      setFollowLoading(false);
     }
-  }
+  };
 
   const handleEditProfile = () => {
-    navigate("/edit-profile")
-  }
+    navigate("/edit-profile");
+  };
 
   if (loading) {
     return (
@@ -239,7 +239,7 @@ const ProfilePage: React.FC = () => {
         <div className="loading-spinner"></div>
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   if (error || followingsError || followersError) {
@@ -247,7 +247,7 @@ const ProfilePage: React.FC = () => {
       <div className="error-container">
         <p>Error: {error || followingsError}</p>
       </div>
-    )
+    );
   }
 
   if (!selectedUser) {
@@ -255,23 +255,25 @@ const ProfilePage: React.FC = () => {
       <div className="error-container">
         <p>User not found.</p>
       </div>
-    )
+    );
   }
 
   const getAvatarDisplay = (): string => {
-    return selectedUser?.avatar ? avatarBytesToUrl(selectedUser.avatar) || defaultAvatar : defaultAvatar
-  }
+    return selectedUser?.avatar
+      ? avatarBytesToUrl(selectedUser.avatar) || defaultAvatar
+      : defaultAvatar;
+  };
 
   const formatJoinDate = (timestamp: string | undefined) => {
-    if (!timestamp) return "Member since unknown"
-    const seconds = Number.parseInt(timestamp, 10)
-    if (isNaN(seconds)) return "Member since unknown"
-    const joinDate = new Date(seconds * 1000)
-    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long" }
-    return `Joined ${joinDate.toLocaleDateString("en-US", options)}`
-  }
+    if (!timestamp) return "Member since unknown";
+    const seconds = Number.parseInt(timestamp, 10);
+    if (isNaN(seconds)) return "Member since unknown";
+    const joinDate = new Date(seconds * 1000);
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long" };
+    return `Joined ${joinDate.toLocaleDateString("en-US", options)}`;
+  };
 
-  const isOwnProfile: boolean = !!(user && selectedUser && user.id === selectedUser.id)
+  const isOwnProfile: boolean = !!(user && selectedUser && user.id === selectedUser.id);
 
   return (
     <div className="profile-container">
@@ -279,7 +281,11 @@ const ProfilePage: React.FC = () => {
         {/* Profile Header */}
         <div className="profile-header">
           <div className="avatar-wrapper">
-            <img src={getAvatarDisplay() || "/placeholder.svg"} alt={selectedUser.username} className="avatar" />
+            <img
+              src={getAvatarDisplay() || "/placeholder.svg"}
+              alt={selectedUser.username}
+              className="avatar"
+            />
             {selectedUser.isVerified && (
               <div className="verification-badge">
                 <CheckCircle size={16} />
@@ -317,12 +323,12 @@ const ProfilePage: React.FC = () => {
             }}
             onClick={() => setFollowingModalOpen(true)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)"
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)"
-              e.currentTarget.style.background = "transparent"
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = "transparent";
             }}
           >
             <UserCheck
@@ -362,12 +368,12 @@ const ProfilePage: React.FC = () => {
             }}
             onClick={() => setFollowerModalOpen(true)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)"
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)"
-              e.currentTarget.style.background = "transparent"
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = "transparent";
             }}
           >
             <Users
@@ -496,7 +502,10 @@ const ProfilePage: React.FC = () => {
                     </>
                   )}
                 </button>
-                <button className="btn btn-secondary" onClick={() => navigate(`/${username}/message`)}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => navigate(`/${username}/message`)}
+                >
                   <MessageCircle size={18} />
                   Message
                 </button>
@@ -545,26 +554,16 @@ const ProfilePage: React.FC = () => {
             {/* Tab Content */}
             <div className="tab-content">
               {activeTab === "videos" && (
-                <VideoTab
-                  videos={videos}
-                  isOwnProfile={isOwnProfile}
-                  isVideoTab={true}
-                />
+                <VideoTab videos={videos} isOwnProfile={isOwnProfile} isVideoTab={true} />
               )}
               {activeTab === "likedVideos" && (
-                <VideoTab
-                  videos={likedVideos}
-                  isOwnProfile={isOwnProfile}
-                  isVideoTab={false}
-                />
+                <VideoTab videos={likedVideos} isOwnProfile={isOwnProfile} isVideoTab={false} />
               )}
-              {activeTab === "playlists" && <PlaylistTab userId={selectedUser.id} isOwnProfile={isOwnProfile} />}
+              {activeTab === "playlists" && (
+                <PlaylistTab userId={selectedUser.id} isOwnProfile={isOwnProfile} />
+              )}
               {activeTab === "favouriteVideos" && (
-                <VideoTab
-                  videos={videos}
-                  isOwnProfile={isOwnProfile}
-                  isVideoTab={false}
-                />
+                <VideoTab videos={videos} isOwnProfile={isOwnProfile} isVideoTab={false} />
               )}
             </div>
           </>
@@ -929,7 +928,7 @@ const ProfilePage: React.FC = () => {
                 }
             `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default ProfilePage
+export default ProfilePage;

@@ -1,174 +1,182 @@
-import type React from "react"
-import { useCallback, useEffect, useState } from "react"
-import { useNotification } from "../../context/NotificationContext"
-import type { User } from "../../api/gen/user"
-import { useAuth } from "../../utils/AuthProvider"
-import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow"
-import { followClient } from "../../api/grpc/followClient"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNotification } from "../../context/NotificationContext";
+import type { User } from "../../api/gen/user";
+import { useAuth } from "../../utils/AuthProvider";
+import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow";
+import { followClient } from "../../api/grpc/followClient";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
 
 interface ShareVideoModalProps {
-  isOpen: boolean
-  onClose: () => void
-  videoUrl: string
-  downloadUrl: string
-  caption: string
+  isOpen: boolean;
+  onClose: () => void;
+  videoUrl: string;
+  downloadUrl: string;
+  caption: string;
 }
 
-const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, videoUrl, downloadUrl, caption }) => {
-  const { user, getAuthMetadata } = useAuth()
-  const { showNotification } = useNotification()
+const ShareVideoModal: React.FC<ShareVideoModalProps> = ({
+  isOpen,
+  onClose,
+  videoUrl,
+  downloadUrl,
+  caption,
+}) => {
+  const { user, getAuthMetadata } = useAuth();
+  const { showNotification } = useNotification();
 
-  const [friends, setFriends] = useState<User[]>([])
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([])
-  const [copied, setCopied] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
-  const [limit] = useState(10)
-  
+  const [friends, setFriends] = useState<User[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setFriends([])
-      setSelectedFriends([])
-      setCopied(false)
-      setPage(1)
-      setHasMore(true)
-      fetchInitialFriends()
+      setFriends([]);
+      setSelectedFriends([]);
+      setCopied(false);
+      setPage(1);
+      setHasMore(true);
+      fetchInitialFriends();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   // Initial fetch
   const fetchInitialFriends = async () => {
-    if (!user || !user.id) return
+    if (!user || !user.id) return;
 
-    setLoading(true)
+    setLoading(true);
     const req: GetFriendsRequest = {
       userId: user.id,
       page: 1,
       limit: limit,
-    }
+    };
 
     try {
-      const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+      const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata());
       if (res) {
-        setFriends(res.users)
-        setHasMore(res.hasMore)
-        setPage(2) // Set to 2 for next fetch
+        setFriends(res.users);
+        setHasMore(res.hasMore);
+        setPage(2); // Set to 2 for next fetch
       }
     } catch (err) {
-      console.error("Failed to fetch friends:", err)
-      showNotification("Failed to load friends", "error")
+      console.error("Failed to fetch friends:", err);
+      showNotification("Failed to load friends", "error");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Fetch more friends function
   const fetchMoreFriends = useCallback(
     async (pageToFetch: number) => {
-      if (!user || !user.id) return
+      if (!user || !user.id) return;
 
-      setLoadingMore(true)
+      setLoadingMore(true);
       const req: GetFriendsRequest = {
         userId: user.id,
         page: pageToFetch,
         limit: limit,
-      }
+      };
 
       try {
-        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata());
         if (res) {
-          setFriends((prev) => [...prev, ...res.users])
-          setHasMore(res.hasMore)
+          setFriends((prev) => [...prev, ...res.users]);
+          setHasMore(res.hasMore);
         }
       } catch (err) {
-        console.error("Failed to fetch more friends:", err)
-        showNotification("Failed to load more friends", "error")
+        console.error("Failed to fetch more friends:", err);
+        showNotification("Failed to load more friends", "error");
       } finally {
-        setLoadingMore(false)
+        setLoadingMore(false);
       }
     },
     [user, limit, getAuthMetadata],
-  )
+  );
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-      const target = e.target as HTMLDivElement
-      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1
+      const target = e.target as HTMLDivElement;
+      const bottom = target.scrollHeight <= target.scrollTop + target.clientHeight + 1;
 
       if (bottom && hasMore && !loadingMore) {
-        console.log("Reached the bottom, fetching more friends...")
-        const nextPage = page
-        setPage((prev) => prev + 1)
-        fetchMoreFriends(nextPage)
+        console.log("Reached the bottom, fetching more friends...");
+        const nextPage = page;
+        setPage((prev) => prev + 1);
+        fetchMoreFriends(nextPage);
       }
     },
     [hasMore, loadingMore, page, fetchMoreFriends],
-  )
+  );
 
   const toggleFriend = (id: string) => {
-    setSelectedFriends((prev) => (prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]))
-  }
+    setSelectedFriends((prev) =>
+      prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id],
+    );
+  };
 
   const copyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(videoUrl)
-      setCopied(true)
-      showNotification("Video URL copied to clipboard!", "success")
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(videoUrl);
+      setCopied(true);
+      showNotification("Video URL copied to clipboard!", "success");
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      showNotification("Failed to copy URL to clipboard", "error")
+      showNotification("Failed to copy URL to clipboard", "error");
     }
-  }
+  };
 
   const shareViaMessage = () => {
     if (selectedFriends.length === 0) {
-      showNotification("Please select at least one friend to share with", "error")
-      return
+      showNotification("Please select at least one friend to share with", "error");
+      return;
     }
 
     const names = selectedFriends
       .map((id) => friends.find((f) => f.id === id)?.username)
       .filter(Boolean)
-      .join(", ")
+      .join(", ");
 
-    showNotification(`Video shared with: ${names}`, "success")
-    setTimeout(() => onClose(), 1500)
-  }
+    showNotification(`Video shared with: ${names}`, "success");
+    setTimeout(() => onClose(), 1500);
+  };
 
   const downloadVideo = async () => {
     try {
-      const response = await fetch(downloadUrl)
-      if (!response.ok) throw new Error("Network response was not ok")
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Network response was not ok");
 
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const sanitizedCaption = caption
         .trim()
         .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase()
-      const filename = sanitizedCaption ? `${sanitizedCaption}.mp4` : "video.mp4"
+        .toLowerCase();
+      const filename = sanitizedCaption ? `${sanitizedCaption}.mp4` : "video.mp4";
 
-      const link = document.createElement("a")
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      showNotification(`Video "${filename}" download started`, "success")
+      showNotification(`Video "${filename}" download started`, "success");
     } catch (err) {
-      showNotification("Download failed", "error")
+      showNotification("Download failed", "error");
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <>
@@ -178,7 +186,12 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
             <h2 className="modal-title">Share Video</h2>
             <button className="close-button" onClick={onClose}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           </div>
@@ -187,7 +200,13 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
             {/* Left Side - Friends List */}
             <div className="friends-section">
               <div className="section-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="section-icon">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="section-icon"
+                >
                   <path
                     d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
                     stroke="currentColor"
@@ -204,7 +223,9 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
                     strokeLinejoin="round"
                   />
                 </svg>
-                <label className="section-label">Share with friends ({selectedFriends.length} selected)</label>
+                <label className="section-label">
+                  Share with friends ({selectedFriends.length} selected)
+                </label>
               </div>
 
               <div className="friends-list" onScroll={handleScroll}>
@@ -275,14 +296,20 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
 
                         <div className="friend-avatar">
                           <img
-                            src={friend.avatar ? avatarBytesToUrl(friend.avatar) || defaultAvatar : defaultAvatar}
+                            src={
+                              friend.avatar
+                                ? avatarBytesToUrl(friend.avatar) || defaultAvatar
+                                : defaultAvatar
+                            }
                             alt={friend.username}
                             className="avatar-image"
                           />
                         </div>
 
                         <div className="friend-info">
-                          <span className="friend-name">{friend.displayName || friend.username}</span>
+                          <span className="friend-name">
+                            {friend.displayName || friend.username}
+                          </span>
                           <span className="friend-username">@{friend.username}</span>
                         </div>
                       </div>
@@ -839,7 +866,7 @@ const ShareVideoModal: React.FC<ShareVideoModalProps> = ({ isOpen, onClose, vide
         }
       `}</style>
     </>
-  )
-}
+  );
+};
 
-export default ShareVideoModal
+export default ShareVideoModal;

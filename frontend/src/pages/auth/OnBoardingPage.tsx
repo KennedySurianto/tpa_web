@@ -1,13 +1,13 @@
-import type React from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { LogIn, UserPlus, Users, ArrowRight, Sparkles } from "lucide-react"
+import type React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogIn, UserPlus, Users, ArrowRight, Sparkles } from "lucide-react";
 
 const OnBoardingPage: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleContinueAsGuest = () => {
-    navigate("/home")
-  }
+    navigate("/home");
+  };
 
   return (
     <div className="onboarding-container">
@@ -407,7 +407,7 @@ const OnBoardingPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default OnBoardingPage
+export default OnBoardingPage;

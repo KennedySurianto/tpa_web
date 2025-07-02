@@ -1,5 +1,5 @@
-import type React from "react"
-import { useState, useEffect } from "react"
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Heart,
@@ -11,37 +11,42 @@ import {
   MessageSquarePlus,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
-import { useComments } from "../../hooks/useComments"
+} from "lucide-react";
+import { useComments } from "../../hooks/useComments";
 import type {
   Comment,
   CreateCommentRequest,
   CreateCommentResponse,
   DeleteCommentRequest,
   DeleteCommentResponse,
-} from "../../api/gen/comment"
-import { useAuth } from "../../utils/AuthProvider"
-import { commentClient } from "../../api/grpc/commentClient"
-import type { LikeCommentRequest, UnlikeCommentRequest } from "../../api/gen/like_comment"
-import { likeCommentClient } from "../../api/grpc/likeCommentClient"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
-import defaultAvatar from "../../assets/default.jpg"
+} from "../../api/gen/comment";
+import { useAuth } from "../../utils/AuthProvider";
+import { commentClient } from "../../api/grpc/commentClient";
+import type { LikeCommentRequest, LikeCommentResponse, UnlikeCommentRequest, UnlikeCommentResponse } from "../../api/gen/like_comment";
+import { likeCommentClient } from "../../api/grpc/likeCommentClient";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import defaultAvatar from "../../assets/default.jpg";
 
 interface Props {
-  videoId: number
-  onClose?: () => void
-  canComment: boolean
+  videoId: number;
+  onClose?: () => void;
+  canComment: boolean;
 }
 
 const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
   const { user, getAuthMetadata } = useAuth();
-  const { comments: initialComments, loading, error, refetch } = useComments(user ? Number(user.id) : 0, videoId)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [newComment, setNewComment] = useState("")
-  const [showReplies, setShowReplies] = useState<Record<number, boolean>>({})
-  const [errorMessage, setErrorMessage] = useState("")
-  const [replyInputs, setReplyInputs] = useState<{ [key: number]: string }>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const {
+    comments: initialComments,
+    loading,
+    error,
+    refetch,
+  } = useComments(user ? Number(user.id) : 0, videoId);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [replyInputs, setReplyInputs] = useState<{ [key: number]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset and update comments when videoId changes or when new comments are fetched
   useEffect(() => {
@@ -53,85 +58,85 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
           userId: typeof c.userId === "number" ? String(c.userId) : c.userId,
           videoId: typeof c.videoId === "number" ? String(c.videoId) : c.videoId,
         })),
-      )
+      );
     } else {
-      setComments([])
+      setComments([]);
     }
-  }, [initialComments, videoId])
+  }, [initialComments, videoId]);
 
   // Reset UI state when videoId changes
   useEffect(() => {
-    setShowReplies({})
-    setNewComment("")
-    setReplyInputs({})
-    setErrorMessage("")
-  }, [videoId])
+    setShowReplies({});
+    setNewComment("");
+    setReplyInputs({});
+    setErrorMessage("");
+  }, [videoId]);
 
   const handleLike = async (commentId: number) => {
     try {
-      setErrorMessage("")
+      setErrorMessage("");
       if (!user) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const req: LikeCommentRequest = {
         commentId,
         userId: Number(user.id),
-      }
+      };
 
-      const response = await likeCommentClient.LikeComment(req, getAuthMetadata())
+      const response: LikeCommentResponse = await likeCommentClient.LikeComment(req, getAuthMetadata());
       if (response) {
-        await refetch()
+        await refetch();
       } else {
-        setErrorMessage("Failed to like comment.")
+        setErrorMessage("Failed to like comment.");
       }
     } catch (error: any) {
-      console.error("Error liking comment:", error)
-      setErrorMessage(error?.message || "An unexpected error occurred.")
+      console.error("Error liking comment:", error);
+      setErrorMessage(error?.message || "An unexpected error occurred.");
     }
-  }
+  };
 
   const handleUnlike = async (commentId: number) => {
     try {
-      setErrorMessage("")
+      setErrorMessage("");
       if (!user) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const req: UnlikeCommentRequest = {
         commentId,
         userId: Number(user.id),
-      }
+      };
 
-      const response = await likeCommentClient.UnlikeComment(req, getAuthMetadata())
+      const response: UnlikeCommentResponse = await likeCommentClient.UnlikeComment(req, getAuthMetadata());
       if (response) {
-        await refetch()
+        await refetch();
       } else {
-        setErrorMessage("Failed to unlike comment.")
+        setErrorMessage("Failed to unlike comment.");
       }
     } catch (error: any) {
-      console.error("Error unliking comment:", error)
-      setErrorMessage(error?.message || "An unexpected error occurred.")
+      console.error("Error unliking comment:", error);
+      setErrorMessage(error?.message || "An unexpected error occurred.");
     }
-  }
+  };
 
   const handleAddComment = async (replyToId = 0) => {
     try {
-      setErrorMessage("")
-      setIsSubmitting(true)
+      setErrorMessage("");
+      setIsSubmitting(true);
 
-      const content = replyToId === 0 ? newComment : replyInputs[replyToId] || ""
+      const content = replyToId === 0 ? newComment : replyInputs[replyToId] || "";
 
       if (!content.trim()) {
-        setErrorMessage("Comment cannot be empty.")
-        return
+        setErrorMessage("Comment cannot be empty.");
+        return;
       }
 
       if (!user) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const request: CreateCommentRequest = {
@@ -139,65 +144,68 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         videoId: videoId,
         content: content.trim(),
         replyToId: replyToId,
-      }
+      };
 
-      const response: CreateCommentResponse = await commentClient.CreateComment(request, getAuthMetadata())
+      const response: CreateCommentResponse = await commentClient.CreateComment(
+        request,
+        getAuthMetadata(),
+      );
 
-      console.log("response:", response)
+      console.log("response:", response);
       if (response?.comment) {
-        await refetch()
+        await refetch();
         if (replyToId === 0) {
-          setNewComment("")
+          setNewComment("");
         } else {
-          setReplyInputs((prev) => ({ ...prev, [replyToId]: "" }))
+          setReplyInputs((prev) => ({ ...prev, [replyToId]: "" }));
         }
       } else {
-        setErrorMessage("Failed to post comment. Please try again.")
+        setErrorMessage("Failed to post comment. Please try again.");
       }
     } catch (error: any) {
-      console.error("CreateComment error:", error)
-      setErrorMessage(error?.message || "Failed to post comment. Please check your connection.")
+      console.error("CreateComment error:", error);
+      setErrorMessage(error?.message || "Failed to post comment. Please check your connection.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const toggleReplies = (commentId: number) => {
     setShowReplies((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
-    }))
-  }
+    }));
+  };
 
   const handleReplyInputChange = (commentId: number, value: string) => {
     setReplyInputs((prev) => ({
       ...prev,
       [commentId]: value,
-    }))
-  }
+    }));
+  };
 
   const handleDelete = async (commentId: number) => {
     try {
       if (!user) {
-        setErrorMessage("User is not authenticated.")
-        return
+        setErrorMessage("User is not authenticated.");
+        return;
       }
 
       const req: DeleteCommentRequest = {
         id: commentId.toString(),
-      }
-      const res: DeleteCommentResponse = await commentClient.DeleteComment(req, getAuthMetadata())
+      };
+      const res: DeleteCommentResponse = await commentClient.DeleteComment(req, getAuthMetadata());
       if (res && res.success) {
-        setErrorMessage("")
-        await refetch()
+        setErrorMessage("");
+        await refetch();
       } else {
-        setErrorMessage("Failed to delete comment.")
+        setErrorMessage("Failed to delete comment.");
       }
     } catch (error: any) {
-      console.error("DeleteComment error:", error)
-      setErrorMessage(error?.message || "Failed to delete comment.")
+      console.error("DeleteComment error:", error);
+      setErrorMessage(error?.message || "Failed to delete comment.");
     }
-  }
+  };
 
   return (
     <div className="comment-bar">
@@ -274,10 +282,14 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                       <p className="comment-text">{comment.content}</p>
 
                       <div className="comment-actions">
-                        <span className="comment-date">{new Date(comment.createdAt).toLocaleDateString()}</span>
+                        <span className="comment-date">
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
                         <button
                           onClick={() =>
-                            !comment.isLiked ? handleLike(Number(comment.id)) : handleUnlike(Number(comment.id))
+                            !comment.isLiked
+                              ? handleLike(Number(comment.id))
+                              : handleUnlike(Number(comment.id))
                           }
                           className={`action-button like-button ${comment.isLiked ? "liked" : ""}`}
                         >
@@ -290,7 +302,11 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                         >
                           <MessageCircle size={14} />
                           <span>Reply ({comment.replies?.length || 0})</span>
-                          {showReplies[Number(comment.id)] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          {showReplies[Number(comment.id)] ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )}
                         </button>
                       </div>
 
@@ -313,14 +329,20 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                 </div>
                                 <div className="reply-body">
                                   <div className="reply-header">
-                                    <span className="reply-username">{reply.user?.username || "Unknown"}</span>
+                                    <span className="reply-username">
+                                      {reply.user?.username || "Unknown"}
+                                    </span>
                                     <span className="reply-content">{reply.content}</span>
                                   </div>
                                   <div className="reply-actions">
-                                    <span className="reply-date">{new Date(reply.createdAt).toLocaleDateString()}</span>
+                                    <span className="reply-date">
+                                      {new Date(reply.createdAt).toLocaleDateString()}
+                                    </span>
                                     <button
                                       onClick={() =>
-                                        !reply.isLiked ? handleLike(Number(reply.id)) : handleUnlike(Number(reply.id))
+                                        !reply.isLiked
+                                          ? handleLike(Number(reply.id))
+                                          : handleUnlike(Number(reply.id))
                                       }
                                       className={`action-button like-button small ${reply.isLiked ? "liked" : ""}`}
                                     >
@@ -350,11 +372,13 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                               <textarea
                                 placeholder="Write a reply..."
                                 value={replyInputs[Number(comment.id)] || ""}
-                                onChange={(e) => handleReplyInputChange(Number(comment.id), e.target.value)}
+                                onChange={(e) =>
+                                  handleReplyInputChange(Number(comment.id), e.target.value)
+                                }
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleAddComment(Number(comment.id))
+                                    e.preventDefault();
+                                    handleAddComment(Number(comment.id));
                                   }
                                 }}
                                 rows={1}
@@ -365,7 +389,11 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                 disabled={!replyInputs[Number(comment.id)]?.trim() || isSubmitting}
                                 className="reply-send-button"
                               >
-                                {isSubmitting ? <Loader2 size={14} className="loading-spinner" /> : <Send size={14} />}
+                                {isSubmitting ? (
+                                  <Loader2 size={14} className="loading-spinner" />
+                                ) : (
+                                  <Send size={14} />
+                                )}
                               </button>
                             </div>
                           </div>
@@ -388,8 +416,8 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    handleAddComment()
+                    e.preventDefault();
+                    handleAddComment();
                   }
                 }}
                 className="comment-textarea"
@@ -399,7 +427,11 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                 disabled={!newComment.trim() || isSubmitting}
                 className="comment-send-button"
               >
-                {isSubmitting ? <Loader2 size={16} className="loading-spinner" /> : <Send size={16} />}
+                {isSubmitting ? (
+                  <Loader2 size={16} className="loading-spinner" />
+                ) : (
+                  <Send size={16} />
+                )}
               </button>
             </div>
             {errorMessage && <div className="error-message">{errorMessage}</div>}
@@ -912,7 +944,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default CommentBar
+export default CommentBar;

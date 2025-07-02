@@ -1,9 +1,9 @@
-import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
-import type { GetUserByIdRequest, UpdateUserRequest, User } from "../../api/gen/user"
-import { useAuth } from "../../utils/AuthProvider"
-import { userClient } from "../../api/grpc/userClient"
-import { useNavigate } from "react-router-dom"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
+import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import type { GetUserByIdRequest, UpdateUserRequest, User } from "../../api/gen/user";
+import { useAuth } from "../../utils/AuthProvider";
+import { userClient } from "../../api/grpc/userClient";
+import { useNavigate } from "react-router-dom";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import {
   UserIcon,
   Settings,
@@ -25,34 +25,34 @@ import {
   Save,
   AlertTriangle,
   Check,
-} from "lucide-react"
+} from "lucide-react";
 
 // Helper function to format Unix timestamps
 const formatTimestamp = (timestampStr: string | undefined): string => {
-  if (!timestampStr) return "N/A"
-  const timestampNum = Number.parseInt(timestampStr, 10)
+  if (!timestampStr) return "N/A";
+  const timestampNum = Number.parseInt(timestampStr, 10);
   if (isNaN(timestampNum)) {
-    return "Invalid date"
+    return "Invalid date";
   }
-  return new Date(timestampNum * 1000).toLocaleString()
-}
+  return new Date(timestampNum * 1000).toLocaleString();
+};
 
 const EditProfilePage: React.FC = () => {
-  const authUser = useAuth().user
-  const [userProfile, setUserProfile] = useState<User | null>(null)
-  const [formData, setFormData] = useState<User | null>(null)
-  const [originalData, setOriginalData] = useState<User | null>(null)
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤")
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [successMessage, setSuccessMessage] = useState<string>("")
-  const [errorMessage, setErrorMessage] = useState<string>("")
-  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile")
-  const navigate = useNavigate()
+  const authUser = useAuth().user;
+  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [formData, setFormData] = useState<User | null>(null);
+  const [originalData, setOriginalData] = useState<User | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
+  const navigate = useNavigate();
 
   // Check if form has changes
   const hasChanges = React.useMemo(() => {
-    if (!formData || !originalData) return false
+    if (!formData || !originalData) return false;
 
     const compareFields = [
       "username",
@@ -67,105 +67,109 @@ const EditProfilePage: React.FC = () => {
       "allowDuet",
       "allowStitch",
       "allowDownload",
-    ]
+    ];
 
-    return compareFields.some((field) => formData[field as keyof User] !== originalData[field as keyof User])
-  }, [formData, originalData])
+    return compareFields.some(
+      (field) => formData[field as keyof User] !== originalData[field as keyof User],
+    );
+  }, [formData, originalData]);
 
   // Clear messages after 5 seconds
   useEffect(() => {
     if (successMessage || errorMessage) {
       const timer = setTimeout(() => {
-        setSuccessMessage("")
-        setErrorMessage("")
-      }, 5000)
-      return () => clearTimeout(timer)
+        setSuccessMessage("");
+        setErrorMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [successMessage, errorMessage])
+  }, [successMessage, errorMessage]);
 
   // Effect to fetch user data
   useEffect(() => {
     const fetchUser = async () => {
-      setIsLoading(true)
-      setErrorMessage("")
+      setIsLoading(true);
+      setErrorMessage("");
 
       if (!(authUser && authUser.id)) {
-        console.warn("No authenticated user ID found.")
-        setUserProfile(null)
-        setErrorMessage("No authenticated user found. Please log in.")
-        setIsLoading(false)
-        return
+        console.warn("No authenticated user ID found.");
+        setUserProfile(null);
+        setErrorMessage("No authenticated user found. Please log in.");
+        setIsLoading(false);
+        return;
       }
       try {
-        const req: GetUserByIdRequest = { id: authUser.id }
-        const res: User = await userClient.GetUserById(req)
-        console.log("Fetched user data:", res)
-        setUserProfile(res)
+        const req: GetUserByIdRequest = { id: authUser.id };
+        const res: User = await userClient.GetUserById(req);
+        console.log("Fetched user data:", res);
+        setUserProfile(res);
       } catch (err) {
-        console.error("Error fetching user:", err)
-        setUserProfile(null)
-        setErrorMessage("Failed to load profile data. Please try again.")
+        console.error("Error fetching user:", err);
+        setUserProfile(null);
+        setErrorMessage("Failed to load profile data. Please try again.");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUser()
-  }, [authUser])
+    fetchUser();
+  }, [authUser]);
 
   // Effect to update formData and profilePicturePreview when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      setFormData(userProfile)
-      setOriginalData(userProfile)
-      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤")
+      setFormData(userProfile);
+      setOriginalData(userProfile);
+      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤");
     } else {
-      setFormData(null)
-      setOriginalData(null)
-      setProfilePicturePreview("👤")
+      setFormData(null);
+      setOriginalData(null);
+      setProfilePicturePreview("👤");
     }
-  }, [userProfile])
+  }, [userProfile]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null))
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
     if (name === "avatar") {
-      setProfilePicturePreview(value || "👤")
+      setProfilePicturePreview(value || "👤");
     }
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("")
-      setErrorMessage("")
+      setSuccessMessage("");
+      setErrorMessage("");
     }
-  }
+  };
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target
-    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null))
+    const { name, checked } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null));
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("")
-      setErrorMessage("")
+      setSuccessMessage("");
+      setErrorMessage("");
     }
-  }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!formData) {
-      setErrorMessage("Profile data is not available.")
-      return
+      setErrorMessage("Profile data is not available.");
+      return;
     }
 
     if (!hasChanges) {
-      setErrorMessage("No changes to save.")
-      return
+      setErrorMessage("No changes to save.");
+      return;
     }
 
-    setIsSaving(true)
-    setErrorMessage("")
-    setSuccessMessage("")
+    setIsSaving(true);
+    setErrorMessage("");
+    setSuccessMessage("");
     try {
-      console.log("Form submitted:", formData)
+      console.log("Form submitted:", formData);
 
       const req: UpdateUserRequest = {
         id: Number(userProfile?.id) || 0,
@@ -181,24 +185,24 @@ const EditProfilePage: React.FC = () => {
         allowStitch: formData.allowStitch,
         allowDownload: formData.allowDownload,
         allowComments: formData.allowComments,
-      }
+      };
 
-      const res = await userClient.UpdateUser(req)
+      const res = await userClient.UpdateUser(req);
       if (res) {
-        setSuccessMessage("Profile updated successfully!")
-        setOriginalData(formData)
+        setSuccessMessage("Profile updated successfully!");
+        setOriginalData(formData);
       }
     } catch (err) {
-      console.error("Error updating profile:", err)
-      setErrorMessage("Failed to update profile. Please try again.")
+      console.error("Error updating profile:", err);
+      setErrorMessage("Failed to update profile. Please try again.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleProfilePictureError = () => {
-    setProfilePicturePreview("👤")
-  }
+    setProfilePicturePreview("👤");
+  };
 
   const renderProfilePicture = () => {
     if (profilePicturePreview === "👤") {
@@ -206,7 +210,7 @@ const EditProfilePage: React.FC = () => {
         <div className="profile-picture-placeholder">
           <UserIcon size={48} />
         </div>
-      )
+      );
     }
 
     return (
@@ -216,8 +220,8 @@ const EditProfilePage: React.FC = () => {
         onError={handleProfilePictureError}
         className="profile-picture-image"
       />
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -229,7 +233,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!formData) {
@@ -246,7 +250,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -313,14 +317,14 @@ const EditProfilePage: React.FC = () => {
                       name="avatar"
                       accept="image/*"
                       onChange={async (e) => {
-                        const file = e.target.files?.[0]
-                        if (!file) return
-                        const buffer = await file.arrayBuffer()
-                        const bytes = new Uint8Array(buffer)
-                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null))
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const buffer = await file.arrayBuffer();
+                        const bytes = new Uint8Array(buffer);
+                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null));
                         // Update preview
-                        const base64 = btoa(String.fromCharCode(...bytes))
-                        setProfilePicturePreview(`data:${file.type};base64,${base64}`)
+                        const base64 = btoa(String.fromCharCode(...bytes));
+                        setProfilePicturePreview(`data:${file.type};base64,${base64}`);
                       }}
                       className="file-input"
                     />
@@ -444,7 +448,11 @@ const EditProfilePage: React.FC = () => {
                     <Key size={14} />
                     Password
                   </div>
-                  <button type="button" className="change-password-button" onClick={() => navigate("/forgot-password")}>
+                  <button
+                    type="button"
+                    className="change-password-button"
+                    onClick={() => navigate("/forgot-password")}
+                  >
                     <Key size={16} />
                     Change Password
                   </button>
@@ -469,7 +477,9 @@ const EditProfilePage: React.FC = () => {
                         <Eye size={16} />
                         Private Account
                       </div>
-                      <div className="setting-description">Only approved followers can see your content</div>
+                      <div className="setting-description">
+                        Only approved followers can see your content
+                      </div>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -488,7 +498,9 @@ const EditProfilePage: React.FC = () => {
                         <Users size={16} />
                         Account Active
                       </div>
-                      <div className="setting-description">Your account is active and visible to others</div>
+                      <div className="setting-description">
+                        Your account is active and visible to others
+                      </div>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -554,7 +566,9 @@ const EditProfilePage: React.FC = () => {
                         <Copy size={16} />
                         Allow Duet
                       </div>
-                      <div className="setting-description">Others can create duets with your videos</div>
+                      <div className="setting-description">
+                        Others can create duets with your videos
+                      </div>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -573,7 +587,9 @@ const EditProfilePage: React.FC = () => {
                         <Copy size={16} />
                         Allow Stitch
                       </div>
-                      <div className="setting-description">Others can stitch parts of your videos</div>
+                      <div className="setting-description">
+                        Others can stitch parts of your videos
+                      </div>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -1185,7 +1201,7 @@ const EditProfilePage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default EditProfilePage
+export default EditProfilePage;

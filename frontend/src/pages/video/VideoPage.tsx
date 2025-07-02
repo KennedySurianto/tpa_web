@@ -4,31 +4,27 @@ import { useSpecificVideo } from "../../hooks/useSpecificVideo"; // Import the n
 import VideoScroll from "../../components/VideoScroll";
 
 const VideoPage: React.FC = () => {
-    const { videoId } = useParams<{ videoId: string }>();
+  const { videoId } = useParams<{ videoId: string }>();
 
-    if (!videoId) {
-        return <div>Invalid video ID</div>;
-    }
+  if (!videoId) {
+    return <div>Invalid video ID</div>;
+  }
 
-    const { videos, setVideos, loading } = useSpecificVideo(videoId);
+  const { videos, setVideos, loading } = useSpecificVideo(videoId);
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-    if (!videos || videos.length === 0) {
-        return <div>Video not found</div>;
-    }
+  if (!videos || videos.length === 0) {
+    return <div>Video not found</div>;
+  }
 
-    return (
-        <>
-            <VideoScroll 
-                videos={videos} 
-                setVideos={setVideos} 
-                loading={loading} 
-            />
-        </>
-    );
+  return (
+    <>
+      <VideoScroll videos={videos} setVideos={setVideos} loading={loading} />
+    </>
+  );
 };
 
 export default VideoPage;

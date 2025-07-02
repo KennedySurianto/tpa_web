@@ -1,15 +1,15 @@
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState } from "react";
 import {
   AuthServiceClientImpl,
   type RegisterRequest,
   type SendOTPRequest,
   type UserPreferences,
-} from "../../api/gen/auth"
-import { Link } from "react-router-dom"
-import { GrpcWebImpl } from "../../api/gen/auth"
-import { BrowserHeaders } from "browser-headers"
-import { useNavigate } from "react-router-dom"
+} from "../../api/gen/auth";
+import { Link } from "react-router-dom";
+import { GrpcWebImpl } from "../../api/gen/auth";
+import { BrowserHeaders } from "browser-headers";
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   User,
@@ -34,46 +34,46 @@ import {
   FileText,
   MapPin,
   Check,
-} from "lucide-react"
+} from "lucide-react";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
   transport: undefined,
   metadata: new BrowserHeaders(),
-})
+});
 
-const authClient = new AuthServiceClientImpl(transport)
+const authClient = new AuthServiceClientImpl(transport);
 
 interface FormData {
-  month: string
-  day: string
-  year: string
-  username: string
-  email: string
-  password: string
-  confirmPassword: string
-  displayName: string
-  bio: string
-  country: string
-  verificationCode: string
-  acceptUpdates: boolean
-  isPrivate: boolean
+  month: string;
+  day: string;
+  year: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  displayName: string;
+  bio: string;
+  country: string;
+  verificationCode: string;
+  acceptUpdates: boolean;
+  isPrivate: boolean;
   // User Preferences
-  allowDuet: boolean
-  allowStitch: boolean
-  allowDownload: boolean
-  allowComments: boolean
-  emailNotifications: boolean
-  pushNotifications: boolean
-  privacyLevel: string
-  commentFilter: string
-  showActivityStatus: boolean
-  allowMentions: boolean
-  allowDirectMessages: boolean
+  allowDuet: boolean;
+  allowStitch: boolean;
+  allowDownload: boolean;
+  allowComments: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  privacyLevel: string;
+  commentFilter: string;
+  showActivityStatus: boolean;
+  allowMentions: boolean;
+  allowDirectMessages: boolean;
 }
 
 const RegisterPage: React.FC = () => {
-  const navigate = useNavigate()
-  const [currentStep, setCurrentStep] = useState(1)
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     month: "",
     day: "",
@@ -100,92 +100,94 @@ const RegisterPage: React.FC = () => {
     showActivityStatus: true,
     allowMentions: true,
     allowDirectMessages: true,
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string>("")
-  const [isPhoneSignup, setIsPhoneSignup] = useState(false)
-  const [passwordMatch, setPasswordMatch] = useState(true)
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpVerified, setOtpVerified] = useState(false)
-  const [verifyingOtp, setVerifyingOtp] = useState(false)
-  const [sendingOtp, setSendingOtp] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({})
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isPhoneSignup, setIsPhoneSignup] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(true);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
   const validateField = (name: string, value: string) => {
-    const errors: { [key: string]: string } = {}
+    const errors: { [key: string]: string } = {};
 
     if (name === "username") {
       if (!value) {
-        errors.username = "Username is required"
+        errors.username = "Username is required";
       } else if (value.length < 3) {
-        errors.username = "Username must be at least 3 characters"
+        errors.username = "Username must be at least 3 characters";
       } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-        errors.username = "Username can only contain letters, numbers, and underscores"
+        errors.username = "Username can only contain letters, numbers, and underscores";
       }
     }
 
     if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!value) {
-        errors.email = "Email is required"
+        errors.email = "Email is required";
       } else if (!emailRegex.test(value)) {
-        errors.email = "Please enter a valid email address"
+        errors.email = "Please enter a valid email address";
       }
     }
 
     if (name === "password") {
       if (!value) {
-        errors.password = "Password is required"
+        errors.password = "Password is required";
       } else if (value.length < 8) {
-        errors.password = "Password must be at least 8 characters"
+        errors.password = "Password must be at least 8 characters";
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-        errors.password = "Password must contain uppercase, lowercase, and number"
+        errors.password = "Password must contain uppercase, lowercase, and number";
       }
     }
 
-    return errors
-  }
+    return errors;
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value, type } = e.target;
+    const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
     setFormData((prev) => ({
       ...prev,
       [name]: newValue,
-    }))
+    }));
 
     // Clear field-specific errors
     if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: "" }))
+      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
     // Check password match
     if (name === "password" || name === "confirmPassword") {
-      const password = name === "password" ? value : formData.password
-      const confirmPassword = name === "confirmPassword" ? value : formData.confirmPassword
-      setPasswordMatch(password === confirmPassword || confirmPassword === "")
+      const password = name === "password" ? value : formData.password;
+      const confirmPassword = name === "confirmPassword" ? value : formData.confirmPassword;
+      setPasswordMatch(password === confirmPassword || confirmPassword === "");
     }
 
     // Reset OTP verification if email changes
     if (name === "email") {
-      setOtpSent(false)
-      setOtpVerified(false)
-      setFormData((prev) => ({ ...prev, verificationCode: "" }))
+      setOtpSent(false);
+      setOtpVerified(false);
+      setFormData((prev) => ({ ...prev, verificationCode: "" }));
     }
 
     // Real-time validation
-    const errors = validateField(name, value)
-    setFieldErrors((prev) => ({ ...prev, ...errors }))
-  }
+    const errors = validateField(name, value);
+    setFieldErrors((prev) => ({ ...prev, ...errors }));
+  };
 
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.month && formData.day && formData.year)
+        return !!(formData.month && formData.day && formData.year);
       case 2:
         return !!(
           formData.username &&
@@ -194,38 +196,38 @@ const RegisterPage: React.FC = () => {
           formData.confirmPassword &&
           passwordMatch &&
           !Object.keys(fieldErrors).some((key) => fieldErrors[key])
-        )
+        );
       case 3:
-        return otpVerified
+        return otpVerified;
       default:
-        return true
+        return true;
     }
-  }
+  };
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep((prev) => prev + 1)
-      setError("")
+      setCurrentStep((prev) => prev + 1);
+      setError("");
     } else {
       if (currentStep === 3 && !otpVerified) {
-        setError("Please verify your email address first.")
+        setError("Please verify your email address first.");
       } else {
-        setError("Please fill in all required fields correctly.")
+        setError("Please fill in all required fields correctly.");
       }
     }
-  }
+  };
 
   const handlePrevious = () => {
-    setCurrentStep((prev) => prev - 1)
-    setError("")
-  }
+    setCurrentStep((prev) => prev - 1);
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    console.log("Register attempt:", formData)
+    console.log("Register attempt:", formData);
     try {
       const preferences: UserPreferences = {
         allowDuet: formData.allowDuet,
@@ -239,7 +241,7 @@ const RegisterPage: React.FC = () => {
         showActivityStatus: formData.showActivityStatus,
         allowMentions: formData.allowMentions,
         allowDirectMessages: formData.allowDirectMessages,
-      }
+      };
 
       const req: RegisterRequest = {
         username: formData.username,
@@ -252,91 +254,91 @@ const RegisterPage: React.FC = () => {
         country: formData.country,
         isPrivate: formData.isPrivate,
         preferences: preferences,
-      }
+      };
 
-      const response = await authClient.Register(req)
+      const response = await authClient.Register(req);
 
       if (response.success) {
-        console.log("Registration successful:", response.message)
-        navigate("/login")
+        console.log("Registration successful:", response.message);
+        navigate("/login");
       } else {
-        setError(response.error || response.message || "Registration failed")
-        console.warn("Registration failed:", response.error || response.message)
+        setError(response.error || response.message || "Registration failed");
+        console.warn("Registration failed:", response.error || response.message);
       }
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Network error occurred"
-      setError(errorMessage)
-      console.error("Registration failed:", err)
+      const errorMessage = err?.message || err?.toString() || "Network error occurred";
+      setError(errorMessage);
+      console.error("Registration failed:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSendCode = async () => {
     if (!formData.email) {
-      setError("Please enter your email address first")
-      return
+      setError("Please enter your email address first");
+      return;
     }
 
-    setSendingOtp(true)
-    setError("")
-    console.log("Send verification code to:", formData.email)
+    setSendingOtp(true);
+    setError("");
+    console.log("Send verification code to:", formData.email);
 
     try {
       const req: SendOTPRequest = {
         email: formData.email,
-      }
+      };
 
-      const response = await authClient.SendOTP(req)
+      const response = await authClient.SendOTP(req);
 
-      setOtpSent(true)
-      console.log(response.message)
+      setOtpSent(true);
+      console.log(response.message);
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Failed to send verification code"
-      setError(errorMessage)
-      console.error("Failed to send verification code:", err)
+      const errorMessage = err?.message || err?.toString() || "Failed to send verification code";
+      setError(errorMessage);
+      console.error("Failed to send verification code:", err);
     } finally {
-      setSendingOtp(false)
+      setSendingOtp(false);
     }
-  }
+  };
 
   const handleVerifyOtp = async () => {
     if (!formData.verificationCode || formData.verificationCode.length !== 6) {
-      setError("Please enter a valid 6-digit code")
-      return
+      setError("Please enter a valid 6-digit code");
+      return;
     }
 
-    setVerifyingOtp(true)
-    setError("")
+    setVerifyingOtp(true);
+    setError("");
 
     try {
       const req = {
         email: formData.email,
         otp: formData.verificationCode,
-      }
+      };
 
-      const response = await authClient.VerifyOTP(req)
+      const response = await authClient.VerifyOTP(req);
 
       if (response.success) {
-        setOtpVerified(true)
-        console.log("OTP verified successfully")
+        setOtpVerified(true);
+        console.log("OTP verified successfully");
       } else {
-        setError("Invalid verification code")
+        setError("Invalid verification code");
       }
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || "Failed to verify code"
-      setError(errorMessage)
-      console.error("Failed to verify OTP:", err)
+      const errorMessage = err?.message || err?.toString() || "Failed to verify code";
+      setError(errorMessage);
+      console.error("Failed to verify OTP:", err);
     } finally {
-      setVerifyingOtp(false)
+      setVerifyingOtp(false);
     }
-  }
+  };
 
   const handleResendCode = async () => {
-    setFormData((prev) => ({ ...prev, verificationCode: "" }))
-    setOtpVerified(false)
-    await handleSendCode()
-  }
+    setFormData((prev) => ({ ...prev, verificationCode: "" }));
+    setOtpVerified(false);
+    await handleSendCode();
+  };
 
   // Generate arrays for dropdowns
   const months = [
@@ -352,10 +354,10 @@ const RegisterPage: React.FC = () => {
     "October",
     "November",
     "December",
-  ]
+  ];
 
-  const days = Array.from({ length: 31 }, (_, i) => i + 1)
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i)
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
   const countries = [
     "United States",
     "Canada",
@@ -368,7 +370,7 @@ const RegisterPage: React.FC = () => {
     "India",
     "China",
     "Other",
-  ]
+  ];
 
   const renderStep1 = () => (
     <div className="step-content">
@@ -385,7 +387,13 @@ const RegisterPage: React.FC = () => {
           <div className="form-group">
             <label className="form-label">Month</label>
             <div className="select-container">
-              <select name="month" value={formData.month} onChange={handleChange} className="form-select" required>
+              <select
+                name="month"
+                value={formData.month}
+                onChange={handleChange}
+                className="form-select"
+                required
+              >
                 <option value="">Month</option>
                 {months.map((month, index) => (
                   <option key={index} value={index + 1}>
@@ -399,7 +407,13 @@ const RegisterPage: React.FC = () => {
           <div className="form-group">
             <label className="form-label">Day</label>
             <div className="select-container">
-              <select name="day" value={formData.day} onChange={handleChange} className="form-select" required>
+              <select
+                name="day"
+                value={formData.day}
+                onChange={handleChange}
+                className="form-select"
+                required
+              >
                 <option value="">Day</option>
                 {days.map((day) => (
                   <option key={day} value={day}>
@@ -413,7 +427,13 @@ const RegisterPage: React.FC = () => {
           <div className="form-group">
             <label className="form-label">Year</label>
             <div className="select-container">
-              <select name="year" value={formData.year} onChange={handleChange} className="form-select" required>
+              <select
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
+                className="form-select"
+                required
+              >
                 <option value="">Year</option>
                 {years.map((year) => (
                   <option key={year} value={year}>
@@ -427,13 +447,18 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <div className="step-actions">
-        <button type="button" onClick={handleNext} className="btn-primary full-width" disabled={!validateStep(1)}>
+        <button
+          type="button"
+          onClick={handleNext}
+          className="btn-primary full-width"
+          disabled={!validateStep(1)}
+        >
           <span>Continue</span>
           <ArrowRight size={16} />
         </button>
       </div>
     </div>
-  )
+  );
 
   const renderStep2 = () => (
     <div className="step-content">
@@ -462,7 +487,9 @@ const RegisterPage: React.FC = () => {
               className="form-input"
               required
             />
-            {formData.username && !fieldErrors.username && <CheckCircle size={16} className="success-icon" />}
+            {formData.username && !fieldErrors.username && (
+              <CheckCircle size={16} className="success-icon" />
+            )}
           </div>
           {fieldErrors.username && (
             <div className="field-error">
@@ -511,8 +538,14 @@ const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`input-container ${fieldErrors.email ? "error" : ""} ${formData.email ? "filled" : ""}`}>
-            {isPhoneSignup ? <Phone size={18} className="input-icon" /> : <Mail size={18} className="input-icon" />}
+          <div
+            className={`input-container ${fieldErrors.email ? "error" : ""} ${formData.email ? "filled" : ""}`}
+          >
+            {isPhoneSignup ? (
+              <Phone size={18} className="input-icon" />
+            ) : (
+              <Mail size={18} className="input-icon" />
+            )}
             <input
               type={isPhoneSignup ? "tel" : "email"}
               name="email"
@@ -522,7 +555,9 @@ const RegisterPage: React.FC = () => {
               className="form-input"
               required
             />
-            {formData.email && !fieldErrors.email && <CheckCircle size={16} className="success-icon" />}
+            {formData.email && !fieldErrors.email && (
+              <CheckCircle size={16} className="success-icon" />
+            )}
           </div>
           {fieldErrors.email && (
             <div className="field-error">
@@ -548,7 +583,11 @@ const RegisterPage: React.FC = () => {
               className="form-input"
               required
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="password-toggle">
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="password-toggle"
+            >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -598,13 +637,18 @@ const RegisterPage: React.FC = () => {
           <ArrowLeft size={16} />
           <span>Previous</span>
         </button>
-        <button type="button" onClick={handleNext} className="btn-primary" disabled={!validateStep(2)}>
+        <button
+          type="button"
+          onClick={handleNext}
+          className="btn-primary"
+          disabled={!validateStep(2)}
+        >
           <span>Continue</span>
           <ArrowRight size={16} />
         </button>
       </div>
     </div>
-  )
+  );
 
   const renderStep3 = () => (
     <div className="step-content">
@@ -671,7 +715,9 @@ const RegisterPage: React.FC = () => {
               type="button"
               onClick={handleVerifyOtp}
               className="btn-primary full-width"
-              disabled={verifyingOtp || !formData.verificationCode || formData.verificationCode.length !== 6}
+              disabled={
+                verifyingOtp || !formData.verificationCode || formData.verificationCode.length !== 6
+              }
             >
               {verifyingOtp ? (
                 <>
@@ -695,7 +741,12 @@ const RegisterPage: React.FC = () => {
 
         {otpSent && !otpVerified && (
           <div className="resend-section">
-            <button type="button" onClick={handleResendCode} className="resend-button" disabled={sendingOtp}>
+            <button
+              type="button"
+              onClick={handleResendCode}
+              className="resend-button"
+              disabled={sendingOtp}
+            >
               {sendingOtp ? "Sending..." : "Didn't receive the code? Resend"}
             </button>
           </div>
@@ -707,13 +758,18 @@ const RegisterPage: React.FC = () => {
           <ArrowLeft size={16} />
           <span>Previous</span>
         </button>
-        <button type="button" onClick={handleNext} className="btn-primary" disabled={!validateStep(3)}>
+        <button
+          type="button"
+          onClick={handleNext}
+          className="btn-primary"
+          disabled={!validateStep(3)}
+        >
           <span>Continue</span>
           <ArrowRight size={16} />
         </button>
       </div>
     </div>
-  )
+  );
 
   const renderStep4 = () => (
     <div className="step-content">
@@ -749,7 +805,12 @@ const RegisterPage: React.FC = () => {
           <label className="form-label">Country (Optional)</label>
           <div className="select-container">
             <MapPin size={18} className="select-icon" />
-            <select name="country" value={formData.country} onChange={handleChange} className="form-select">
+            <select
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="form-select"
+            >
               <option value="">Select your country</option>
               {countries.map((country) => (
                 <option key={country} value={country}>
@@ -779,7 +840,9 @@ const RegisterPage: React.FC = () => {
               <div className="checkbox-custom">{formData.isPrivate && <Check size={12} />}</div>
               <div className="setting-content">
                 <span className="setting-title">Private Account</span>
-                <span className="setting-description">Only approved followers can see your content</span>
+                <span className="setting-description">
+                  Only approved followers can see your content
+                </span>
               </div>
             </label>
           </div>
@@ -788,7 +851,12 @@ const RegisterPage: React.FC = () => {
             <label className="form-label">Who can see your content?</label>
             <div className="select-container">
               <Globe size={18} className="select-icon" />
-              <select name="privacyLevel" value={formData.privacyLevel} onChange={handleChange} className="form-select">
+              <select
+                name="privacyLevel"
+                value={formData.privacyLevel}
+                onChange={handleChange}
+                className="form-select"
+              >
                 <option value="public">Everyone</option>
                 <option value="friends">Friends only</option>
                 <option value="private">Only me</option>
@@ -833,7 +901,9 @@ const RegisterPage: React.FC = () => {
               <div className="checkbox-custom">{formData.allowDuet && <Check size={12} />}</div>
               <div className="setting-content">
                 <span className="setting-title">Allow Duets</span>
-                <span className="setting-description">Let others create duets with your videos</span>
+                <span className="setting-description">
+                  Let others create duets with your videos
+                </span>
               </div>
             </label>
           </div>
@@ -889,7 +959,9 @@ const RegisterPage: React.FC = () => {
                 onChange={handleChange}
                 className="checkbox-input"
               />
-              <div className="checkbox-custom">{formData.emailNotifications && <Check size={12} />}</div>
+              <div className="checkbox-custom">
+                {formData.emailNotifications && <Check size={12} />}
+              </div>
               <div className="setting-content">
                 <span className="setting-title">Email Notifications</span>
                 <span className="setting-description">Receive updates via email</span>
@@ -906,7 +978,9 @@ const RegisterPage: React.FC = () => {
                 onChange={handleChange}
                 className="checkbox-input"
               />
-              <div className="checkbox-custom">{formData.pushNotifications && <Check size={12} />}</div>
+              <div className="checkbox-custom">
+                {formData.pushNotifications && <Check size={12} />}
+              </div>
               <div className="setting-content">
                 <span className="setting-title">Push Notifications</span>
                 <span className="setting-description">Receive notifications on your device</span>
@@ -926,7 +1000,9 @@ const RegisterPage: React.FC = () => {
               <div className="checkbox-custom">{formData.acceptUpdates && <Check size={12} />}</div>
               <div className="setting-content">
                 <span className="setting-title">Marketing Updates</span>
-                <span className="setting-description">Get trending content and recommendations</span>
+                <span className="setting-description">
+                  Get trending content and recommendations
+                </span>
               </div>
             </label>
           </div>
@@ -953,7 +1029,7 @@ const RegisterPage: React.FC = () => {
         </button>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="register-container">
@@ -1807,7 +1883,7 @@ const RegisterPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;

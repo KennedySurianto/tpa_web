@@ -1,8 +1,8 @@
-import React from "react"
+import React from "react";
 
 interface NotificationToastProps {
-  message: string
-  type: "success" | "error"
+  message: string;
+  type: "success" | "error";
 }
 
 const NotificationToast: React.FC<NotificationToastProps> = ({ message, type }) => {
@@ -88,7 +88,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ message, type }) 
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default NotificationToast
+export default NotificationToast;

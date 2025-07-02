@@ -1,69 +1,73 @@
-import type React from "react"
+import type React from "react";
 
-import { useEffect, useState } from "react"
-import type { FollowRequest } from "../api/gen/follow"
-import { followClient } from "../api/grpc/followClient"
-import { useNavigate } from "react-router-dom"
-import type { User } from "../api/gen/user"
-import { useAuth } from "../utils/AuthProvider"
-import defaultAvatar from "../assets/default.jpg"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import { CheckCircle, Users, UserPlus, UserMinus } from "lucide-react"
+import { useEffect, useState } from "react";
+import type { FollowRequest } from "../api/gen/follow";
+import { followClient } from "../api/grpc/followClient";
+import { useNavigate } from "react-router-dom";
+import type { User } from "../api/gen/user";
+import { useAuth } from "../utils/AuthProvider";
+import defaultAvatar from "../assets/default.jpg";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import { CheckCircle, Users, UserPlus, UserMinus } from "lucide-react";
 
 export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user }) => {
-  const { user: currentUser, getAuthMetadata } = useAuth()
-  const navigate = useNavigate()
-  const [isFollowed, setIsFollowed] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [followerCount, setFollowerCount] = useState(0)
+  const { user: currentUser, getAuthMetadata } = useAuth();
+  const navigate = useNavigate();
+  const [isFollowed, setIsFollowed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
     const checkFollowAndCount = async () => {
       if (currentUser?.id) {
         try {
-          const res = await followClient.GetFollowers({ userId: Number(user.id) })
-          setIsFollowed(res.follows.some((f) => Number(f.followerId) === Number(currentUser.id)))
-          setFollowerCount(res.follows.length)
+          const res = await followClient.GetFollowers({ userId: Number(user.id) });
+          setIsFollowed(res.follows.some((f) => Number(f.followerId) === Number(currentUser.id)));
+          setFollowerCount(res.follows.length);
         } catch (err) {
-          console.error("Error checking follow:", err)
+          console.error("Error checking follow:", err);
         }
       }
-    }
+    };
 
-    checkFollowAndCount()
-  }, [currentUser?.id, user.id])
+    checkFollowAndCount();
+  }, [currentUser?.id, user.id]);
 
   const handleToggleFollow = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!currentUser) return
+    e.stopPropagation();
+    if (!currentUser) return;
 
-    setLoading(true)
+    setLoading(true);
     const req: FollowRequest = {
       followerId: Number(currentUser.id),
       followedId: Number(user.id),
-    }
+    };
 
     try {
       if (isFollowed) {
-        await followClient.Unfollow(req, getAuthMetadata())
-        setIsFollowed(false)
-        setFollowerCount((prevCount) => Math.max(0, prevCount - 1))
+        await followClient.Unfollow(req, getAuthMetadata());
+        setIsFollowed(false);
+        setFollowerCount((prevCount) => Math.max(0, prevCount - 1));
       } else {
-        await followClient.Follow(req, getAuthMetadata())
-        setIsFollowed(true)
-        setFollowerCount((prevCount) => prevCount + 1)
+        await followClient.Follow(req, getAuthMetadata());
+        setIsFollowed(true);
+        setFollowerCount((prevCount) => prevCount + 1);
       }
     } catch (err) {
-      console.error("Follow/unfollow error:", err)
+      console.error("Follow/unfollow error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="user-card" onClick={() => navigate(`/${user.username}`)}>
       <div className="user-avatar-wrapper">
-        <img src={avatarBytesToUrl(user.avatar) || defaultAvatar} alt={user.username} className="user-avatar" />
+        <img
+          src={avatarBytesToUrl(user.avatar) || defaultAvatar}
+          alt={user.username}
+          className="user-avatar"
+        />
         {user.isVerified && (
           <div className="verification-badge">
             <CheckCircle size={14} />
@@ -336,5 +340,5 @@ export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user
         }
       `}</style>
     </div>
-  )
-}
+  );
+};

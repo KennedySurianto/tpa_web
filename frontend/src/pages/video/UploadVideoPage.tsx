@@ -1,54 +1,54 @@
-import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { Upload, Video, ImageIcon, Settings, Check } from "lucide-react"
+import type React from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Upload, Video, ImageIcon, Settings, Check } from "lucide-react";
 
 // Assuming these imports exist in your project
-import type { CreateVideoRequest, CreateVideoResponse } from "../../api/gen/video"
-import { useAuth } from "../../utils/AuthProvider"
-import { videoClient } from "../../api/grpc/videoClient"
+import type { CreateVideoRequest, CreateVideoResponse } from "../../api/gen/video";
+import { useAuth } from "../../utils/AuthProvider";
+import { videoClient } from "../../api/grpc/videoClient";
 
 const UploadVideoPage: React.FC = () => {
-  const { user, getAuthMetadata } = useAuth()
-  const [file, setFile] = useState<File | null>(null)
-  const [caption, setCaption] = useState("")
-  const [description, setDescription] = useState("")
-  const [privacy, setPrivacy] = useState("public")
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string>("")
-  const [allowComments, setAllowComments] = useState(true)
-  const [allowDuet, setAllowDuet] = useState(true)
-  const [allowStitch, setAllowStitch] = useState(true)
-  const [videoURL, setVideoURL] = useState<string>("")
-  const [loading, setLoading] = useState(false)
+  const { user, getAuthMetadata } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState("");
+  const [description, setDescription] = useState("");
+  const [privacy, setPrivacy] = useState("public");
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+  const [allowComments, setAllowComments] = useState(true);
+  const [allowDuet, setAllowDuet] = useState(true);
+  const [allowStitch, setAllowStitch] = useState(true);
+  const [videoURL, setVideoURL] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const previewVideoURL = useMemo(() => {
-    if (!file) return ""
-    const url = URL.createObjectURL(file)
-    return url
-  }, [file])
+    if (!file) return "";
+    const url = URL.createObjectURL(file);
+    return url;
+  }, [file]);
 
   useEffect(() => {
     return () => {
       if (previewVideoURL) {
-        URL.revokeObjectURL(previewVideoURL)
+        URL.revokeObjectURL(previewVideoURL);
       }
-    }
-  }, [previewVideoURL])
+    };
+  }, [previewVideoURL]);
 
   const handleUpload = async () => {
-    if (!file || !user?.id) return
+    if (!file || !user?.id) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      let duration = 0
+      let duration = 0;
       if (videoRef.current && videoRef.current.duration) {
-        duration = Math.floor(videoRef.current.duration)
+        duration = Math.floor(videoRef.current.duration);
       }
 
-      const videoArrayBuffer = await file.arrayBuffer()
-      const thumbnailArrayBuffer = thumbnailFile ? await thumbnailFile.arrayBuffer() : null
+      const videoArrayBuffer = await file.arrayBuffer();
+      const thumbnailArrayBuffer = thumbnailFile ? await thumbnailFile.arrayBuffer() : null;
 
       const request: CreateVideoRequest = {
         userId: Number(user?.id),
@@ -63,25 +63,30 @@ const UploadVideoPage: React.FC = () => {
         contentType: "video/mp4",
         videoUrl: "",
         thumbnail: thumbnailArrayBuffer ? new Uint8Array(thumbnailArrayBuffer) : undefined,
-      }
+      };
 
-      const response: CreateVideoResponse = await videoClient.CreateVideo(request, getAuthMetadata())
+      const response: CreateVideoResponse = await videoClient.CreateVideo(
+        request,
+        getAuthMetadata(),
+      );
 
-      const url = response.video?.videoUrl ?? ""
+      const url = response.video?.videoUrl ?? "";
       if (url) {
-        setVideoURL(url)
+        setVideoURL(url);
       }
     } catch (err: any) {
       if (err.message?.includes("upstream request timeout") || err.code === "DEADLINE_EXCEEDED") {
-        console.log("⏳ Video is still being processed. Please wait a few moments and check your profile.")
+        console.log(
+          "⏳ Video is still being processed. Please wait a few moments and check your profile.",
+        );
       } else {
-        alert("Upload failed: " + (err.message || "Unknown error"))
-        console.error("Upload failed:", err)
+        alert("Upload failed: " + (err.message || "Unknown error"));
+        console.error("Upload failed:", err);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="upload-container">
@@ -105,9 +110,9 @@ const UploadVideoPage: React.FC = () => {
                 type="file"
                 accept="video/*"
                 onChange={(e) => {
-                  const selected = e.target.files?.[0] || null
-                  setFile(selected)
-                  setVideoURL("")
+                  const selected = e.target.files?.[0] || null;
+                  setFile(selected);
+                  setVideoURL("");
                 }}
                 className="file-input"
                 id="video-upload"
@@ -137,8 +142,8 @@ const UploadVideoPage: React.FC = () => {
                   controls
                   preload="metadata"
                   onLoadedMetadata={(e) => {
-                    const duration = (e.target as HTMLVideoElement).duration
-                    console.log("Video duration:", duration)
+                    const duration = (e.target as HTMLVideoElement).duration;
+                    console.log("Video duration:", duration);
                   }}
                 />
               </div>
@@ -161,7 +166,12 @@ const UploadVideoPage: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="privacy">Privacy</label>
-              <select id="privacy" value={privacy} onChange={(e) => setPrivacy(e.target.value)} className="form-select">
+              <select
+                id="privacy"
+                value={privacy}
+                onChange={(e) => setPrivacy(e.target.value)}
+                className="form-select"
+              >
                 <option value="public">Public</option>
                 <option value="private">Private</option>
                 <option value="friends">Friends Only</option>
@@ -193,9 +203,9 @@ const UploadVideoPage: React.FC = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  const image = e.target.files?.[0] || null
-                  setThumbnailFile(image)
-                  setThumbnailPreview(image ? URL.createObjectURL(image) : "")
+                  const image = e.target.files?.[0] || null;
+                  setThumbnailFile(image);
+                  setThumbnailPreview(image ? URL.createObjectURL(image) : "");
                 }}
                 className="file-input"
                 id="thumbnail-upload"
@@ -683,7 +693,7 @@ const UploadVideoPage: React.FC = () => {
                 }
             `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default UploadVideoPage
+export default UploadVideoPage;
