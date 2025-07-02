@@ -41,7 +41,7 @@ type Message = {
 }
 
 export default function ChatPage() {
-  const { user } = useAuth()
+  const { user, getAuthMetadata } = useAuth()
   const { receiverUsername } = useParams<{ receiverUsername: string }>()
   const [messages, setMessages] = useState<Message[]>([])
   const [receiver, setReceiver] = useState<User | null>(null)
@@ -73,7 +73,7 @@ export default function ChatPage() {
     }
 
     try {
-      await chatClient.SetTypingStatus(req)
+      await chatClient.SetTypingStatus(req, getAuthMetadata())
       console.log("Success set typing status :", isTyping)
     } catch (err) {
       console.log("Error set typing status: ", err)
@@ -106,7 +106,7 @@ export default function ChatPage() {
           user2Id: receiver.id.toString(),
         }
 
-        const res = await chatClient.GetChatsWithUser(req)
+        const res = await chatClient.GetChatsWithUser(req, getAuthMetadata())
         if (res) {
           const loadedMessages: Message[] = res.chats.map((chat) => ({
             id: nextId.current++,
@@ -203,7 +203,7 @@ export default function ChatPage() {
     }
 
     try {
-      const resp = await chatClient.SendMessage(req)
+      const resp = await chatClient.SendMessage(req, getAuthMetadata())
       if (resp && resp.chat && resp.chat.id) {
         setMessages((prev) =>
           prev.map((m) => (m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m)),
@@ -225,7 +225,7 @@ export default function ChatPage() {
         receiverId: Number(receiver.id),
       }
 
-      await chatClient.UnsendMessage(req)
+      await chatClient.UnsendMessage(req, getAuthMetadata())
       setMessages((prev) =>
         prev.map((m) => (m.messageId === message.messageId ? { ...m, deleted: true, text: "" } : m)),
       )
@@ -261,7 +261,7 @@ export default function ChatPage() {
     }
 
     try {
-      const resp = await chatClient.SendMessage(req)
+      const resp = await chatClient.SendMessage(req, getAuthMetadata())
       if (resp && resp.chat && resp.chat.id) {
         setMessages((prev) =>
           prev.map((m) => (m.id === myMessage.id ? { ...m, messageId: resp.chat!.id, status: "sent" } : m)),

@@ -324,15 +324,11 @@ func (vc *VideoController) fetchVideoAttributes(
     currentUserId uint32,
 ) (uint64, uint64, uint64, bool, *userpb.User, error) {
     // Fetch Likes Count
-    likeResp, err := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: videoId})
-    if err != nil || likeResp == nil {
-        return 0, 0, 0, false, nil, fmt.Errorf("failed to get like count: %v", err)
+    likeResp, _ := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: videoId})
+	likesCount := uint64(0);
+    if likeResp != nil {
+        likesCount = likeResp.Count;
     }
-
-	// Fetch Views Count from the video service (assuming it exists)
-	if _, err := vc.videoService.GetVideoByID(uint(videoId)); err != nil {
-		return 0, 0, 0, false, nil, fmt.Errorf("failed to get video details: %v", err)
-	}
 
 	// Fetch views count from watch service (if applicable)
 	viewsResp, _ := vc.watchClient.GetViewCount(ctx, &watchpb.GetViewCountRequest{VideoId: videoId})
@@ -365,15 +361,16 @@ func (vc *VideoController) fetchVideoAttributes(
     }
 
     // Fetch user info if available
-    var user *userpb.User
-    if userId != 0 {
-        user, err = vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(userId)})
-        if err != nil {
-            return 0, 0, 0, false, nil, fmt.Errorf("failed to fetch user info: %v", err)
-        }
-    }
+	var user *userpb.User
+	if userId != 0 {
+		var err error
+		user, err = vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(userId)})
+		if err != nil {
+			return likesCount, commentsCount, viewsCount, isLiked, nil, fmt.Errorf("failed to fetch user info: %v", err)
+		}
+	}
 
-	return likeResp.Count, commentsCount, viewsCount, isLiked, user, nil
+	return likesCount, commentsCount, viewsCount, isLiked, user, nil
 }
 
 func (vc *VideoController) GetAllVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {

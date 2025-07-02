@@ -4,6 +4,8 @@ import { useAuth } from "../../utils/AuthProvider"
 import type {
   CreatePlaylistRequest,
   CreatePlaylistResponse,
+  DeletePlaylistRequest,
+  DeletePlaylistResponse,
   GetPlaylistByUserIdResponse,
   GetPlaylistRequest,
   Playlist,
@@ -36,7 +38,7 @@ import {
 } from "lucide-react"
 
 const PlaylistPage: React.FC = () => {
-  const { user } = useAuth()
+  const { user, getAuthMetadata } = useAuth()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [allVideos, setAllVideos] = useState<Video[]>([])
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
@@ -106,7 +108,7 @@ const PlaylistPage: React.FC = () => {
     }
 
     try {
-      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(updatedPlaylist)
+      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(updatedPlaylist, getAuthMetadata())
       if (res && res.playlistId) {
         const updated = playlists.map((p) =>
           p.id === selectedPlaylist.id
@@ -139,7 +141,7 @@ const PlaylistPage: React.FC = () => {
     }
 
     try {
-      const res: CreatePlaylistResponse = await playlistClient.CreatePlaylist(req)
+      const res: CreatePlaylistResponse = await playlistClient.CreatePlaylist(req, getAuthMetadata())
       if (res && res.playlistId) {
         const newPlaylist = {
           id: res.playlistId,
@@ -161,12 +163,19 @@ const PlaylistPage: React.FC = () => {
   const deletePlaylist = async () => {
     if (!playlistToDelete?.id) return
 
+    const req: DeletePlaylistRequest = {
+      id: playlistToDelete.id,
+    }
+
     try {
-      await playlistClient.DeletePlaylist({ id: playlistToDelete.id })
-      setPlaylists((prev) => prev.filter((p) => p.id !== playlistToDelete.id))
-      setIsDeleteConfirmOpen(false)
-      setPlaylistToDelete(null)
-      console.log("Playlist deleted:", playlistToDelete)
+      const res: DeletePlaylistResponse = await playlistClient.DeletePlaylist(req, getAuthMetadata());
+
+      if (res && res.success) {
+        setPlaylists((prev) => prev.filter((p) => p.id !== playlistToDelete.id))
+        setIsDeleteConfirmOpen(false)
+        setPlaylistToDelete(null)
+        console.log("Playlist deleted:", playlistToDelete)
+      }
     } catch (error) {
       console.error("Failed to delete playlist:", error)
       setErrorMessage("Failed to delete playlist. Please try again later.")

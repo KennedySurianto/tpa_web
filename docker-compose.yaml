@@ -295,6 +295,7 @@ services:
     environment:
       PORT: ${CHAT_SERVICE_PORT}
       DATABASE_URL: ${DATABASE_URL_CHAT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     healthcheck:
@@ -338,6 +339,7 @@ services:
       DATABASE_URL: ${DATABASE_URL_PLAYLIST}
       VIDEO_SERVICE_HOST: ${VIDEO_SERVICE_HOST}
       VIDEO_SERVICE_PORT: ${VIDEO_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     depends_on:

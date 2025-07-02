@@ -15,6 +15,7 @@ import (
 	"github.com/KennedySurianto/tpa_web/backend/chat-service/internal/service"
 	chatws "github.com/KennedySurianto/tpa_web/backend/chat-service/internal/websocket"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/chat"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -46,7 +47,12 @@ func main() {
 	chatService := service.NewChatService(chatRepo)
 	chatController := controller.NewChatController(chatService, hub)
 	
-	server := grpc.NewServer()
+	pasetoMaker, err := middleware.NewPasetoMaker()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	interceptor := middleware.UnaryAuthInterceptor(pasetoMaker)
+	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor))
 	pb.RegisterChatServiceServer(server, chatController)
 	
 	reflection.Register(server)
