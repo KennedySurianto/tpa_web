@@ -91,11 +91,11 @@ func isPublicMethod(fullMethod string) bool {
 
 		// activity.FollowService
 		// =========================================
-		"/activity.FollowService/Follow",
-		"/activity.FollowService/Unfollow",
+		// "/activity.FollowService/Follow",
+		// "/activity.FollowService/Unfollow",
 		"/activity.FollowService/GetFollowers",
 		"/activity.FollowService/GetFollowing",
-		"/activity.FollowService/GetFriends",
+		// "/activity.FollowService/GetFriends",
 
 		// activity.LikeCommentService
 		// =========================================
@@ -126,19 +126,19 @@ func isPublicMethod(fullMethod string) bool {
 
 		// playlist.PlaylistService
 		// =========================================
-		"/playlist.PlaylistService/CreatePlaylist",
+		// "/playlist.PlaylistService/CreatePlaylist",
 		"/playlist.PlaylistService/GetPlaylist",
 		"/playlist.PlaylistService/GetPlaylistsByUserId",
-		"/playlist.PlaylistService/DeletePlaylist",
-		"/playlist.PlaylistService/UpdatePlaylist",
+		// "/playlist.PlaylistService/DeletePlaylist",
+		// "/playlist.PlaylistService/UpdatePlaylist",
 
 		// chat.ChatService
 		// =========================================
-		"/chat.ChatService/SendMessage",
-		"/chat.ChatService/UnsendMessage",
-		"/chat.ChatService/GetChatsByUserID",
-		"/chat.ChatService/GetChatsWithUser",
-		"/chat.ChatService/SetTypingStatus",
+		// "/chat.ChatService/SendMessage",
+		// "/chat.ChatService/UnsendMessage",
+		// "/chat.ChatService/GetChatsByUserID",
+		// "/chat.ChatService/GetChatsWithUser",
+		// "/chat.ChatService/SetTypingStatus",
 	}
 
 	for _, m := range publicMethods {

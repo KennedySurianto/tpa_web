@@ -1,6 +1,8 @@
 package middleware
 
-import "context"
+import (
+	"context"	
+)
 
 // GetUserID extracts the user ID from context
 func GetUserID(ctx context.Context) (uint64, bool) {

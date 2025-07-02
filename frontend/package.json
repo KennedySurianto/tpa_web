@@ -10,6 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "vite": "^6.3.5",
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite-plugin-commonjs": "^0.10.4",
+    "vite-plugin-node-polyfills": "^0.23.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@ffmpeg/core": "^0.12.10",

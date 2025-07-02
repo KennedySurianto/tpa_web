@@ -35,7 +35,7 @@ import { useFollowings } from "../../hooks/useFollowings"
 import { useFollowers } from "../../hooks/useFollowers"
 
 const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user, getAuthMetadata, logout } = useAuth()
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -210,13 +210,13 @@ const ProfilePage: React.FC = () => {
 
       if (isFollowing) {
         // Unfollow
-        await followClient.Unfollow(req)
+        await followClient.Unfollow(req, getAuthMetadata())
         setIsFollowing(false)
         setFollowersCount((prev) => Math.max(0, prev - 1))
         console.log("UNFOLLOWED")
       } else {
         // Follow
-        await followClient.Follow(req)
+        await followClient.Follow(req, getAuthMetadata())
         setIsFollowing(true)
         setFollowersCount((prev) => prev + 1)
         console.log("FOLLOWED")

@@ -11,7 +11,7 @@ import { avatarBytesToUrl } from "../utils/avatarConverter"
 import { CheckCircle, Users, UserPlus, UserMinus } from "lucide-react"
 
 export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user }) => {
-  const { user: currentUser } = useAuth()
+  const { user: currentUser, getAuthMetadata } = useAuth()
   const navigate = useNavigate()
   const [isFollowed, setIsFollowed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -45,11 +45,11 @@ export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user
 
     try {
       if (isFollowed) {
-        await followClient.Unfollow(req)
+        await followClient.Unfollow(req, getAuthMetadata())
         setIsFollowed(false)
         setFollowerCount((prevCount) => Math.max(0, prevCount - 1))
       } else {
-        await followClient.Follow(req)
+        await followClient.Follow(req, getAuthMetadata())
         setIsFollowed(true)
         setFollowerCount((prevCount) => prevCount + 1)
       }
