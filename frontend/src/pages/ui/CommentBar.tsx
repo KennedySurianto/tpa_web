@@ -80,7 +80,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         userId: Number(user.id),
       }
 
-      const response = await likeCommentClient.LikeComment(req)
+      const response = await likeCommentClient.LikeComment(req, getAuthMetadata())
       if (response) {
         await refetch()
       } else {
@@ -105,7 +105,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         userId: Number(user.id),
       }
 
-      const response = await likeCommentClient.UnlikeComment(req)
+      const response = await likeCommentClient.UnlikeComment(req, getAuthMetadata())
       if (response) {
         await refetch()
       } else {

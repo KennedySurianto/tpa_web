@@ -99,15 +99,15 @@ func isPublicMethod(fullMethod string) bool {
 
 		// activity.LikeCommentService
 		// =========================================
-		"/activity.LikeCommentService/LikeComment",
-		"/activity.LikeCommentService/UnlikeComment",
+		// "/activity.LikeCommentService/LikeComment",
+		// "/activity.LikeCommentService/UnlikeComment",
 		"/activity.IsCommentLiked",
 		"/activity.LikeCommentService/GetLikeCount",
 
 		// activity.LikeService
 		// =========================================
-		"/activity.LikeService/Like",
-		"/activity.LikeService/Unlike",
+		// "/activity.LikeService/Like",
+		// "/activity.LikeService/Unlike",
 		"/activity.LikeService/IsLiked",
 		"/activity.LikeService/GetVideoLikeCount",
 		"/activity.LikeService/GetLikesByUserId",

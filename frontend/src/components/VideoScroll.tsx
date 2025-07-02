@@ -35,7 +35,7 @@ interface props {
 }
 
 const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
-  const user = useAuth().user
+  const { user, getAuthMetadata } = useAuth()
   const navigate = useNavigate()
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const [volume, setVolume] = useState(0.5)
@@ -159,7 +159,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         videoId: videoId,
       }
 
-      const res = await likeClient.Like(req)
+      const res = await likeClient.Like(req, getAuthMetadata())
       if (res) {
         setVideos((prevVideos) =>
           prevVideos.map((video) =>
@@ -188,7 +188,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         videoId: videoId,
       }
 
-      const res = await likeClient.Unlike(req)
+      const res = await likeClient.Unlike(req, getAuthMetadata())
       if (res) {
         setVideos((prevVideos) =>
           prevVideos.map((video) =>

@@ -11,7 +11,7 @@ import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow
 import { followClient } from "../../api/grpc/followClient"
 
 export default function ChatFriendsSidebar() {
-  const { user } = useAuth()
+  const { user, getAuthMetadata } = useAuth()
   const [friends, setFriends] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -34,7 +34,7 @@ export default function ChatFriendsSidebar() {
       }
 
       try {
-        const res: GetFriendsResponse = await followClient.GetFriends(req)
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
 
         if (res) {
           setFriends(res.users)
@@ -64,7 +64,7 @@ export default function ChatFriendsSidebar() {
       }
 
       try {
-        const res: GetFriendsResponse = await followClient.GetFriends(req)
+        const res: GetFriendsResponse = await followClient.GetFriends(req, getAuthMetadata())
 
         if (res) {
           setFriends((prev) => [...prev, ...res.users])
