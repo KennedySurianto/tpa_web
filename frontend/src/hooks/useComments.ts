@@ -16,8 +16,10 @@ export const useComments = (userId: number, videoId: number) => {
         videoId: videoId.toString(),
       };
       const response = await commentClient.GetComments(request);
-      console.log(response.comments);
-      setComments(response.comments || []);
+      if (response && response.comments && response.comments.length !== 0) {
+        setComments(response.comments || []);
+        // console.log(response.comments);
+      }
     } catch (err: any) {
       console.error("Failed to fetch comments:", err);
       setError(err?.message || "Unknown error");

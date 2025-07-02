@@ -20,6 +20,7 @@ import SearchPage from "./pages/search/SearchPage";
 import { NotificationProvider } from "./context/NotificationContext";
 import ChatLayout from "./pages/chat/ChatLayout";
 import VideoPage from "./pages/video/VideoPage";
+import ManageVideosPage from "./pages/video/ManageVideosPage";
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
               <Route path="/home" element={<VideoFeed />} />
               <Route path="/:username" element={<ProfilePage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/video/:videoId" element={<VideoPage />} />
 
               {/* Private routes */}
               <Route element={<PrivateRoute />}>
@@ -53,7 +55,7 @@ const App = () => {
                 <Route path="/friends" element={<FriendPage />} />
                 <Route path="/following" element={<FollowingPage />} />
                 <Route path="/playlist" element={<PlaylistPage />} />
-                <Route path="/video/:videoId" element={<VideoPage />} />
+                <Route path="/manage-videos" element={<ManageVideosPage />} />
               </Route>
             </Route>
           </Routes>

@@ -18,14 +18,14 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
       {/* Upload Video Card - Always Displayed as First Grid Item */}
       {isOwnProfile && isVideoTab && (
         <div className="video-card upload-card">
-          <Link to="/upload" className="upload-link">
+          <Link to="/manage-videos" className="upload-link">
             <div className="upload-content">
               <div className="upload-icon">
                 <Upload size={32} />
               </div>
               <div className="upload-text">
-                <h3>Upload Video</h3>
-                <p>Share your content</p>
+                <h3>Manage Videos</h3>
+                <p>Manage your videos</p>
               </div>
             </div>
             <div className="upload-overlay">

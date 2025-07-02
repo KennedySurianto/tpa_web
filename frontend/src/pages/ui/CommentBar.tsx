@@ -22,10 +22,16 @@ import type {
 } from "../../api/gen/comment";
 import { useAuth } from "../../utils/AuthProvider";
 import { commentClient } from "../../api/grpc/commentClient";
-import type { LikeCommentRequest, LikeCommentResponse, UnlikeCommentRequest, UnlikeCommentResponse } from "../../api/gen/like_comment";
+import type {
+  LikeCommentRequest,
+  LikeCommentResponse,
+  UnlikeCommentRequest,
+  UnlikeCommentResponse,
+} from "../../api/gen/like_comment";
 import { likeCommentClient } from "../../api/grpc/likeCommentClient";
 import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import defaultAvatar from "../../assets/default.jpg";
+import { ProcessRichText } from "../../utils/processRichText";
 
 interface Props {
   videoId: number;
@@ -85,7 +91,10 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         userId: Number(user.id),
       };
 
-      const response: LikeCommentResponse = await likeCommentClient.LikeComment(req, getAuthMetadata());
+      const response: LikeCommentResponse = await likeCommentClient.LikeComment(
+        req,
+        getAuthMetadata(),
+      );
       if (response) {
         await refetch();
       } else {
@@ -110,7 +119,10 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         userId: Number(user.id),
       };
 
-      const response: UnlikeCommentResponse = await likeCommentClient.UnlikeComment(req, getAuthMetadata());
+      const response: UnlikeCommentResponse = await likeCommentClient.UnlikeComment(
+        req,
+        getAuthMetadata(),
+      );
       if (response) {
         await refetch();
       } else {
@@ -142,7 +154,7 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
       const request: CreateCommentRequest = {
         userId: Number(user.id),
         videoId: videoId,
-        content: content.trim(),
+        content: content,
         replyToId: replyToId,
       };
 
@@ -279,7 +291,12 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                         )}
                       </div>
 
-                      <p className="comment-text">{comment.content}</p>
+                      <p className="comment-text">
+                        <ProcessRichText
+                          key={`${comment.id}-${comment.content}`}
+                          text={comment.content}
+                        />
+                      </p>
 
                       <div className="comment-actions">
                         <span className="comment-date">
@@ -332,7 +349,12 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
                                     <span className="reply-username">
                                       {reply.user?.username || "Unknown"}
                                     </span>
-                                    <span className="reply-content">{reply.content}</span>
+                                    <span className="reply-content">
+                                      <ProcessRichText
+                                        key={`${reply.id}-${reply.content}`}
+                                        text={reply.content}
+                                      />
+                                    </span>
                                   </div>
                                   <div className="reply-actions">
                                     <span className="reply-date">
@@ -440,6 +462,16 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
       )}
 
       <style>{`
+        .comment-text a, .reply-content a {
+          color: #60a5fa;
+          text-decoration: none;
+          font-weight: bold;
+        }
+
+        .comment-text a:hover, .reply-content a:hover {
+          text-decoration: underline;
+        }
+
         .comment-bar {
           width: 380px;
           height: 100vh;

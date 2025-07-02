@@ -27,6 +27,7 @@ import CommentBar from "../pages/ui/CommentBar";
 import { avatarBytesToUrl } from "../utils/avatarConverter";
 import defaultAvatar from "../assets/default.jpg";
 import ShareVideoModal from "../pages/modals/ShareVideoModal";
+import { ProcessRichText } from "../utils/processRichText";
 
 interface props {
   videos: Video[];
@@ -537,30 +538,23 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     const desc = video.description;
                     const isExpanded = expandedDescriptions[video.id];
                     const maxLength = 120;
-                    if (desc.length <= maxLength || isExpanded) {
-                      return (
-                        <>
-                          {desc}
-                          {desc.length > maxLength && (
-                            <button
-                              className="expand-button"
-                              onClick={() => toggleDescription(video.id)}
-                            >
-                              See less
-                            </button>
-                          )}
-                        </>
-                      );
-                    }
+
+                    const displayedText =
+                      isExpanded || desc.length <= maxLength
+                        ? desc
+                        : desc.slice(0, maxLength) + "...";
+
                     return (
                       <>
-                        {desc.slice(0, maxLength)}...
-                        <button
-                          className="expand-button"
-                          onClick={() => toggleDescription(video.id)}
-                        >
-                          See more
-                        </button>
+                        <ProcessRichText text={displayedText} />
+                        {desc.length > maxLength && (
+                          <button
+                            className="expand-button"
+                            onClick={() => toggleDescription(video.id)}
+                          >
+                            {isExpanded ? "See less" : "See more"}
+                          </button>
+                        )}
                       </>
                     );
                   })()}
