@@ -1,17 +1,17 @@
-import type React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import type { Video } from "../api/gen/video";
-import { avatarBytesToUrl } from "../utils/avatarConverter";
-import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react";
+import type React from "react"
+import { Link, useNavigate } from "react-router-dom"
+import type { Video } from "../api/gen/video"
+import { avatarBytesToUrl } from "../utils/avatarConverter"
+import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react"
 
 interface VideoGridProps {
-  videos: Video[];
-  isOwnProfile: boolean;
-  isVideoTab: boolean;
+  videos: Video[]
+  isOwnProfile: boolean
+  isVideoTab: boolean
 }
 
 const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <div className="video-container">
@@ -40,11 +40,11 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
         <div className="video-card empty-card">
           <div className="empty-content">
             <div className="empty-icon">
-              <VideoIcon size={32} />
+              <VideoIcon size={24} />
             </div>
             <div className="empty-text">
-              <h3>No Videos Yet</h3>
-              <p>{isOwnProfile ? "Upload your first video" : "User hasn't posted any videos"}</p>
+              <h3>No Videos</h3>
+              <p>{isOwnProfile ? "Upload first" : "No videos yet"}</p>
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
                 playsInline
                 preload="metadata"
                 onLoadedMetadata={(e) => {
-                  (e.target as HTMLVideoElement).currentTime = 0;
+                  ;(e.target as HTMLVideoElement).currentTime = 0
                 }}
               >
                 <source src={video.videoUrl} type="video/mp4" />
@@ -192,11 +192,8 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
         /* Empty State Card */
         .empty-card {
           background: rgba(255, 255, 255, 0.03);
-          border: 1px dashed rgba(255, 255, 255, 0.2);
-          grid-column: 1 / -1;
-          aspect-ratio: 16 / 9;
-          max-width: 400px;
-          margin: 0 auto;
+          border: 1px dashed rgba(255, 255, 255, 0.15);
+          aspect-ratio: 3 / 4; /* Same as video cards */
         }
 
         .empty-content {
@@ -204,8 +201,8 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
-          padding: 24px;
+          gap: 8px;
+          padding: 16px;
           height: 100%;
           text-align: center;
         }
@@ -214,25 +211,26 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 60px;
-          height: 60px;
-          background: rgba(59, 130, 246, 0.1);
-          border-radius: 12px;
-          color: #3b82f6;
+          width: 40px;
+          height: 40px;
+          background: rgba(107, 114, 128, 0.1);
+          border-radius: 8px;
+          color: #6b7280;
           flex-shrink: 0;
         }
 
         .empty-text h3 {
-          margin: 0 0 4px 0;
-          font-size: 1.1rem;
+          margin: 0 0 2px 0;
+          font-size: 0.85rem;
           font-weight: 600;
-          color: #ffffff;
+          color: #d1d5db;
         }
 
         .empty-text p {
           margin: 0;
-          font-size: 0.9rem;
-          color: #8b949e;
+          font-size: 0.7rem;
+          color: #6b7280;
+          line-height: 1.2;
         }
 
         /* Video Cards */
@@ -393,10 +391,6 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
             font-size: 0.7rem;
           }
 
-          .empty-card {
-            aspect-ratio: 4 / 3;
-          }
-
           .video-stats {
             flex-direction: column;
             gap: 2px;
@@ -409,7 +403,7 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-export default VideoTab;
+export default VideoTab
