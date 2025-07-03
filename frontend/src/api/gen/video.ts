@@ -163,6 +163,10 @@ export interface GetCaptionsResponse_CaptionsEntry {
   value?: CaptionList | undefined;
 }
 
+/** ads */
+export interface GetRandomAdRequest {
+}
+
 function createBaseUser(): User {
   return { id: "0", username: "", avatar: new Uint8Array(0) };
 }
@@ -2302,6 +2306,49 @@ export const GetCaptionsResponse_CaptionsEntry: MessageFns<GetCaptionsResponse_C
   },
 };
 
+function createBaseGetRandomAdRequest(): GetRandomAdRequest {
+  return {};
+}
+
+export const GetRandomAdRequest: MessageFns<GetRandomAdRequest> = {
+  encode(_: GetRandomAdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetRandomAdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetRandomAdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): GetRandomAdRequest {
+    return {};
+  },
+
+  toJSON(_: GetRandomAdRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetRandomAdRequest>, I>>(base?: I): GetRandomAdRequest {
+    return GetRandomAdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetRandomAdRequest>, I>>(_: I): GetRandomAdRequest {
+    const message = createBaseGetRandomAdRequest();
+    return message;
+  },
+};
+
 /** Video service definition */
 export interface VideoService {
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse>;
@@ -2330,6 +2377,8 @@ export interface VideoService {
     request: DeepPartial<GetVideosByUserIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetVideosResponse>;
+  /** ads */
+  GetRandomAd(request: DeepPartial<GetRandomAdRequest>, metadata?: grpc.Metadata): Promise<Video>;
 }
 
 export class VideoServiceClientImpl implements VideoService {
@@ -2349,6 +2398,7 @@ export class VideoServiceClientImpl implements VideoService {
     this.GetFollowingVideos = this.GetFollowingVideos.bind(this);
     this.GetAllVideos = this.GetAllVideos.bind(this);
     this.GetLikedVideosByUserId = this.GetLikedVideosByUserId.bind(this);
+    this.GetRandomAd = this.GetRandomAd.bind(this);
   }
 
   CreateVideo(request: DeepPartial<CreateVideoRequest>, metadata?: grpc.Metadata): Promise<CreateVideoResponse> {
@@ -2420,6 +2470,10 @@ export class VideoServiceClientImpl implements VideoService {
       GetVideosByUserIdRequest.fromPartial(request),
       metadata,
     );
+  }
+
+  GetRandomAd(request: DeepPartial<GetRandomAdRequest>, metadata?: grpc.Metadata): Promise<Video> {
+    return this.rpc.unary(VideoServiceGetRandomAdDesc, GetRandomAdRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2691,6 +2745,29 @@ export const VideoServiceGetLikedVideosByUserIdDesc: UnaryMethodDefinitionish = 
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetVideosResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const VideoServiceGetRandomAdDesc: UnaryMethodDefinitionish = {
+  methodName: "GetRandomAd",
+  service: VideoServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetRandomAdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Video.decode(data);
       return {
         ...value,
         toObject() {

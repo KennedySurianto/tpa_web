@@ -151,6 +151,9 @@ message GetCaptionsResponse {
   map<string, CaptionList> captions = 1;
 }
 
+// ads
+message GetRandomAdRequest {}
+
 // Video service definition
 service VideoService {
   rpc CreateVideo(CreateVideoRequest) returns (CreateVideoResponse);
@@ -167,4 +170,6 @@ service VideoService {
   rpc GetFollowingVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
   rpc GetAllVideos(GetVideosByUserIdRequest) returns (GetVideosResponse);
   rpc GetLikedVideosByUserId(GetVideosByUserIdRequest) returns (GetVideosResponse);
+  // ads
+  rpc GetRandomAd(GetRandomAdRequest) returns (Video);
 }

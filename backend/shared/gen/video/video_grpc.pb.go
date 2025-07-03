@@ -31,6 +31,7 @@ const (
 	VideoService_GetFollowingVideos_FullMethodName     = "/video.VideoService/GetFollowingVideos"
 	VideoService_GetAllVideos_FullMethodName           = "/video.VideoService/GetAllVideos"
 	VideoService_GetLikedVideosByUserId_FullMethodName = "/video.VideoService/GetLikedVideosByUserId"
+	VideoService_GetRandomAd_FullMethodName            = "/video.VideoService/GetRandomAd"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -53,6 +54,8 @@ type VideoServiceClient interface {
 	GetFollowingVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	GetAllVideos(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
 	GetLikedVideosByUserId(ctx context.Context, in *GetVideosByUserIdRequest, opts ...grpc.CallOption) (*GetVideosResponse, error)
+	// ads
+	GetRandomAd(ctx context.Context, in *GetRandomAdRequest, opts ...grpc.CallOption) (*Video, error)
 }
 
 type videoServiceClient struct {
@@ -183,6 +186,16 @@ func (c *videoServiceClient) GetLikedVideosByUserId(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *videoServiceClient) GetRandomAd(ctx context.Context, in *GetRandomAdRequest, opts ...grpc.CallOption) (*Video, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Video)
+	err := c.cc.Invoke(ctx, VideoService_GetRandomAd_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -203,6 +216,8 @@ type VideoServiceServer interface {
 	GetFollowingVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	GetAllVideos(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
 	GetLikedVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error)
+	// ads
+	GetRandomAd(context.Context, *GetRandomAdRequest) (*Video, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -248,6 +263,9 @@ func (UnimplementedVideoServiceServer) GetAllVideos(context.Context, *GetVideosB
 }
 func (UnimplementedVideoServiceServer) GetLikedVideosByUserId(context.Context, *GetVideosByUserIdRequest) (*GetVideosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLikedVideosByUserId not implemented")
+}
+func (UnimplementedVideoServiceServer) GetRandomAd(context.Context, *GetRandomAdRequest) (*Video, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRandomAd not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -486,6 +504,24 @@ func _VideoService_GetLikedVideosByUserId_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetRandomAd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRandomAdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetRandomAd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetRandomAd_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetRandomAd(ctx, req.(*GetRandomAdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -540,6 +576,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLikedVideosByUserId",
 			Handler:    _VideoService_GetLikedVideosByUserId_Handler,
+		},
+		{
+			MethodName: "GetRandomAd",
+			Handler:    _VideoService_GetRandomAd_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

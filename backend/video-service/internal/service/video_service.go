@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 )
@@ -15,4 +17,7 @@ type VideoService interface {
 	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
 	GetAllVideos() ([]model.Video, error)
 	GetLikedVideosByUserId(userId uint32) ([]*model.Video, error)
+
+	// ads
+	GetRandomAd(ctx context.Context) (*model.Video, error)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"sort"
 
 	"google.golang.org/grpc/codes"
@@ -439,3 +440,27 @@ func (vc *VideoController) GetLikedVideosByUserId(ctx context.Context, req *pb.G
 	return &pb.GetVideosResponse{Videos: pbVideos}, nil
 }
 
+func (vc *VideoController) GetRandomAd(ctx context.Context, req *pb.GetRandomAdRequest) (*pb.Video, error) {
+	ad, err := vc.videoService.GetRandomAd(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get random ad: %v", err)
+	}
+
+	// Generate a dummy unique ID for ad (safe from DB collision)
+	randomOffset := rand.IntN(100000)
+	dummyID := -1000000 + randomOffset
+
+	// Ad is fake, so we don't fetch likes/comments/user info
+	return &pb.Video{
+		Id:            uint32(dummyID),
+		VideoUrl:      ad.VideoURL,
+		Caption:       ad.Caption,
+		AllowComments: false,
+		IsPublished:   true,
+		Duration: int32(ad.Duration),
+		User: &pb.User{
+			Id:       0,
+			Username: "advertiser",
+		},
+	}, nil
+}

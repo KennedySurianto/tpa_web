@@ -229,7 +229,7 @@ services:
     container_name: video-service
     build:
       context: ./backend
-      dockerfile: video-service/Dockerfile
+      dockerfile: video-service/Dockerfile.dev
     ports:
       - 50053:50053
     depends_on:
@@ -251,10 +251,14 @@ services:
       ACTIVITY_SERVICE_HOST: ${ACTIVITY_SERVICE_HOST}
       ACTIVITY_SERVICE_PORT: ${ACTIVITY_SERVICE_PORT}
       PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+    volumes:
+      - ./backend/video-service:/app/video-service
+      - ./backend/shared:/app/shared
+      - ./backend/middleware:/app/middleware
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50053"]
+      test: ["CMD", "grpc_health_probe", "-addr=:50053"]
       interval: 30s
       timeout: 5s
       retries: 3

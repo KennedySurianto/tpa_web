@@ -1,0 +1,73 @@
+# syntax=docker/dockerfile:1
+FROM golang:1.24.3-bookworm
+
+WORKDIR /app
+
+# ----------- Go Setup -----------
+# Install curl
+RUN apt-get update && apt-get install -y git curl wget && \
+    go install github.com/air-verse/air@v1.62.0
+
+# Copy go.mod and go.sum for dependency resolution
+COPY video-service/go.mod video-service/go.sum ./video-service/
+
+# Copy .air.toml config file into /app/video-service
+COPY video-service/.air.toml ./video-service/
+
+# Copy shared package
+COPY shared ./shared
+
+# Copy middleware package
+COPY middleware ./middleware
+
+# Create folder placeholders (will be mounted in docker-compose)
+RUN mkdir -p /app/shared /app/middleware /app/video-service
+
+# Download Go dependencies
+WORKDIR /app/video-service
+
+# Pre-download Go dependencies
+RUN go mod download
+
+# Install grpc_health_probe
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.25 && \
+    wget -qO /usr/local/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+    chmod +x /usr/local/bin/grpc_health_probe
+
+# ----------- Python + System Dependencies -----------
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libavdevice-dev \
+    build-essential \
+    wget \
+    curl \
+    git \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate Python virtual environment
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+# Install Whisper + googletrans using venv's pip
+RUN /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    /venv/bin/pip install git+https://github.com/openai/whisper.git && \
+    /venv/bin/pip install googletrans==4.0.0-rc1
+
+# ----------- Copy Code & Tools -----------
+COPY video-service/scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# MinIO client
+RUN curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && \
+    chmod +x mc && \
+    mv mc /usr/local/bin/mc
+
+# Create temp directory for AI processing
+RUN mkdir -p /app/temp
+
+EXPOSE 50053
+
+# CMD runs air directly (calls your entrypoint script from air.conf if needed)
+CMD [ "air" ]

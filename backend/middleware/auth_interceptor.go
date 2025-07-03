@@ -81,6 +81,7 @@ func isPublicMethod(fullMethod string) bool {
 		// "/video.VideoService/GetFollowingVideos",
 		"/video.VideoService/GetAllVideos",
 		"/video.VideoService/GetLikedVideosByUserId",
+		"/video.VideoService/GetRandomAd",
 
 		// activity.CommentService
 		// =========================================

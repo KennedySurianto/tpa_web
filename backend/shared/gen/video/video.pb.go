@@ -1297,6 +1297,43 @@ func (x *GetCaptionsResponse) GetCaptions() map[string]*CaptionList {
 	return nil
 }
 
+// ads
+type GetRandomAdRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRandomAdRequest) Reset() {
+	*x = GetRandomAdRequest{}
+	mi := &file_video_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRandomAdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRandomAdRequest) ProtoMessage() {}
+
+func (x *GetRandomAdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_video_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRandomAdRequest.ProtoReflect.Descriptor instead.
+func (*GetRandomAdRequest) Descriptor() ([]byte, []int) {
+	return file_video_proto_rawDescGZIP(), []int{19}
+}
+
 var File_video_proto protoreflect.FileDescriptor
 
 const file_video_proto_rawDesc = "" +
@@ -1429,7 +1466,8 @@ const file_video_proto_rawDesc = "" +
 	"\bcaptions\x18\x01 \x03(\v2(.video.GetCaptionsResponse.CaptionsEntryR\bcaptions\x1aO\n" +
 	"\rCaptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12(\n" +
-	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x012\x94\a\n" +
+	"\x05value\x18\x02 \x01(\v2\x12.video.CaptionListR\x05value:\x028\x01\"\x14\n" +
+	"\x12GetRandomAdRequest2\xcc\a\n" +
 	"\fVideoService\x12D\n" +
 	"\vCreateVideo\x12\x19.video.CreateVideoRequest\x1a\x1a.video.CreateVideoResponse\x12;\n" +
 	"\bGetVideo\x12\x16.video.GetVideoRequest\x1a\x17.video.GetVideoResponse\x12D\n" +
@@ -1442,7 +1480,8 @@ const file_video_proto_rawDesc = "" +
 	"\x0fGetFriendVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12O\n" +
 	"\x12GetFollowingVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12I\n" +
 	"\fGetAllVideos\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x12S\n" +
-	"\x16GetLikedVideosByUserId\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponseBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
+	"\x16GetLikedVideosByUserId\x12\x1f.video.GetVideosByUserIdRequest\x1a\x18.video.GetVideosResponse\x126\n" +
+	"\vGetRandomAd\x12\x19.video.GetRandomAdRequest\x1a\f.video.VideoBCZAgithub.com/KennedySurianto/tpa_web/backend/shared/gen/video;videob\x06proto3"
 
 var (
 	file_video_proto_rawDescOnce sync.Once
@@ -1456,7 +1495,7 @@ func file_video_proto_rawDescGZIP() []byte {
 	return file_video_proto_rawDescData
 }
 
-var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_video_proto_goTypes = []any{
 	(*User)(nil),                        // 0: video.User
 	(*Video)(nil),                       // 1: video.Video
@@ -1477,13 +1516,14 @@ var file_video_proto_goTypes = []any{
 	(*CaptionLine)(nil),                 // 16: video.CaptionLine
 	(*CaptionList)(nil),                 // 17: video.CaptionList
 	(*GetCaptionsResponse)(nil),         // 18: video.GetCaptionsResponse
-	nil,                                 // 19: video.GetCaptionsResponse.CaptionsEntry
-	(*timestamppb.Timestamp)(nil),       // 20: google.protobuf.Timestamp
+	(*GetRandomAdRequest)(nil),          // 19: video.GetRandomAdRequest
+	nil,                                 // 20: video.GetCaptionsResponse.CaptionsEntry
+	(*timestamppb.Timestamp)(nil),       // 21: google.protobuf.Timestamp
 }
 var file_video_proto_depIdxs = []int32{
-	20, // 0: video.Video.created_at:type_name -> google.protobuf.Timestamp
-	20, // 1: video.Video.updated_at:type_name -> google.protobuf.Timestamp
-	20, // 2: video.Video.deleted_at:type_name -> google.protobuf.Timestamp
+	21, // 0: video.Video.created_at:type_name -> google.protobuf.Timestamp
+	21, // 1: video.Video.updated_at:type_name -> google.protobuf.Timestamp
+	21, // 2: video.Video.deleted_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: video.Video.user:type_name -> video.User
 	1,  // 4: video.CreateVideoResponse.video:type_name -> video.Video
 	1,  // 5: video.GetVideoResponse.video:type_name -> video.Video
@@ -1491,7 +1531,7 @@ var file_video_proto_depIdxs = []int32{
 	1,  // 7: video.UpdateMetricsResponse.video:type_name -> video.Video
 	1,  // 8: video.GetVideosResponse.videos:type_name -> video.Video
 	16, // 9: video.CaptionList.lines:type_name -> video.CaptionLine
-	19, // 10: video.GetCaptionsResponse.captions:type_name -> video.GetCaptionsResponse.CaptionsEntry
+	20, // 10: video.GetCaptionsResponse.captions:type_name -> video.GetCaptionsResponse.CaptionsEntry
 	17, // 11: video.GetCaptionsResponse.CaptionsEntry.value:type_name -> video.CaptionList
 	2,  // 12: video.VideoService.CreateVideo:input_type -> video.CreateVideoRequest
 	4,  // 13: video.VideoService.GetVideo:input_type -> video.GetVideoRequest
@@ -1505,20 +1545,22 @@ var file_video_proto_depIdxs = []int32{
 	10, // 21: video.VideoService.GetFollowingVideos:input_type -> video.GetVideosByUserIdRequest
 	10, // 22: video.VideoService.GetAllVideos:input_type -> video.GetVideosByUserIdRequest
 	10, // 23: video.VideoService.GetLikedVideosByUserId:input_type -> video.GetVideosByUserIdRequest
-	3,  // 24: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
-	5,  // 25: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
-	7,  // 26: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
-	9,  // 27: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
-	14, // 28: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosResponse
-	12, // 29: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
-	14, // 30: video.VideoService.GetRecommendedVideos:output_type -> video.GetVideosResponse
-	18, // 31: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
-	14, // 32: video.VideoService.GetFriendVideos:output_type -> video.GetVideosResponse
-	14, // 33: video.VideoService.GetFollowingVideos:output_type -> video.GetVideosResponse
-	14, // 34: video.VideoService.GetAllVideos:output_type -> video.GetVideosResponse
-	14, // 35: video.VideoService.GetLikedVideosByUserId:output_type -> video.GetVideosResponse
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
+	19, // 24: video.VideoService.GetRandomAd:input_type -> video.GetRandomAdRequest
+	3,  // 25: video.VideoService.CreateVideo:output_type -> video.CreateVideoResponse
+	5,  // 26: video.VideoService.GetVideo:output_type -> video.GetVideoResponse
+	7,  // 27: video.VideoService.UpdateVideo:output_type -> video.UpdateVideoResponse
+	9,  // 28: video.VideoService.DeleteVideo:output_type -> video.DeleteVideoResponse
+	14, // 29: video.VideoService.GetVideosByUserId:output_type -> video.GetVideosResponse
+	12, // 30: video.VideoService.UpdateMetrics:output_type -> video.UpdateMetricsResponse
+	14, // 31: video.VideoService.GetRecommendedVideos:output_type -> video.GetVideosResponse
+	18, // 32: video.VideoService.GetCaptions:output_type -> video.GetCaptionsResponse
+	14, // 33: video.VideoService.GetFriendVideos:output_type -> video.GetVideosResponse
+	14, // 34: video.VideoService.GetFollowingVideos:output_type -> video.GetVideosResponse
+	14, // 35: video.VideoService.GetAllVideos:output_type -> video.GetVideosResponse
+	14, // 36: video.VideoService.GetLikedVideosByUserId:output_type -> video.GetVideosResponse
+	1,  // 37: video.VideoService.GetRandomAd:output_type -> video.Video
+	25, // [25:38] is the sub-list for method output_type
+	12, // [12:25] is the sub-list for method input_type
 	12, // [12:12] is the sub-list for extension type_name
 	12, // [12:12] is the sub-list for extension extendee
 	0,  // [0:12] is the sub-list for field type_name
@@ -1539,7 +1581,7 @@ func file_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_video_proto_rawDesc), len(file_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

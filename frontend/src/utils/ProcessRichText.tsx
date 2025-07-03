@@ -33,8 +33,6 @@ export function ProcessRichText({ text }: { text: string }) {
       return { type: "text", value: token };
     });
 
-    console.log("rawTokens: ", rawTokens);
-
     // Validate mentions asynchronously
     const validateMentions = async () => {
       try {
@@ -42,7 +40,6 @@ export function ProcessRichText({ text }: { text: string }) {
           rawTokens.map(async (token) => {
             if (token.type === "mention") {
               const valid = await isValidUser(token.value);
-              console.log("value: ", token.value, ", valid: ", valid);
               return { ...token, valid };
             }
             return token;

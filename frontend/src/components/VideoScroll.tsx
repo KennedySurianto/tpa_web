@@ -65,7 +65,6 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
   const [showCaptions, setShowCaptions] = useState<boolean>(false);
   const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({});
-  const [expandedCaptions, setExpandedCaptions] = useState<{ [videoId: number]: boolean }>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [videoId: number]: boolean }>(
     {},
   );
@@ -85,10 +84,6 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         targetVideo.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
-  };
-
-  const toggleCaption = (videoId: number) => {
-    setExpandedCaptions((prev) => ({ ...prev, [videoId]: !prev[videoId] }));
   };
 
   const toggleDescription = (videoId: number) => {
@@ -440,7 +435,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     e.stopPropagation();
                     handleVideoClick(index);
                   }}
-                >
+                  >
                   {isPlaying[video.id] ? <Pause size={32} /> : <Play size={32} />}
                 </button>
               </div>
@@ -531,9 +526,13 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                       }
                       alt={`${video.user?.username || "User"}'s profile`}
                       className="profile-avatar"
-                      onClick={() => video.user?.username && handleUserClick(video.user.username)}
+                      onClick={() => 
+                        video.user?.username && 
+                        video.user.username.toLocaleLowerCase() !== "advertiser" 
+                        && handleUserClick(video.user.username)
+                      }
                     />
-                    {video.user?.id !== user?.id &&
+                    {video.user?.id !== user?.id && video.user?.username.toLocaleLowerCase() !== "advertiser"  &&
                       !followersMap[Number(video.user?.id)]?.includes(Number(user?.id)) && (
                         <button
                           onClick={() => handleFollow(Number(video.user?.id))}
@@ -544,7 +543,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                       )}
                   </div>
                   <div
-                    onClick={() => video.user?.username && handleUserClick(video.user.username)}
+                    onClick={() => video.user?.username && video.user.username.toLocaleLowerCase() !== "advertiser"  && handleUserClick(video.user.username)}
                     className="username"
                   >
                     @{video.user?.username || "anonymous"}
@@ -586,7 +585,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               )}
 
               {/* Captions Display */}
-              {showCaptions && (
+              {showCaptions && video.user?.username.toLocaleLowerCase() !== "advertiser"  && (
                 <div className="captions-display">
                   {getCurrentCaption(video.id, currentVideoTime, selectedLanguage)}
                 </div>
@@ -609,20 +608,22 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="action-buttons">
+              {video.user?.username.toLocaleLowerCase() !== "advertiser"  && (
+
+                <div className="action-buttons">
                 <div className="primary-actions">
                   <button
                     onClick={() => (!video.isLiked ? handleLike(video.id) : handleUnlike(video.id))}
                     className={`action-button like-button ${video.isLiked ? "liked" : ""}`}
-                  >
+                    >
                     <Heart size={20} className={video.isLiked ? "filled" : ""} />
                     <span>{video.likeCount}</span>
                   </button>
 
                   {video.allowComments && (
                     <button
-                      onClick={() => handleComment(video.id)}
-                      className="action-button comment-button"
+                    onClick={() => handleComment(video.id)}
+                    className="action-button comment-button"
                     >
                       <MessageCircle size={20} />
                       <span>{video.commentsCount}</span>
@@ -632,7 +633,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                   <button
                     onClick={() => handleShare(video.id, video.videoUrl, video.caption)}
                     className="action-button share-button"
-                  >
+                    >
                     <Share2 size={20} />
                     <span>Share</span>
                   </button>
@@ -640,41 +641,42 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                   <button
                     onClick={() => handleSave(video.id)}
                     className="action-button save-button"
-                  >
+                    >
                     <Bookmark size={20} />
                     <span>Save</span>
                   </button>
                 </div>
 
                 <div className="secondary-actions">
-                  <button
-                    onClick={() => setShowCaptions(!showCaptions)}
-                    className={`action-button caption-button ${showCaptions ? "active" : ""}`}
-                  >
-                    <Subtitles size={18} />
-                    <span>CC</span>
-                  </button>
 
                   {showCaptions && (
                     <div className="language-buttons">
                       <button
                         onClick={() => setSelectedLanguage("en")}
                         className={`lang-button ${selectedLanguage === "en" ? "active" : ""}`}
-                      >
+                        >
                         EN
                       </button>
                       <button
                         onClick={() => setSelectedLanguage("id")}
                         className={`lang-button ${selectedLanguage === "id" ? "active" : ""}`}
-                      >
+                        >
                         ID
                       </button>
                     </div>
                   )}
+                  <button
+                    onClick={() => setShowCaptions(!showCaptions)}
+                    className={`action-button caption-button ${showCaptions ? "active" : ""}`}
+                    >
+                    <Subtitles size={18} />
+                    <span>CC</span>
+                  </button>
                 </div>
 
                 {errorMessage && <div className="error-message">{errorMessage}</div>}
               </div>
+              )}
             </div>
           </div>
         ))}

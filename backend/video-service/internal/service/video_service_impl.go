@@ -4,16 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand/v2"
 	"os"
 	"os/exec"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
+	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	likepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/like"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
-	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/repository"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/storage"
@@ -45,6 +48,11 @@ func NewVideoService(
 	likeClient likepb.LikeServiceClient, 
 	watchClient watchpb.WatchServiceClient,
 	commentClient commentpb.CommentServiceClient) VideoService {
+	
+	if err := os.MkdirAll("temp", os.ModePerm); err != nil {
+		log.Fatalf("❌ Failed to create temp dir: %v", err)
+	}
+	
 	return &VideoServiceImpl {
 		videoRepo: 	videoRepo,
 		minio: 		minio,
@@ -342,4 +350,80 @@ func (s *VideoServiceImpl) GetLikedVideosByUserId(userId uint32) ([]*model.Video
 	}
 
 	return videos, nil
+}
+
+func getVideoDuration(path string) (int, error) {
+	cmd := exec.Command("ffprobe", "-v", "error",
+		"-show_entries", "format=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1", path)
+
+	output, err := cmd.Output()
+	if err != nil {
+		return 0, fmt.Errorf("ffprobe failed: %w", err)
+	}
+
+	secondsStr := strings.TrimSpace(string(output))
+	seconds, err := strconv.ParseFloat(secondsStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse error: %w", err)
+	}
+
+	return int(seconds), nil
+}
+
+func (s *VideoServiceImpl) GetRandomAd(ctx context.Context) (*model.Video, error) {
+	fmt.Println("[GetRandomAd] Listing objects in 'ads' bucket...")
+	objects, err := s.minio.ListObjects(ctx, "ads")
+	if err != nil {
+		return nil, fmt.Errorf("failed to list ads: %w", err)
+	}
+
+	if len(objects) == 0 {
+		fmt.Println("[GetRandomAd] No ad objects found.")
+		return nil, fmt.Errorf("no ads found in MinIO bucket")
+	}
+
+	randomIndex := rand.IntN(len(objects))
+	selected := objects[randomIndex]
+	fmt.Printf("[GetRandomAd] Selected ad object: %s\n", selected.Key)
+
+	// Public URL for frontend
+	publicURL := s.minio.PublicObjectURL("ads", selected.Key)
+	fmt.Printf("[GetRandomAd] Public URL: %s\n", publicURL)
+
+	// Download to temp file
+	localPath := fmt.Sprintf("temp/%s", selected.Key)
+
+	fmt.Printf("[GetRandomAd] Downloading to local path: %s\n", localPath)
+	if err := s.minio.DownloadFile(ctx, publicURL, localPath); err != nil {
+		fmt.Printf("[GetRandomAd] Failed to download ad: %v\n", err)
+		return nil, fmt.Errorf("failed to download ad from MinIO: %w", err)
+	}
+	defer func() {
+		fmt.Printf("[GetRandomAd] Cleaning up temp file: %s\n", localPath)
+		_ = os.Remove(localPath)
+	}()
+
+	// Get video duration
+	duration := 0
+	fmt.Println("[GetRandomAd] Probing video duration with ffprobe...")
+	if d, err := getVideoDuration(localPath); err == nil {
+		duration = d
+		fmt.Printf("[GetRandomAd] Duration found: %d seconds\n", duration)
+	} else {
+		fmt.Printf("[GetRandomAd] Warning: failed to get ad duration: %v\n", err)
+	}
+
+	// Construct ad object
+	ad := &model.Video{
+		UserID:        0,
+		VideoURL:      publicURL,
+		Caption:       "Sponsored",
+		AllowComments: false,
+		IsPublished:   true,
+		Duration:      duration,
+	}
+
+	fmt.Println("[GetRandomAd] Returning ad object.")
+	return ad, nil
 }
