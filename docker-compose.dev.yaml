@@ -1,14 +1,11 @@
 services:
-  # nanti setiap db nya kan pasti bakal banyak, bikin aja kek user-db, tambahin depends on & environment (DB URL) kek user-service.
-  # make sure di db service backend codenya pake DATABASE_URL environment variable untuk koneksi ke database
-  # jgn lupa bikin volume untuk persist data
   user-db:
     container_name: user-db
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: user_service_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_DB_NAME}
     ports:
       - "5433:5432"
     volumes:
@@ -16,7 +13,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d user_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${USER_DB_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -26,9 +23,9 @@ services:
     container_name: video-db
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: video_service_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${VIDEO_DB_NAME}
     ports:
       - "5434:5432"
     volumes:
@@ -36,19 +33,19 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d video_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${VIDEO_DB_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
-  
+
   activity-db:
     container_name: activity-db
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: activity_service_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ACTIVITY_DB_NAME}
     ports:
       - "5435:5432"
     volumes:
@@ -56,7 +53,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d activity_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${ACTIVITY_DB_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -66,9 +63,9 @@ services:
     container_name: chat-db
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: chat_service_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CHAT_DB_NAME}
     ports:
       - "5436:5432"
     volumes:
@@ -76,7 +73,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d chat_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CHAT_DB_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -86,9 +83,9 @@ services:
     container_name: playlist-db
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: playlist_service_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${PLAYLIST_DB_NAME}
     ports:
       - "5437:5432"
     volumes:
@@ -96,12 +93,13 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d playlist_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${PLAYLIST_DB_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
 
+  # Application services
   envoy:
     container_name: envoy
     image: envoyproxy/envoy:v1.29-latest
@@ -121,6 +119,8 @@ services:
         condition: service_healthy
       chat-service:
         condition: service_healthy
+      playlist-service:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -129,11 +129,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
-    # optional explicit command:
-    # command: ["-c", "/etc/envoy/envoy.yaml"]
 
   memcached:
-    container_name: memcached 
+    container_name: memcached
     image: memcached:1.6-alpine
     ports:
       - "11211:11211"
@@ -150,11 +148,11 @@ services:
     image: minio/minio:latest
     container_name: minio
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web UI
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
@@ -169,14 +167,15 @@ services:
 
   user-service:
     container_name: user-service
-    build: 
+    build:
       context: ./backend
       dockerfile: user-service/Dockerfile
     depends_on:
       user-db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_service_db
+      DATABASE_URL: ${DATABASE_URL_USER}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     ports:
       - 50051:50051
     networks:
@@ -190,9 +189,9 @@ services:
 
   auth-service:
     container_name: auth-service
-    build: 
+    build:
       context: ./backend
-      dockerfile: auth-service/Dockerfile
+      dockerfile: auth-service/Dockerfile.dev
     ports:
       - 50052:50052
     depends_on:
@@ -201,17 +200,22 @@ services:
       memcached:
         condition: service_healthy
     environment:
-      MEMCACHED_HOST: memcached:11211
-      SMTP_USER: tpawebkn@gmail.com
-      SMTP_PASS: dwjb nfyf usuq qhuz
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      USER_SERVICE_HOST: user-service
-      USER_SERVICE_PORT: 50051
+      MEMCACHED_HOST: ${MEMCACHED_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      USER_SERVICE_HOST: ${USER_SERVICE_HOST}
+      USER_SERVICE_PORT: ${USER_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+    volumes:
+      - ./backend/auth-service:/app/auth-service
+      - ./backend/shared:/app/shared
+      - ./backend/middleware:/app/middleware
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50052"]
+      test: ["CMD", "grpc_health_probe", "-addr=:50052"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -219,7 +223,7 @@ services:
 
   video-service:
     container_name: video-service
-    build: 
+    build:
       context: ./backend
       dockerfile: video-service/Dockerfile
     ports:
@@ -232,16 +236,17 @@ services:
       user-service:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://postgres:postgres@video-db:5432/video_service_db
-      MINIO_ENDPOINT: minio:9000
-      MINIO_PUBLIC_URL: localhost:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
-      MINIO_BUCKET: videos
-      USER_SERVICE_HOST: user-service
-      USER_SERVICE_PORT: 50051
-      ACTIVITY_SERVICE_HOST: activity-service
-      ACTIVITY_SERVICE_PORT: 50054
+      DATABASE_URL: ${DATABASE_URL_VIDEO}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      USER_SERVICE_HOST: ${USER_SERVICE_HOST}
+      USER_SERVICE_PORT: ${USER_SERVICE_PORT}
+      ACTIVITY_SERVICE_HOST: ${ACTIVITY_SERVICE_HOST}
+      ACTIVITY_SERVICE_PORT: ${ACTIVITY_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     healthcheck:
@@ -253,7 +258,7 @@ services:
 
   activity-service:
     container_name: activity-service
-    build: 
+    build:
       context: ./backend
       dockerfile: activity-service/Dockerfile
     ports:
@@ -266,9 +271,10 @@ services:
       video-service:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://postgres:postgres@activity-db:5432/activity_service_db
-      USER_SERVICE_HOST: user-service
-      USER_SERVICE_PORT: 50051
+      DATABASE_URL: ${DATABASE_URL_ACTIVITY}
+      USER_SERVICE_HOST: ${USER_SERVICE_HOST}
+      USER_SERVICE_PORT: ${USER_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     healthcheck:
@@ -280,25 +286,22 @@ services:
 
   chat-service:
     container_name: chat-service
-    build: 
+    build:
       context: ./backend
       dockerfile: chat-service/Dockerfile
     expose:
-      - "50055"   # gRPC
-      - "8081"    # WebSocket/HTTP
+      - "50055"
+      - "8081"
     ports:
       - 50055:50055
       - 8081:8081
     depends_on:
-      chat-db: 
+      chat-db:
         condition: service_healthy
-    #   user-service:
-    #     condition: service_healthy
     environment:
-      PORT: 50055
-      DATABASE_URL: postgres://postgres:postgres@chat-db:5432/chat_service_db
-      # USER_SERVICE_HOST: user-service
-      # USER_SERVICE_PORT: 50051
+      PORT: ${CHAT_SERVICE_PORT}
+      DATABASE_URL: ${DATABASE_URL_CHAT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     healthcheck:
@@ -310,7 +313,7 @@ services:
 
   live-service:
     container_name: live-service
-    build: 
+    build:
       context: ./backend
       dockerfile: live-service/Dockerfile
     expose:
@@ -318,7 +321,7 @@ services:
     ports:
       - 50056:50056
     environment:
-      PORT: 50056
+      PORT: ${LIVE_SERVICE_PORT}
     networks:
       - app-network
     healthcheck:
@@ -327,10 +330,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    
+
   playlist-service:
     container_name: playlist-service
-    build: 
+    build:
       context: ./backend
       dockerfile: playlist-service/Dockerfile
     expose:
@@ -338,14 +341,15 @@ services:
     ports:
       - 50057:50057
     environment:
-      PORT: 50057
-      DATABASE_URL: postgres://postgres:postgres@playlist-db:5432/playlist_service_db
-      VIDEO_SERVICE_HOST: video-service
-      VIDEO_SERVICE_PORT: 50053
+      PORT: ${PLAYLIST_SERVICE_PORT}
+      DATABASE_URL: ${DATABASE_URL_PLAYLIST}
+      VIDEO_SERVICE_HOST: ${VIDEO_SERVICE_HOST}
+      VIDEO_SERVICE_PORT: ${VIDEO_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     networks:
       - app-network
     depends_on:
-      playlist-db: 
+      playlist-db:
         condition: service_healthy
       video-service:
         condition: service_healthy
@@ -364,8 +368,8 @@ services:
     networks:
       - app-network
     volumes:
-    - ./frontend:/app           # Mount local code into container
-    - /app/node_modules         # Prevent overwriting node_modules
+      - ./frontend:/app
+      - /app/node_modules
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s

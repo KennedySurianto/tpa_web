@@ -5,20 +5,34 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcache"
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/service"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
-	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
+func printDevBanner() {
+	fmt.Println()
+	fmt.Println("========================================")
+	fmt.Println("🛠️  AUTH SERVICE - DEV MODE - HOT RELOAD")
+	fmt.Println("📦  Version: DEV")
+	fmt.Println("🚀  Listening on :50052")
+	fmt.Println("========================================")
+	fmt.Println()
+}
+
 func main() {
+	printDevBanner()
+	fmt.Println("🕒 Rebuild time:", time.Now().Format(time.RFC1123))
+
 	// Get port from environment or use default
 	port := getEnv("PORT", "50052")
 
