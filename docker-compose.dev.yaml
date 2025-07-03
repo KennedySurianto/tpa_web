@@ -169,7 +169,7 @@ services:
     container_name: user-service
     build:
       context: ./backend
-      dockerfile: user-service/Dockerfile
+      dockerfile: user-service/Dockerfile.dev
     depends_on:
       user-db:
         condition: service_healthy
@@ -178,10 +178,14 @@ services:
       PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
     ports:
       - 50051:50051
+    volumes:
+      - ./backend/user-service:/app/user-service
+      - ./backend/shared:/app/shared
+      - ./backend/middleware:/app/middleware
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50051"]
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
       interval: 30s
       timeout: 5s
       retries: 3

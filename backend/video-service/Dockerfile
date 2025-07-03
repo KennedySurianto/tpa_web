@@ -27,7 +27,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.25 && \
     chmod +x /bin/grpc_health_probe
 
 # =============== Final image ===============
-FROM python:3.11-slim AS runtime
+FROM python:3.11 AS runtime
 
 WORKDIR /app
 
@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy grpc_health_probe binary
@@ -53,7 +54,8 @@ COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 RUN pip install --upgrade pip && \
-    pip install faster-whisper googletrans==4.0.0-rc1
+    pip install https://github.com/openai/whisper/archive/refs/heads/main.zip && \
+    pip install googletrans==4.0.0-rc1
 
 # Copy the Go binary and Python script
 COPY --from=builder /app/video-service/app .

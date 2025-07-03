@@ -114,6 +114,8 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req *auth.RegisterReques
 	// Store refresh token
 	s.storeRefreshToken(refreshToken, userResponse.User.Id)
 
+	SendWelcomeEmail(userResponse.User.Email, userResponse.User.Username)
+
 	return &auth.AuthResponse{
 		Success:      true,
 		Message:      "User registered successfully",
@@ -275,6 +277,8 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*a
 	// Store refresh token
 	s.storeRefreshToken(refreshToken, userData.Id)
 	log.Println("[DEBUG] Refresh token stored")
+
+	SendLoginNotificationEmail(userData.Email, userData.Username, time.Unix(userData.LastLoginAt, 0))
 
 	return &auth.AuthResponse{
 		Success:      true,

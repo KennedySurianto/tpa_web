@@ -28,7 +28,7 @@ export function useVideos(limit: number = 10, lastVideoId: string = "") {
       try {
         const response = await videoClient.GetRecommendedVideos(request);
         console.log("Fetched recommended videos:", response.videos);
-        setVideos(response.videos || []);
+        setVideos(response.videos.filter(video => video.isPublished) || []);
       } catch (err) {
         console.error("Failed to fetch recommended videos", err);
         setVideos([]);

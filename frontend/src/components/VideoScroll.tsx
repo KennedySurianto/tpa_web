@@ -27,13 +27,26 @@ import CommentBar from "../pages/ui/CommentBar";
 import { avatarBytesToUrl } from "../utils/avatarConverter";
 import defaultAvatar from "../assets/default.jpg";
 import ShareVideoModal from "../pages/modals/ShareVideoModal";
-import { ProcessRichText } from "../utils/processRichText";
+import { ProcessRichText } from "../utils/ProcessRichText";
 
 interface props {
   videos: Video[];
   setVideos: React.Dispatch<React.SetStateAction<Video[]>>;
   loading: boolean;
 }
+
+type CaptionLine = {
+  start: number;
+  end: number;
+  text: string;
+};
+
+type CaptionsMap = {
+  [videoId: number]: {
+    en: CaptionLine[];
+    id: CaptionLine[];
+  };
+};
 
 const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
   const { user, getAuthMetadata } = useAuth();
@@ -48,9 +61,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
   const [canComment, setCanComment] = useState<boolean>(true);
-  const [captionsMap, setCaptionsMap] = useState<{
-    [videoId: number]: { en: string[]; id: string[] };
-  }>({});
+  const [captionsMap, setCaptionsMap] = useState<CaptionsMap>({});
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "id">("en");
   const [showCaptions, setShowCaptions] = useState<boolean>(false);
   const [followersMap, setFollowersMap] = useState<{ [userId: number]: number[] }>({});
@@ -94,6 +105,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
     }
   };
 
+  // CAPTIONS
   const fetchCaptions = async (videoId: number) => {
     try {
       const res = await videoClient.GetCaptions({ videoId });
@@ -101,8 +113,8 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         setCaptionsMap((prev) => ({
           ...prev,
           [videoId]: {
-            en: res.captions["en"]?.lines || [],
-            id: res.captions["id"]?.lines || [],
+            en: res.captions["en"]?.lines ?? [],
+            id: res.captions["id"]?.lines ?? [],
           },
         }));
       }
@@ -116,6 +128,18 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
       fetchCaptions(selectedVideoId);
     }
   }, [selectedVideoId]);
+
+  const getCurrentCaption = (
+    videoId: number,
+    time: number,
+    lang: "en" | "id"
+  ): string | null => {
+    const lines = captionsMap[videoId]?.[lang];
+    if (!lines) return null;
+
+    const current = lines.find((line) => time >= line.start && time <= line.end);
+    return current?.text ?? null;
+  };
 
   const formatTime = (timeInSeconds: number): string => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -564,36 +588,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
               {/* Captions Display */}
               {showCaptions && (
                 <div className="captions-display">
-                  {(() => {
-                    const fullCaption =
-                      captionsMap[video.id]?.[selectedLanguage]?.join(" ") || video.caption || "";
-                    const isExpanded = expandedCaptions[video.id];
-                    const maxLength = 100;
-                    if (!fullCaption) return null;
-                    if (fullCaption.length <= maxLength || isExpanded) {
-                      return (
-                        <>
-                          {fullCaption}
-                          {fullCaption.length > maxLength && (
-                            <button
-                              className="expand-button"
-                              onClick={() => toggleCaption(video.id)}
-                            >
-                              See less
-                            </button>
-                          )}
-                        </>
-                      );
-                    }
-                    return (
-                      <>
-                        {fullCaption.slice(0, maxLength)}...
-                        <button className="expand-button" onClick={() => toggleCaption(video.id)}>
-                          See more
-                        </button>
-                      </>
-                    );
-                  })()}
+                  {getCurrentCaption(video.id, currentVideoTime, selectedLanguage)}
                 </div>
               )}
 

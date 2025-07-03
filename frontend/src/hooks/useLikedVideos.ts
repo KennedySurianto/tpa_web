@@ -21,8 +21,8 @@ export function useLikedVideos(userId: number) {
           currentUserId: Number(currentUserId),
         };
         const res = await videoClient.GetLikedVideosByUserId(req);
-        setVideos(res.videos || []);
-        console.log("liked videos: ", res.videos);
+        setVideos(res.videos.filter(video => video.isPublished) || []);
+        console.log("liked videos: ", res.videos.filter(video => video.isPublished));
       } catch (error) {
         console.error("Failed to fetch liked videos:", error);
         setVideos([]);

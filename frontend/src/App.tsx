@@ -11,7 +11,7 @@ import UploadVideoPage from "./pages/video/UploadVideoPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import EditProfilePage from "./pages/profile/EditProfilePage";
 import PrivateRoute from "./routes/PrivateRoute";
-import LivePage from "./pages/video/LivePage";
+import LivePage from "./pages/video/LiveStreamerPage";
 import LiveViewerPage from "./pages/video/LiveViewerPage";
 import FriendPage from "./pages/video/FriendPage";
 import FollowingPage from "./pages/video/FollowingPage";

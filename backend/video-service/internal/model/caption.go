@@ -1,13 +1,13 @@
 package model
 
 import (
-	"github.com/lib/pq"
-	"gorm.io/gorm"
+	"gorm.io/datatypes"
 )
 
 type Caption struct {
-	gorm.Model
-	VideoID  uint     		`gorm:"not null;index"`
-	Language string   		`gorm:"type:varchar(10);not null"`
-	Texts    pq.StringArray `gorm:"type:text[]"`
+	ID       uint           `gorm:"primaryKey"`
+	VideoID  uint           `gorm:"not null;index"`
+	Video    Video          `gorm:"foreignKey:VideoID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Language string         `gorm:"type:varchar(10);not null"`
+	Segments datatypes.JSON `gorm:"type:jsonb;not null"` // [{start, end, text}]
 }

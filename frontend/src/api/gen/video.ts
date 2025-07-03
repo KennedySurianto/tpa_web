@@ -144,8 +144,14 @@ export interface GetCaptionsRequest {
   videoId: number;
 }
 
+export interface CaptionLine {
+  start: number;
+  end: number;
+  text: string;
+}
+
 export interface CaptionList {
-  lines: string[];
+  lines: CaptionLine[];
 }
 
 export interface GetCaptionsResponse {
@@ -1980,6 +1986,98 @@ export const GetCaptionsRequest: MessageFns<GetCaptionsRequest> = {
   },
 };
 
+function createBaseCaptionLine(): CaptionLine {
+  return { start: 0, end: 0, text: "" };
+}
+
+export const CaptionLine: MessageFns<CaptionLine> = {
+  encode(message: CaptionLine, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.start !== 0) {
+      writer.uint32(13).float(message.start);
+    }
+    if (message.end !== 0) {
+      writer.uint32(21).float(message.end);
+    }
+    if (message.text !== "") {
+      writer.uint32(26).string(message.text);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CaptionLine {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCaptionLine();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 13) {
+            break;
+          }
+
+          message.start = reader.float();
+          continue;
+        }
+        case 2: {
+          if (tag !== 21) {
+            break;
+          }
+
+          message.end = reader.float();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.text = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CaptionLine {
+    return {
+      start: isSet(object.start) ? globalThis.Number(object.start) : 0,
+      end: isSet(object.end) ? globalThis.Number(object.end) : 0,
+      text: isSet(object.text) ? globalThis.String(object.text) : "",
+    };
+  },
+
+  toJSON(message: CaptionLine): unknown {
+    const obj: any = {};
+    if (message.start !== 0) {
+      obj.start = message.start;
+    }
+    if (message.end !== 0) {
+      obj.end = message.end;
+    }
+    if (message.text !== "") {
+      obj.text = message.text;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CaptionLine>, I>>(base?: I): CaptionLine {
+    return CaptionLine.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CaptionLine>, I>>(object: I): CaptionLine {
+    const message = createBaseCaptionLine();
+    message.start = object.start ?? 0;
+    message.end = object.end ?? 0;
+    message.text = object.text ?? "";
+    return message;
+  },
+};
+
 function createBaseCaptionList(): CaptionList {
   return { lines: [] };
 }
@@ -1987,7 +2085,7 @@ function createBaseCaptionList(): CaptionList {
 export const CaptionList: MessageFns<CaptionList> = {
   encode(message: CaptionList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.lines) {
-      writer.uint32(10).string(v!);
+      CaptionLine.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -2004,7 +2102,7 @@ export const CaptionList: MessageFns<CaptionList> = {
             break;
           }
 
-          message.lines.push(reader.string());
+          message.lines.push(CaptionLine.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -2017,13 +2115,15 @@ export const CaptionList: MessageFns<CaptionList> = {
   },
 
   fromJSON(object: any): CaptionList {
-    return { lines: globalThis.Array.isArray(object?.lines) ? object.lines.map((e: any) => globalThis.String(e)) : [] };
+    return {
+      lines: globalThis.Array.isArray(object?.lines) ? object.lines.map((e: any) => CaptionLine.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: CaptionList): unknown {
     const obj: any = {};
     if (message.lines?.length) {
-      obj.lines = message.lines;
+      obj.lines = message.lines.map((e) => CaptionLine.toJSON(e));
     }
     return obj;
   },
@@ -2033,7 +2133,7 @@ export const CaptionList: MessageFns<CaptionList> = {
   },
   fromPartial<I extends Exact<DeepPartial<CaptionList>, I>>(object: I): CaptionList {
     const message = createBaseCaptionList();
-    message.lines = object.lines?.map((e) => e) || [];
+    message.lines = object.lines?.map((e) => CaptionLine.fromPartial(e)) || [];
     return message;
   },
 };

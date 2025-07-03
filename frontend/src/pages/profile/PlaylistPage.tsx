@@ -79,8 +79,8 @@ const PlaylistPage: React.FC = () => {
           userId: Number(user.id),
           currentUserId: Number(user.id),
         });
-        setAllVideos(userVideosRes.videos);
-        console.log("fetched videos: ", userVideosRes.videos);
+        setAllVideos(userVideosRes.videos.filter(video => video.isPublished && String(video.privacy.toLocaleLowerCase()) === "public"));
+        console.log("fetched videos: ", userVideosRes.videos.filter(video => video.isPublished && String(video.privacy.toLocaleLowerCase()) === "public"));
       } catch (error) {
         console.error("Failed to fetch videos:", error);
         setErrorMessage("Failed to fetch videos. Please try again later.");

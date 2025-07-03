@@ -117,7 +117,7 @@ const ProfilePage: React.FC = () => {
         const res: GetVideosResponse = await videoClient.GetVideosByUserId(req);
         if (res && res.videos) {
           console.log("res.videos: ", res.videos);
-          setVideos(res.videos);
+          setVideos(res.videos.filter(video => video.isPublished));
         }
       } catch (err) {
         console.error(err);

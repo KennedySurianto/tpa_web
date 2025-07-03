@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -106,12 +104,10 @@ func (r *VideoRepositoryImpl) CreateVideoTx(tx *gorm.DB, video *model.Video) err
 }
 
 func (r *VideoRepositoryImpl) SaveCaptionTx(tx *gorm.DB, caption *model.Caption) error {
-	return tx.Model(&model.Caption{}).Create(map[string]interface{}{
-		"video_id":   caption.VideoID,
-		"language":   caption.Language,
-		"texts":      pq.Array(caption.Texts),
-		"created_at": time.Now(),
-		"updated_at": time.Now(),
+	return tx.Model(&model.Caption{}).Create(&model.Caption{
+		VideoID:  caption.VideoID,
+		Language: caption.Language,
+		Segments: caption.Segments,
 	}).Error
 }
 

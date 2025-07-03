@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -110,17 +111,36 @@ func (s *VideoController) CreateVideo(ctx context.Context, req *pb.CreateVideoRe
 }
 
 func (vc *VideoController) GetCaptions(ctx context.Context, req *pb.GetCaptionsRequest) (*pb.GetCaptionsResponse, error) {
-    captions, err := vc.videoService.GetCaptionsByVideoID(uint(req.VideoId))
-    if err != nil {
-        return nil, err
-    }
+	captions, err := vc.videoService.GetCaptionsByVideoID(uint(req.VideoId))
+	if err != nil {
+		return nil, err
+	}
 
-    result := make(map[string]*pb.CaptionList)
-    for _, c := range captions {
-        result[c.Language] = &pb.CaptionList{Lines: c.Texts}
-    }
+	result := make(map[string]*pb.CaptionList)
+	for _, c := range captions {
+		var lines []*pb.CaptionLine
+		var segments []struct {
+			Start float64 `json:"start"`
+			End   float64 `json:"end"`
+			Text  string  `json:"text"`
+		}
 
-    return &pb.GetCaptionsResponse{Captions: result}, nil
+		if err := json.Unmarshal(c.Segments, &segments); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal caption segments: %w", err)
+		}
+
+		for _, s := range segments {
+			lines = append(lines, &pb.CaptionLine{
+				Start: float32(s.Start),
+				End:   float32(s.End),
+				Text:  s.Text,
+			})
+		}
+
+		result[c.Language] = &pb.CaptionList{Lines: lines}
+	}
+
+	return &pb.GetCaptionsResponse{Captions: result}, nil
 }
 
 func (s *VideoController) GetVideo(ctx context.Context, req *pb.GetVideoRequest) (*pb.GetVideoResponse, error) {

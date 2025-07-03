@@ -31,7 +31,7 @@ import type {
 import { likeCommentClient } from "../../api/grpc/likeCommentClient";
 import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import defaultAvatar from "../../assets/default.jpg";
-import { ProcessRichText } from "../../utils/processRichText";
+import { ProcessRichText } from "../../utils/ProcessRichText";
 
 interface Props {
   videoId: number;

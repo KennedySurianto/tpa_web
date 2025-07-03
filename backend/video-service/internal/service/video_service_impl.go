@@ -29,8 +29,14 @@ type VideoServiceImpl struct {
 }
 
 type Captions struct {
-    EN []string `json:"en"`
-    ID []string `json:"id"`
+	EN []CaptionSegment `json:"en"`
+	ID []CaptionSegment `json:"id"`
+}
+
+type CaptionSegment struct {
+	Start float64 `json:"start"`
+	End   float64 `json:"end"`
+	Text  string  `json:"text"`
 }
 
 func NewVideoService(
@@ -50,7 +56,8 @@ func NewVideoService(
 
 func generateCaptions(videoPath string) (*Captions, error) {
     cmd := exec.Command("python3", "/app/internal/ai/caption_generator.py", videoPath)
-    output, err := cmd.CombinedOutput()
+    output, err := cmd.Output()
+	fmt.Println("Caption Generation Output: ", output)
 	if err != nil {
 		return nil, fmt.Errorf("caption gen failed: %w\nOutput:\n%s", err, string(output))
 	}
@@ -133,11 +140,17 @@ func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video
 	}
 
 	// Step 5: Save captions
-	for lang, lines := range map[string][]string{"en": captions.EN, "id": captions.ID} {
+	for lang, segments := range map[string][]CaptionSegment{"en": captions.EN, "id": captions.ID} {
+		segmentJSON, err := json.Marshal(segments)
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to marshal segments: %w", err)
+		}
+
 		cap := &model.Caption{
 			VideoID:  video.ID,
 			Language: lang,
-			Texts:    lines,
+			Segments: segmentJSON,
 		}
 		if err := s.videoRepo.SaveCaptionTx(tx, cap); err != nil {
 			tx.Rollback()

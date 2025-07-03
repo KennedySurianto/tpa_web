@@ -76,6 +76,75 @@ func (s *OTPServiceImpl) SendOTP(ctx context.Context, req *auth.SendOTPRequest) 
 	return &auth.SendOTPResponse{Message: "OTP sent successfully"}, nil
 }
 
+func SendWelcomeEmail(toEmail, username string) error {
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+
+	if smtpUser == "" || smtpPass == "" || smtpHost == "" || smtpPort == "" {
+		return fmt.Errorf("SMTP configuration is incomplete")
+	}
+
+	subject := "Welcome to SurVace!"
+	body := fmt.Sprintf(`
+Hi %s,
+
+Your account has been successfully registered!
+
+You can now log in using your email: %s
+Click here to log in -> http://localhost:3000/login
+
+Thanks,
+The SurVace Team
+`, username, toEmail)
+
+	fmt.Println("[INFO] Sending welcome email to", toEmail)
+	err := sendEmail(toEmail, subject, body, smtpHost, smtpPort, smtpUser, smtpPass)
+	if err != nil {
+		return fmt.Errorf("failed to send welcome email: %w", err)
+	}
+	fmt.Println("[INFO] Welcome email sent successfully to", toEmail)
+
+	return nil
+}
+
+func SendLoginNotificationEmail(toEmail, username string, loginTime time.Time) error {
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+
+	if smtpUser == "" || smtpPass == "" || smtpHost == "" || smtpPort == "" {
+		return fmt.Errorf("SMTP configuration is incomplete")
+	}
+
+	subject := "SurVace Login Notification"
+	body := fmt.Sprintf(`Hi %s,
+
+Your account was just logged in successfully.
+
+Details:
+- Email: %s
+- Login Time: %s
+
+If this wasn't you, please click here to change your password -> localhost: http://localhost:3000/forgot-password
+
+Thanks,
+The SurVace Team
+`, username, toEmail, loginTime.Format(time.RFC1123))
+
+	fmt.Println("[INFO] Sending login notification email to", toEmail)
+	err := sendEmail(toEmail, subject, body, smtpHost, smtpPort, smtpUser, smtpPass)
+	if err != nil {
+		return fmt.Errorf("failed to send login notification email: %w", err)
+	}
+	fmt.Println("[INFO] Login notification email sent successfully to", toEmail)
+
+	return nil
+}
+
+
 func (s *OTPServiceImpl) VerifyOTP(ctx context.Context, req *auth.VerifyOTPRequest) (*auth.VerifyOTPResponse, error) {
 	stored, err := s.Cache.GetOTP(req.Email)
 	if err != nil {

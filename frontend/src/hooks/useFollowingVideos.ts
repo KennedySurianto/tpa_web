@@ -20,7 +20,7 @@ export function useFollowingVideos() {
 
         const res = await videoClient.GetFollowingVideos(req, getAuthMetadata());
 
-        setVideos(res.videos || []);
+        setVideos(res.videos.filter(video => video.isPublished) || []);
       } catch (err) {
         console.error("Failed to fetch following videos:", err);
         setVideos([]);

@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Upload, Video, ImageIcon, Settings, Check, Eye, Plus, List } from "lucide-react"
