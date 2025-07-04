@@ -344,8 +344,18 @@ const LiveViewerPage: React.FC = () => {
               const roleMap = new Map<string, string>(
                 parsed.map((entry: any) => [String(entry.id), String(entry.role)])
               );
-              // FIX: This state update triggers the processing useEffect
+
+              // 🧹 Clear old tracks first
+              screenStreamRef.current.getTracks().forEach((t) => screenStreamRef.current.removeTrack(t));
+              webcamStreamRef.current.getTracks().forEach((t) => webcamStreamRef.current.removeTrack(t));
+              
+              setHasScreenStream(false);
+              setHasWebcamStream(false);
+
+              // ✅ Set new track roles (used by useEffect to reassign tracks)
               setTrackRoles(roleMap);
+
+              console.log("✅ Stream metadata received. Roles updated:", roleMap);
             } catch (err) {
               console.error("Failed to parse stream metadata", err);
             }

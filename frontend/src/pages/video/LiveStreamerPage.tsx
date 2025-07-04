@@ -334,8 +334,11 @@ const LiveStreamerPage: React.FC = () => {
 
   };
 
+  // In LiveStreamerPage.tsx
+
   const startScreenShare = async () => {
     try {
+      // 1. Prompt the streamer to select a screen, tab, or window
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
 
@@ -343,23 +346,19 @@ const LiveStreamerPage: React.FC = () => {
       const webcamTrack = webcamStream.getVideoTracks()[0];
       const audioTracks = stream?.getAudioTracks() || [];
 
+      // 2. Create a new combined MediaStream with the new tracks
       const combined = new MediaStream([screenTrack, webcamTrack, ...audioTracks]);
-
-      // Set combined stream for future peer usage
       setActiveStream(combined);
 
-      // Replace tracks in all existing peer connections
-      peerConnections.current.forEach((pc) => {
+      // 3. For each connected viewer, update their stream and renegotiate
+      for (const [viewerId, pc] of peerConnections.current.entries()) {
+        // Replace all existing media tracks with the new ones
         pc.getSenders().forEach((sender) => {
           pc.removeTrack(sender);
         });
-
         combined.getTracks().forEach((track) => pc.addTrack(track, combined));
-      });
 
-      console.log("Combined stream tracks:", combined.getTracks());
-
-      peerConnections.current.forEach((_pc, viewerId) => {
+        // Send metadata about the new tracks so the viewer can identify their roles
         const metadataSignal = SignalMessage.fromPartial({
           sender: localUserId,
           receiver: viewerId,
@@ -379,18 +378,31 @@ const LiveStreamerPage: React.FC = () => {
           ),
         });
         liveClient.SendSignal(metadataSignal);
-      });
 
-      // Set screen for main view
+        // 4. Trigger renegotiation with a forced ICE restart to prevent disconnection
+        const offer = await pc.createOffer({ iceRestart: true });
+        await pc.setLocalDescription(offer);
+
+        const offerMsg = SignalMessage.fromPartial({
+          sender: localUserId,
+          receiver: viewerId,
+          type: "offer",
+          sdpOrCandidate: JSON.stringify(offer),
+        });
+
+        liveClient.SendSignal(offerMsg);
+        console.log(`✅ Sent new offer with ICE restart to viewer ${viewerId}.`);
+      }
+
+      // 5. Update the local preview for the streamer
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = screenStream;
       }
-
-      // Set webcam PiP
       setWebcamStream(webcamStream);
       setIsScreenSharing(true);
       setIsVideoEnabled(true);
 
+      // Handles when the streamer clicks the browser's "Stop sharing" button
       screenTrack.onended = () => {
         webcamStream.getTracks().forEach((t) => t.stop());
         screenStream.getTracks().forEach((t) => t.stop());
@@ -403,7 +415,7 @@ const LiveStreamerPage: React.FC = () => {
       };
 
     } catch (err) {
-      console.error("Screen share failed", err);
+      console.error("Screen share failed or was cancelled by user.", err);
     }
   };
 
