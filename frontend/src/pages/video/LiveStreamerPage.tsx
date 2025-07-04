@@ -403,7 +403,7 @@ const LiveStreamerPage: React.FC = () => {
       setIsVideoEnabled(true);
 
       // Handles when the streamer clicks the browser's "Stop sharing" button
-      screenTrack.onended = () => {
+      screenTrack.onended = async () => {
         webcamStream.getTracks().forEach((t) => t.stop());
         screenStream.getTracks().forEach((t) => t.stop());
 
@@ -412,6 +412,44 @@ const LiveStreamerPage: React.FC = () => {
 
         setIsScreenSharing(false);
         setActiveStream(null);
+
+        // 🔁 Send updated metadata + renegotiate
+        for (const [viewerId, pc] of peerConnections.current.entries()) {
+          const streamToSend = stream;
+          if (!streamToSend) continue;
+
+          // Remove old tracks
+          pc.getSenders().forEach((sender) => pc.removeTrack(sender));
+          streamToSend.getTracks().forEach((track) => pc.addTrack(track, streamToSend));
+
+          const metadataSignal = SignalMessage.fromPartial({
+            sender: localUserId,
+            receiver: viewerId,
+            type: "stream-metadata",
+            sdpOrCandidate: JSON.stringify(
+              streamToSend.getTracks().map((track) => ({
+                id: track.id,
+                kind: track.kind,
+                label: track.label,
+                role:
+                  track.kind === "video"
+                    ? "webcam"
+                    : "audio",
+              }))
+            ),
+          });
+          liveClient.SendSignal(metadataSignal);
+
+          const offer = await pc.createOffer({ iceRestart: true });
+          await pc.setLocalDescription(offer);
+          const offerMsg = SignalMessage.fromPartial({
+            sender: localUserId,
+            receiver: viewerId,
+            type: "offer",
+            sdpOrCandidate: JSON.stringify(offer),
+          });
+          liveClient.SendSignal(offerMsg);
+        }
       };
 
     } catch (err) {

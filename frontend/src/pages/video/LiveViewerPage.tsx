@@ -159,9 +159,7 @@ const LiveViewerPage: React.FC = () => {
   // FIX: New central useEffect to process tracks when roles or pending tracks change.
   // This replaces the old `applyTrackRoles` function and its related effects.
   useEffect(() => {
-    if (trackRoles.size === 0 || pendingTracks.length === 0) {
-      return; // Not ready to process yet
-    }
+    if (pendingTracks.length === 0) return; // always process if new tracks came in
 
     const unprocessedTracks: MediaStreamTrack[] = [];
     let tracksAdded = false;
@@ -237,8 +235,13 @@ const LiveViewerPage: React.FC = () => {
     // Handle incoming video stream
     pc.ontrack = (event) => {
       console.log(`🔽 Incoming track received: ${event.track.kind}, ID: ${event.track.id}`);
-      // FIX: Add track to state to trigger the processing useEffect
-      setPendingTracks(prev => [...prev, event.track]);
+      setPendingTracks((prev) => {
+        const updated = [...prev, event.track];
+
+        setTrackRoles((old) => new Map(old));
+
+        return updated;
+      });
     };
 
     // Handle ICE candidates
@@ -791,34 +794,49 @@ const LiveViewerPage: React.FC = () => {
               margin: showChat ? "0" : "1rem",
             }}
           >
-            {/* Live Video Stream */}
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              muted
-              playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-
-            {/* Webcam PiP only if screen sharing */}
-            {hasWebcamStream && (
+            {hasScreenStream ? (
+              <>
+                {/* Screen Full View */}
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                {/* Webcam PiP */}
+                {hasWebcamStream && (
+                  <video
+                    ref={webcamVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    style={{
+                      position: "absolute",
+                      top: "1rem",
+                      left: "1rem",
+                      width: "180px",
+                      height: "120px",
+                      borderRadius: "8px",
+                      border: "2px solid white",
+                      background: "#000",
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
+              </>
+            ) : hasWebcamStream ? (
               <video
                 ref={webcamVideoRef}
                 autoPlay
                 muted
                 playsInline
-                style={{
-                  position: "absolute",
-                  top: "1rem",
-                  left: "1rem",
-                  width: "180px",
-                  height: "120px",
-                  borderRadius: "8px",
-                  border: "2px solid white",
-                  background: "#000",
-                  objectFit: "cover",
-                }}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
+            ) : (
+              <div style={{ color: "#888", textAlign: "center", paddingTop: "4rem" }}>
+                Waiting for streamer...
+              </div>
             )}
 
             {/* Connection Status Overlay */}
