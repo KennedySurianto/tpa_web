@@ -305,20 +305,33 @@ const LiveStreamerPage: React.FC = () => {
     setConnectionStatus("idle");
     setStats((prev) => ({ ...prev, isLive: false, duration: 0, viewerCount: 0 }));
 
+    // Notify all viewers that stream has ended
+    peerConnections.current.forEach((_pc, viewerId) => {
+      const endSignal = SignalMessage.fromPartial({
+        sender: localUserId,
+        receiver: viewerId,
+        type: "stream-ended",
+      });
+      liveClient.SendSignal(endSignal);
+    });
+
+    // Add to local chat
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        username: "System",
+        message: "Stream ended. Thank you for watching!",
+        timestamp: new Date(),
+        isSystemMessage: true,
+      },
+    ]);
+
     // Close all peer connections
     peerConnections.current.forEach((pc) => pc.close());
     stream?.getTracks().forEach((track) => track.stop());
     peerConnections.current.clear();
 
-    // Add stop message to chat
-    const stopMessage: ChatMessage = {
-      id: Date.now().toString(),
-      username: "System",
-      message: "Stream ended. Thank you for watching!",
-      timestamp: new Date(),
-      isSystemMessage: true,
-    };
-    setChatMessages((prev) => [...prev, stopMessage]);
   };
 
   const startScreenShare = async () => {

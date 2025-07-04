@@ -350,6 +350,18 @@ const LiveViewerPage: React.FC = () => {
               console.error("Failed to parse stream metadata", err);
             }
           }
+
+          if (type === "stream-ended") {
+            const endMessage: ChatMessage = {
+              id: Date.now().toString(),
+              username: "System",
+              message: "The streamer has ended the broadcast.",
+              timestamp: new Date(),
+              isSystemMessage: true,
+            };
+            setChatMessages((prev) => [...prev.slice(-49), endMessage]);
+            setConnectionStatus("disconnected");
+          }
         } catch (err) {
           console.error("Error handling signal:", err);
           setConnectionStatus("error");
