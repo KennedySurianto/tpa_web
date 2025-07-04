@@ -49,7 +49,8 @@ export interface FollowList {
   follows: FollowItem[];
 }
 
-export interface Empty {}
+export interface Empty {
+}
 
 function createBaseGetFriendsRequest(): GetFriendsRequest {
   return { userId: "", page: 0, limit: 0 };
@@ -192,9 +193,7 @@ export const GetFriendsResponse: MessageFns<GetFriendsResponse> = {
 
   fromJSON(object: any): GetFriendsResponse {
     return {
-      users: globalThis.Array.isArray(object?.users)
-        ? object.users.map((e: any) => User.fromJSON(e))
-        : [],
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       hasMore: isSet(object.hasMore) ? globalThis.Boolean(object.hasMore) : false,
     };
   },
@@ -442,8 +441,7 @@ export const FollowItem: MessageFns<FollowItem> = {
     const message = createBaseFollowItem();
     message.followerId = object.followerId ?? 0;
     message.followedId = object.followedId ?? 0;
-    message.user =
-      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     return message;
   },
 };
@@ -486,9 +484,7 @@ export const FollowList: MessageFns<FollowList> = {
 
   fromJSON(object: any): FollowList {
     return {
-      follows: globalThis.Array.isArray(object?.follows)
-        ? object.follows.map((e: any) => FollowItem.fromJSON(e))
-        : [],
+      follows: globalThis.Array.isArray(object?.follows) ? object.follows.map((e: any) => FollowItem.fromJSON(e)) : [],
     };
   },
 
@@ -558,10 +554,7 @@ export interface FollowService {
   Unfollow(request: DeepPartial<FollowRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   GetFollowers(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList>;
   GetFollowing(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList>;
-  GetFriends(
-    request: DeepPartial<GetFriendsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetFriendsResponse>;
+  GetFriends(request: DeepPartial<GetFriendsRequest>, metadata?: grpc.Metadata): Promise<GetFriendsResponse>;
 }
 
 export class FollowServiceClientImpl implements FollowService {
@@ -585,30 +578,15 @@ export class FollowServiceClientImpl implements FollowService {
   }
 
   GetFollowers(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList> {
-    return this.rpc.unary(
-      FollowServiceGetFollowersDesc,
-      UserRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(FollowServiceGetFollowersDesc, UserRequest.fromPartial(request), metadata);
   }
 
   GetFollowing(request: DeepPartial<UserRequest>, metadata?: grpc.Metadata): Promise<FollowList> {
-    return this.rpc.unary(
-      FollowServiceGetFollowingDesc,
-      UserRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(FollowServiceGetFollowingDesc, UserRequest.fromPartial(request), metadata);
   }
 
-  GetFriends(
-    request: DeepPartial<GetFriendsRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetFriendsResponse> {
-    return this.rpc.unary(
-      FollowServiceGetFriendsDesc,
-      GetFriendsRequest.fromPartial(request),
-      metadata,
-    );
+  GetFriends(request: DeepPartial<GetFriendsRequest>, metadata?: grpc.Metadata): Promise<GetFriendsResponse> {
+    return this.rpc.unary(FollowServiceGetFriendsDesc, GetFriendsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -774,10 +752,9 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-        : (metadata ?? this.options.metadata);
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -789,11 +766,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(
-              response.statusMessage,
-              response.status,
-              response.trailers,
-            );
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -804,19 +777,14 @@ export class GrpcWebImpl {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends globalThis.Array<infer U>
-    ? globalThis.Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -824,11 +792,7 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(
-    message: string,
-    public code: grpc.Code,
-    public metadata: grpc.Metadata,
-  ) {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
 }

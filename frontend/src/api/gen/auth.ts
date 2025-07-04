@@ -205,7 +205,9 @@ export interface AuthResponse {
   error: string;
   accessToken: string;
   refreshToken: string;
-  user?: User | undefined;
+  user?:
+    | User
+    | undefined;
   /** Unix timestamp for access token */
   expiresAt: string;
   /** Unix timestamp for refresh token */
@@ -325,6 +327,13 @@ export interface AuthError {
 export interface AuthError_DetailsEntry {
   key: string;
   value: string;
+}
+
+export interface LoginWithGoogleRequest {
+  /** The ID token received from Google */
+  idToken: string;
+  /** Optional: for tracking */
+  deviceInfo: string;
 }
 
 function createBaseSendOTPRequest(): SendOTPRequest {
@@ -746,17 +755,13 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
-      confirmPassword: isSet(object.confirmPassword)
-        ? globalThis.String(object.confirmPassword)
-        : "",
+      confirmPassword: isSet(object.confirmPassword) ? globalThis.String(object.confirmPassword) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
       avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       country: isSet(object.country) ? globalThis.String(object.country) : "",
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
-      preferences: isSet(object.preferences)
-        ? UserPreferences.fromJSON(object.preferences)
-        : undefined,
+      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
     };
   },
 
@@ -809,10 +814,9 @@ export const RegisterRequest: MessageFns<RegisterRequest> = {
     message.avatar = object.avatar ?? new Uint8Array(0);
     message.country = object.country ?? "";
     message.isPrivate = object.isPrivate ?? false;
-    message.preferences =
-      object.preferences !== undefined && object.preferences !== null
-        ? UserPreferences.fromPartial(object.preferences)
-        : undefined;
+    message.preferences = (object.preferences !== undefined && object.preferences !== null)
+      ? UserPreferences.fromPartial(object.preferences)
+      : undefined;
     return message;
   },
 };
@@ -975,9 +979,7 @@ export const LogoutRequest: MessageFns<LogoutRequest> = {
   fromJSON(object: any): LogoutRequest {
     return {
       refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
-      logoutAllDevices: isSet(object.logoutAllDevices)
-        ? globalThis.Boolean(object.logoutAllDevices)
-        : false,
+      logoutAllDevices: isSet(object.logoutAllDevices) ? globalThis.Boolean(object.logoutAllDevices) : false,
     };
   },
 
@@ -1054,9 +1056,7 @@ export const ValidateTokenRequest: MessageFns<ValidateTokenRequest> = {
   create<I extends Exact<DeepPartial<ValidateTokenRequest>, I>>(base?: I): ValidateTokenRequest {
     return ValidateTokenRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ValidateTokenRequest>, I>>(
-    object: I,
-  ): ValidateTokenRequest {
+  fromPartial<I extends Exact<DeepPartial<ValidateTokenRequest>, I>>(object: I): ValidateTokenRequest {
     const message = createBaseValidateTokenRequest();
     message.accessToken = object.accessToken ?? "";
     return message;
@@ -1100,9 +1100,7 @@ export const RefreshTokenRequest: MessageFns<RefreshTokenRequest> = {
   },
 
   fromJSON(object: any): RefreshTokenRequest {
-    return {
-      refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
-    };
+    return { refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "" };
   },
 
   toJSON(message: RefreshTokenRequest): unknown {
@@ -1116,9 +1114,7 @@ export const RefreshTokenRequest: MessageFns<RefreshTokenRequest> = {
   create<I extends Exact<DeepPartial<RefreshTokenRequest>, I>>(base?: I): RefreshTokenRequest {
     return RefreshTokenRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<RefreshTokenRequest>, I>>(
-    object: I,
-  ): RefreshTokenRequest {
+  fromPartial<I extends Exact<DeepPartial<RefreshTokenRequest>, I>>(object: I): RefreshTokenRequest {
     const message = createBaseRefreshTokenRequest();
     message.refreshToken = object.refreshToken ?? "";
     return message;
@@ -1197,13 +1193,9 @@ export const ChangePasswordRequest: MessageFns<ChangePasswordRequest> = {
   fromJSON(object: any): ChangePasswordRequest {
     return {
       accessToken: isSet(object.accessToken) ? globalThis.String(object.accessToken) : "",
-      currentPassword: isSet(object.currentPassword)
-        ? globalThis.String(object.currentPassword)
-        : "",
+      currentPassword: isSet(object.currentPassword) ? globalThis.String(object.currentPassword) : "",
       newPassword: isSet(object.newPassword) ? globalThis.String(object.newPassword) : "",
-      confirmNewPassword: isSet(object.confirmNewPassword)
-        ? globalThis.String(object.confirmNewPassword)
-        : "",
+      confirmNewPassword: isSet(object.confirmNewPassword) ? globalThis.String(object.confirmNewPassword) : "",
     };
   },
 
@@ -1227,9 +1219,7 @@ export const ChangePasswordRequest: MessageFns<ChangePasswordRequest> = {
   create<I extends Exact<DeepPartial<ChangePasswordRequest>, I>>(base?: I): ChangePasswordRequest {
     return ChangePasswordRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ChangePasswordRequest>, I>>(
-    object: I,
-  ): ChangePasswordRequest {
+  fromPartial<I extends Exact<DeepPartial<ChangePasswordRequest>, I>>(object: I): ChangePasswordRequest {
     const message = createBaseChangePasswordRequest();
     message.accessToken = object.accessToken ?? "";
     message.currentPassword = object.currentPassword ?? "";
@@ -1290,9 +1280,7 @@ export const ForgotPasswordRequest: MessageFns<ForgotPasswordRequest> = {
   create<I extends Exact<DeepPartial<ForgotPasswordRequest>, I>>(base?: I): ForgotPasswordRequest {
     return ForgotPasswordRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ForgotPasswordRequest>, I>>(
-    object: I,
-  ): ForgotPasswordRequest {
+  fromPartial<I extends Exact<DeepPartial<ForgotPasswordRequest>, I>>(object: I): ForgotPasswordRequest {
     const message = createBaseForgotPasswordRequest();
     message.email = object.email ?? "";
     return message;
@@ -1382,9 +1370,7 @@ export const ResetPasswordRequest: MessageFns<ResetPasswordRequest> = {
   create<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(base?: I): ResetPasswordRequest {
     return ResetPasswordRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(
-    object: I,
-  ): ResetPasswordRequest {
+  fromPartial<I extends Exact<DeepPartial<ResetPasswordRequest>, I>>(object: I): ResetPasswordRequest {
     const message = createBaseResetPasswordRequest();
     message.email = object.email ?? "";
     message.otp = object.otp ?? "";
@@ -1430,11 +1416,7 @@ export const VerifyEmailRequest: MessageFns<VerifyEmailRequest> = {
   },
 
   fromJSON(object: any): VerifyEmailRequest {
-    return {
-      verificationToken: isSet(object.verificationToken)
-        ? globalThis.String(object.verificationToken)
-        : "",
-    };
+    return { verificationToken: isSet(object.verificationToken) ? globalThis.String(object.verificationToken) : "" };
   },
 
   toJSON(message: VerifyEmailRequest): unknown {
@@ -1460,10 +1442,7 @@ function createBaseResendVerificationRequest(): ResendVerificationRequest {
 }
 
 export const ResendVerificationRequest: MessageFns<ResendVerificationRequest> = {
-  encode(
-    message: ResendVerificationRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: ResendVerificationRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.email !== "") {
       writer.uint32(10).string(message.email);
     }
@@ -1506,14 +1485,10 @@ export const ResendVerificationRequest: MessageFns<ResendVerificationRequest> = 
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(
-    base?: I,
-  ): ResendVerificationRequest {
+  create<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(base?: I): ResendVerificationRequest {
     return ResendVerificationRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(
-    object: I,
-  ): ResendVerificationRequest {
+  fromPartial<I extends Exact<DeepPartial<ResendVerificationRequest>, I>>(object: I): ResendVerificationRequest {
     const message = createBaseResendVerificationRequest();
     message.email = object.email ?? "";
     return message;
@@ -1663,9 +1638,7 @@ export const AuthResponse: MessageFns<AuthResponse> = {
       refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
       user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
       expiresAt: isSet(object.expiresAt) ? globalThis.String(object.expiresAt) : "0",
-      refreshExpiresAt: isSet(object.refreshExpiresAt)
-        ? globalThis.String(object.refreshExpiresAt)
-        : "0",
+      refreshExpiresAt: isSet(object.refreshExpiresAt) ? globalThis.String(object.refreshExpiresAt) : "0",
       tokenInfo: isSet(object.tokenInfo) ? TokenInfo.fromJSON(object.tokenInfo) : undefined,
     };
   },
@@ -1712,14 +1685,12 @@ export const AuthResponse: MessageFns<AuthResponse> = {
     message.error = object.error ?? "";
     message.accessToken = object.accessToken ?? "";
     message.refreshToken = object.refreshToken ?? "";
-    message.user =
-      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
     message.expiresAt = object.expiresAt ?? "0";
     message.refreshExpiresAt = object.refreshExpiresAt ?? "0";
-    message.tokenInfo =
-      object.tokenInfo !== undefined && object.tokenInfo !== null
-        ? TokenInfo.fromPartial(object.tokenInfo)
-        : undefined;
+    message.tokenInfo = (object.tokenInfo !== undefined && object.tokenInfo !== null)
+      ? TokenInfo.fromPartial(object.tokenInfo)
+      : undefined;
     return message;
   },
 };
@@ -1801,15 +1772,7 @@ export const LogoutResponse: MessageFns<LogoutResponse> = {
 };
 
 function createBaseValidateTokenResponse(): ValidateTokenResponse {
-  return {
-    valid: false,
-    message: "",
-    userId: "0",
-    email: "",
-    username: "",
-    expiresAt: undefined,
-    permissions: [],
-  };
+  return { valid: false, message: "", userId: "0", email: "", username: "", expiresAt: undefined, permissions: [] };
 }
 
 export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
@@ -1953,9 +1916,7 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
   create<I extends Exact<DeepPartial<ValidateTokenResponse>, I>>(base?: I): ValidateTokenResponse {
     return ValidateTokenResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ValidateTokenResponse>, I>>(
-    object: I,
-  ): ValidateTokenResponse {
+  fromPartial<I extends Exact<DeepPartial<ValidateTokenResponse>, I>>(object: I): ValidateTokenResponse {
     const message = createBaseValidateTokenResponse();
     message.valid = object.valid ?? false;
     message.message = object.message ?? "";
@@ -2033,14 +1994,10 @@ export const ChangePasswordResponse: MessageFns<ChangePasswordResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(
-    base?: I,
-  ): ChangePasswordResponse {
+  create<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(base?: I): ChangePasswordResponse {
     return ChangePasswordResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(
-    object: I,
-  ): ChangePasswordResponse {
+  fromPartial<I extends Exact<DeepPartial<ChangePasswordResponse>, I>>(object: I): ChangePasswordResponse {
     const message = createBaseChangePasswordResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
@@ -2113,14 +2070,10 @@ export const ForgotPasswordResponse: MessageFns<ForgotPasswordResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(
-    base?: I,
-  ): ForgotPasswordResponse {
+  create<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(base?: I): ForgotPasswordResponse {
     return ForgotPasswordResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(
-    object: I,
-  ): ForgotPasswordResponse {
+  fromPartial<I extends Exact<DeepPartial<ForgotPasswordResponse>, I>>(object: I): ForgotPasswordResponse {
     const message = createBaseForgotPasswordResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
@@ -2196,9 +2149,7 @@ export const ResetPasswordResponse: MessageFns<ResetPasswordResponse> = {
   create<I extends Exact<DeepPartial<ResetPasswordResponse>, I>>(base?: I): ResetPasswordResponse {
     return ResetPasswordResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ResetPasswordResponse>, I>>(
-    object: I,
-  ): ResetPasswordResponse {
+  fromPartial<I extends Exact<DeepPartial<ResetPasswordResponse>, I>>(object: I): ResetPasswordResponse {
     const message = createBaseResetPasswordResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
@@ -2274,9 +2225,7 @@ export const VerifyEmailResponse: MessageFns<VerifyEmailResponse> = {
   create<I extends Exact<DeepPartial<VerifyEmailResponse>, I>>(base?: I): VerifyEmailResponse {
     return VerifyEmailResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<VerifyEmailResponse>, I>>(
-    object: I,
-  ): VerifyEmailResponse {
+  fromPartial<I extends Exact<DeepPartial<VerifyEmailResponse>, I>>(object: I): VerifyEmailResponse {
     const message = createBaseVerifyEmailResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
@@ -2289,10 +2238,7 @@ function createBaseResendVerificationResponse(): ResendVerificationResponse {
 }
 
 export const ResendVerificationResponse: MessageFns<ResendVerificationResponse> = {
-  encode(
-    message: ResendVerificationResponse,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+  encode(message: ResendVerificationResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
@@ -2352,14 +2298,10 @@ export const ResendVerificationResponse: MessageFns<ResendVerificationResponse> 
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(
-    base?: I,
-  ): ResendVerificationResponse {
+  create<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(base?: I): ResendVerificationResponse {
     return ResendVerificationResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(
-    object: I,
-  ): ResendVerificationResponse {
+  fromPartial<I extends Exact<DeepPartial<ResendVerificationResponse>, I>>(object: I): ResendVerificationResponse {
     const message = createBaseResendVerificationResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
@@ -2865,21 +2807,13 @@ export const UserPreferences: MessageFns<UserPreferences> = {
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
       allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
       allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
-      emailNotifications: isSet(object.emailNotifications)
-        ? globalThis.Boolean(object.emailNotifications)
-        : false,
-      pushNotifications: isSet(object.pushNotifications)
-        ? globalThis.Boolean(object.pushNotifications)
-        : false,
+      emailNotifications: isSet(object.emailNotifications) ? globalThis.Boolean(object.emailNotifications) : false,
+      pushNotifications: isSet(object.pushNotifications) ? globalThis.Boolean(object.pushNotifications) : false,
       privacyLevel: isSet(object.privacyLevel) ? globalThis.String(object.privacyLevel) : "",
       commentFilter: isSet(object.commentFilter) ? globalThis.String(object.commentFilter) : "",
-      showActivityStatus: isSet(object.showActivityStatus)
-        ? globalThis.Boolean(object.showActivityStatus)
-        : false,
+      showActivityStatus: isSet(object.showActivityStatus) ? globalThis.Boolean(object.showActivityStatus) : false,
       allowMentions: isSet(object.allowMentions) ? globalThis.Boolean(object.allowMentions) : false,
-      allowDirectMessages: isSet(object.allowDirectMessages)
-        ? globalThis.Boolean(object.allowDirectMessages)
-        : false,
+      allowDirectMessages: isSet(object.allowDirectMessages) ? globalThis.Boolean(object.allowDirectMessages) : false,
     };
   },
 
@@ -2942,13 +2876,7 @@ export const UserPreferences: MessageFns<UserPreferences> = {
 };
 
 function createBaseUserStats(): UserStats {
-  return {
-    followersCount: "0",
-    followingCount: "0",
-    videosCount: "0",
-    likesReceived: "0",
-    viewsReceived: "0",
-  };
+  return { followersCount: "0", followingCount: "0", videosCount: "0", likesReceived: "0", viewsReceived: "0" };
 }
 
 export const UserStats: MessageFns<UserStats> = {
@@ -3155,9 +3083,7 @@ export const TokenInfo: MessageFns<TokenInfo> = {
     return {
       tokenType: isSet(object.tokenType) ? globalThis.String(object.tokenType) : "",
       expiresIn: isSet(object.expiresIn) ? globalThis.String(object.expiresIn) : "0",
-      scopes: globalThis.Array.isArray(object?.scopes)
-        ? object.scopes.map((e: any) => globalThis.String(e))
-        : [],
+      scopes: globalThis.Array.isArray(object?.scopes) ? object.scopes.map((e: any) => globalThis.String(e)) : [],
       deviceId: isSet(object.deviceId) ? globalThis.String(object.deviceId) : "",
       issuedAt: isSet(object.issuedAt) ? fromJsonTimestamp(object.issuedAt) : undefined,
     };
@@ -3264,9 +3190,9 @@ export const AuthError: MessageFns<AuthError> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       details: isObject(object.details)
         ? Object.entries(object.details).reduce<{ [key: string]: string }>((acc, [key, value]) => {
-            acc[key] = String(value);
-            return acc;
-          }, {})
+          acc[key] = String(value);
+          return acc;
+        }, {})
         : {},
     };
   },
@@ -3298,15 +3224,12 @@ export const AuthError: MessageFns<AuthError> = {
     const message = createBaseAuthError();
     message.code = object.code ?? 0;
     message.message = object.message ?? "";
-    message.details = Object.entries(object.details ?? {}).reduce<{ [key: string]: string }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = globalThis.String(value);
-        }
-        return acc;
-      },
-      {},
-    );
+    message.details = Object.entries(object.details ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = globalThis.String(value);
+      }
+      return acc;
+    }, {});
     return message;
   },
 };
@@ -3376,17 +3299,89 @@ export const AuthError_DetailsEntry: MessageFns<AuthError_DetailsEntry> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(
-    base?: I,
-  ): AuthError_DetailsEntry {
+  create<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(base?: I): AuthError_DetailsEntry {
     return AuthError_DetailsEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(
-    object: I,
-  ): AuthError_DetailsEntry {
+  fromPartial<I extends Exact<DeepPartial<AuthError_DetailsEntry>, I>>(object: I): AuthError_DetailsEntry {
     const message = createBaseAuthError_DetailsEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseLoginWithGoogleRequest(): LoginWithGoogleRequest {
+  return { idToken: "", deviceInfo: "" };
+}
+
+export const LoginWithGoogleRequest: MessageFns<LoginWithGoogleRequest> = {
+  encode(message: LoginWithGoogleRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.idToken !== "") {
+      writer.uint32(10).string(message.idToken);
+    }
+    if (message.deviceInfo !== "") {
+      writer.uint32(18).string(message.deviceInfo);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LoginWithGoogleRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLoginWithGoogleRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.idToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.deviceInfo = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LoginWithGoogleRequest {
+    return {
+      idToken: isSet(object.idToken) ? globalThis.String(object.idToken) : "",
+      deviceInfo: isSet(object.deviceInfo) ? globalThis.String(object.deviceInfo) : "",
+    };
+  },
+
+  toJSON(message: LoginWithGoogleRequest): unknown {
+    const obj: any = {};
+    if (message.idToken !== "") {
+      obj.idToken = message.idToken;
+    }
+    if (message.deviceInfo !== "") {
+      obj.deviceInfo = message.deviceInfo;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LoginWithGoogleRequest>, I>>(base?: I): LoginWithGoogleRequest {
+    return LoginWithGoogleRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LoginWithGoogleRequest>, I>>(object: I): LoginWithGoogleRequest {
+    const message = createBaseLoginWithGoogleRequest();
+    message.idToken = object.idToken ?? "";
+    message.deviceInfo = object.deviceInfo ?? "";
     return message;
   },
 };
@@ -3395,31 +3390,17 @@ export interface AuthService {
   Register(request: DeepPartial<RegisterRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
   Logout(request: DeepPartial<LogoutRequest>, metadata?: grpc.Metadata): Promise<LogoutResponse>;
-  ValidateToken(
-    request: DeepPartial<ValidateTokenRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ValidateTokenResponse>;
-  RefreshToken(
-    request: DeepPartial<RefreshTokenRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<AuthResponse>;
-  ResetPassword(
-    request: DeepPartial<ResetPasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ResetPasswordResponse>;
-  VerifyEmail(
-    request: DeepPartial<VerifyEmailRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<VerifyEmailResponse>;
+  ValidateToken(request: DeepPartial<ValidateTokenRequest>, metadata?: grpc.Metadata): Promise<ValidateTokenResponse>;
+  RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
+  ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse>;
+  VerifyEmail(request: DeepPartial<VerifyEmailRequest>, metadata?: grpc.Metadata): Promise<VerifyEmailResponse>;
   ResendVerification(
     request: DeepPartial<ResendVerificationRequest>,
     metadata?: grpc.Metadata,
   ): Promise<ResendVerificationResponse>;
   SendOTP(request: DeepPartial<SendOTPRequest>, metadata?: grpc.Metadata): Promise<SendOTPResponse>;
-  VerifyOTP(
-    request: DeepPartial<VerifyOTPRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<VerifyOTPResponse>;
+  VerifyOTP(request: DeepPartial<VerifyOTPRequest>, metadata?: grpc.Metadata): Promise<VerifyOTPResponse>;
+  LoginWithGoogle(request: DeepPartial<LoginWithGoogleRequest>, metadata?: grpc.Metadata): Promise<AuthResponse>;
 }
 
 export class AuthServiceClientImpl implements AuthService {
@@ -3437,6 +3418,7 @@ export class AuthServiceClientImpl implements AuthService {
     this.ResendVerification = this.ResendVerification.bind(this);
     this.SendOTP = this.SendOTP.bind(this);
     this.VerifyOTP = this.VerifyOTP.bind(this);
+    this.LoginWithGoogle = this.LoginWithGoogle.bind(this);
   }
 
   Register(request: DeepPartial<RegisterRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
@@ -3451,77 +3433,39 @@ export class AuthServiceClientImpl implements AuthService {
     return this.rpc.unary(AuthServiceLogoutDesc, LogoutRequest.fromPartial(request), metadata);
   }
 
-  ValidateToken(
-    request: DeepPartial<ValidateTokenRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ValidateTokenResponse> {
-    return this.rpc.unary(
-      AuthServiceValidateTokenDesc,
-      ValidateTokenRequest.fromPartial(request),
-      metadata,
-    );
+  ValidateToken(request: DeepPartial<ValidateTokenRequest>, metadata?: grpc.Metadata): Promise<ValidateTokenResponse> {
+    return this.rpc.unary(AuthServiceValidateTokenDesc, ValidateTokenRequest.fromPartial(request), metadata);
   }
 
-  RefreshToken(
-    request: DeepPartial<RefreshTokenRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<AuthResponse> {
-    return this.rpc.unary(
-      AuthServiceRefreshTokenDesc,
-      RefreshTokenRequest.fromPartial(request),
-      metadata,
-    );
+  RefreshToken(request: DeepPartial<RefreshTokenRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
+    return this.rpc.unary(AuthServiceRefreshTokenDesc, RefreshTokenRequest.fromPartial(request), metadata);
   }
 
-  ResetPassword(
-    request: DeepPartial<ResetPasswordRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<ResetPasswordResponse> {
-    return this.rpc.unary(
-      AuthServiceResetPasswordDesc,
-      ResetPasswordRequest.fromPartial(request),
-      metadata,
-    );
+  ResetPassword(request: DeepPartial<ResetPasswordRequest>, metadata?: grpc.Metadata): Promise<ResetPasswordResponse> {
+    return this.rpc.unary(AuthServiceResetPasswordDesc, ResetPasswordRequest.fromPartial(request), metadata);
   }
 
-  VerifyEmail(
-    request: DeepPartial<VerifyEmailRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<VerifyEmailResponse> {
-    return this.rpc.unary(
-      AuthServiceVerifyEmailDesc,
-      VerifyEmailRequest.fromPartial(request),
-      metadata,
-    );
+  VerifyEmail(request: DeepPartial<VerifyEmailRequest>, metadata?: grpc.Metadata): Promise<VerifyEmailResponse> {
+    return this.rpc.unary(AuthServiceVerifyEmailDesc, VerifyEmailRequest.fromPartial(request), metadata);
   }
 
   ResendVerification(
     request: DeepPartial<ResendVerificationRequest>,
     metadata?: grpc.Metadata,
   ): Promise<ResendVerificationResponse> {
-    return this.rpc.unary(
-      AuthServiceResendVerificationDesc,
-      ResendVerificationRequest.fromPartial(request),
-      metadata,
-    );
+    return this.rpc.unary(AuthServiceResendVerificationDesc, ResendVerificationRequest.fromPartial(request), metadata);
   }
 
-  SendOTP(
-    request: DeepPartial<SendOTPRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<SendOTPResponse> {
+  SendOTP(request: DeepPartial<SendOTPRequest>, metadata?: grpc.Metadata): Promise<SendOTPResponse> {
     return this.rpc.unary(AuthServiceSendOTPDesc, SendOTPRequest.fromPartial(request), metadata);
   }
 
-  VerifyOTP(
-    request: DeepPartial<VerifyOTPRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<VerifyOTPResponse> {
-    return this.rpc.unary(
-      AuthServiceVerifyOTPDesc,
-      VerifyOTPRequest.fromPartial(request),
-      metadata,
-    );
+  VerifyOTP(request: DeepPartial<VerifyOTPRequest>, metadata?: grpc.Metadata): Promise<VerifyOTPResponse> {
+    return this.rpc.unary(AuthServiceVerifyOTPDesc, VerifyOTPRequest.fromPartial(request), metadata);
+  }
+
+  LoginWithGoogle(request: DeepPartial<LoginWithGoogleRequest>, metadata?: grpc.Metadata): Promise<AuthResponse> {
+    return this.rpc.unary(AuthServiceLoginWithGoogleDesc, LoginWithGoogleRequest.fromPartial(request), metadata);
   }
 }
 
@@ -3757,6 +3701,29 @@ export const AuthServiceVerifyOTPDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const AuthServiceLoginWithGoogleDesc: UnaryMethodDefinitionish = {
+  methodName: "LoginWithGoogle",
+  service: AuthServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return LoginWithGoogleRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AuthResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
@@ -3802,10 +3769,9 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-        : (metadata ?? this.options.metadata);
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -3817,11 +3783,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(
-              response.statusMessage,
-              response.status,
-              response.trailers,
-            );
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -3857,19 +3819,14 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends globalThis.Array<infer U>
-    ? globalThis.Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
@@ -3903,11 +3860,7 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(
-    message: string,
-    public code: grpc.Code,
-    public metadata: grpc.Metadata,
-  ) {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
 }

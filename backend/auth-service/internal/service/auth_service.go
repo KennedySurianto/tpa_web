@@ -13,4 +13,5 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.AuthResponse, error)
 	generateTokens(userId uint64, email, username string) (string, string, error)
 	storeRefreshToken(token string, userId uint64)
+	LoginWithGoogle(ctx context.Context, req *auth.LoginWithGoogleRequest) (*auth.AuthResponse, error)
 }

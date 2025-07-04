@@ -6,7 +6,6 @@ import {
   Search,
   Home,
   Upload,
-  Bell,
   User,
   Users,
   MessageCircle,

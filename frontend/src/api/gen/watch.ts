@@ -24,14 +24,16 @@ export interface WatchRequest {
   videoId: number;
 }
 
-export interface WatchResponse {}
+export interface WatchResponse {
+}
 
 export interface UnwatchRequest {
   userId: number;
   videoId: number;
 }
 
-export interface UnwatchResponse {}
+export interface UnwatchResponse {
+}
 
 export interface IsWatchedRequest {
   userId: number;
@@ -93,9 +95,7 @@ export const GetViewCountRequest: MessageFns<GetViewCountRequest> = {
   create<I extends Exact<DeepPartial<GetViewCountRequest>, I>>(base?: I): GetViewCountRequest {
     return GetViewCountRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetViewCountRequest>, I>>(
-    object: I,
-  ): GetViewCountRequest {
+  fromPartial<I extends Exact<DeepPartial<GetViewCountRequest>, I>>(object: I): GetViewCountRequest {
     const message = createBaseGetViewCountRequest();
     message.videoId = object.videoId ?? 0;
     return message;
@@ -153,9 +153,7 @@ export const GetViewCountResponse: MessageFns<GetViewCountResponse> = {
   create<I extends Exact<DeepPartial<GetViewCountResponse>, I>>(base?: I): GetViewCountResponse {
     return GetViewCountResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetViewCountResponse>, I>>(
-    object: I,
-  ): GetViewCountResponse {
+  fromPartial<I extends Exact<DeepPartial<GetViewCountResponse>, I>>(object: I): GetViewCountResponse {
     const message = createBaseGetViewCountResponse();
     message.count = object.count ?? "0";
     return message;
@@ -537,14 +535,8 @@ export const IsWatchedResponse: MessageFns<IsWatchedResponse> = {
 export interface WatchService {
   Watch(request: DeepPartial<WatchRequest>, metadata?: grpc.Metadata): Promise<WatchResponse>;
   Unwatch(request: DeepPartial<UnwatchRequest>, metadata?: grpc.Metadata): Promise<UnwatchResponse>;
-  IsWatched(
-    request: DeepPartial<IsWatchedRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<IsWatchedResponse>;
-  GetViewCount(
-    request: DeepPartial<GetViewCountRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetViewCountResponse>;
+  IsWatched(request: DeepPartial<IsWatchedRequest>, metadata?: grpc.Metadata): Promise<IsWatchedResponse>;
+  GetViewCount(request: DeepPartial<GetViewCountRequest>, metadata?: grpc.Metadata): Promise<GetViewCountResponse>;
 }
 
 export class WatchServiceClientImpl implements WatchService {
@@ -562,33 +554,16 @@ export class WatchServiceClientImpl implements WatchService {
     return this.rpc.unary(WatchServiceWatchDesc, WatchRequest.fromPartial(request), metadata);
   }
 
-  Unwatch(
-    request: DeepPartial<UnwatchRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<UnwatchResponse> {
+  Unwatch(request: DeepPartial<UnwatchRequest>, metadata?: grpc.Metadata): Promise<UnwatchResponse> {
     return this.rpc.unary(WatchServiceUnwatchDesc, UnwatchRequest.fromPartial(request), metadata);
   }
 
-  IsWatched(
-    request: DeepPartial<IsWatchedRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<IsWatchedResponse> {
-    return this.rpc.unary(
-      WatchServiceIsWatchedDesc,
-      IsWatchedRequest.fromPartial(request),
-      metadata,
-    );
+  IsWatched(request: DeepPartial<IsWatchedRequest>, metadata?: grpc.Metadata): Promise<IsWatchedResponse> {
+    return this.rpc.unary(WatchServiceIsWatchedDesc, IsWatchedRequest.fromPartial(request), metadata);
   }
 
-  GetViewCount(
-    request: DeepPartial<GetViewCountRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetViewCountResponse> {
-    return this.rpc.unary(
-      WatchServiceGetViewCountDesc,
-      GetViewCountRequest.fromPartial(request),
-      metadata,
-    );
+  GetViewCount(request: DeepPartial<GetViewCountRequest>, metadata?: grpc.Metadata): Promise<GetViewCountResponse> {
+    return this.rpc.unary(WatchServiceGetViewCountDesc, GetViewCountRequest.fromPartial(request), metadata);
   }
 }
 
@@ -731,10 +706,9 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-        : (metadata ?? this.options.metadata);
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -746,11 +720,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(
-              response.statusMessage,
-              response.status,
-              response.trailers,
-            );
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -761,19 +731,14 @@ export class GrpcWebImpl {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends globalThis.Array<infer U>
-    ? globalThis.Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -781,11 +746,7 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(
-    message: string,
-    public code: grpc.Code,
-    public metadata: grpc.Metadata,
-  ) {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
 }

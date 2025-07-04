@@ -212,6 +212,7 @@ services:
       USER_SERVICE_HOST: ${USER_SERVICE_HOST}
       USER_SERVICE_PORT: ${USER_SERVICE_PORT}
       PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     volumes:
       - ./backend/auth-service:/app/auth-service
       - ./backend/shared:/app/shared
@@ -251,6 +252,7 @@ services:
       ACTIVITY_SERVICE_HOST: ${ACTIVITY_SERVICE_HOST}
       ACTIVITY_SERVICE_PORT: ${ACTIVITY_SERVICE_PORT}
       PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     volumes:
       - ./backend/video-service:/app/video-service
       - ./backend/shared:/app/shared

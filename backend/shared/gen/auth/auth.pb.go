@@ -1906,6 +1906,58 @@ func (x *AuthError) GetDetails() map[string]string {
 	return nil
 }
 
+type LoginWithGoogleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IdToken       string                 `protobuf:"bytes,1,opt,name=id_token,json=idToken,proto3" json:"id_token,omitempty"`          // The ID token received from Google
+	DeviceInfo    string                 `protobuf:"bytes,2,opt,name=device_info,json=deviceInfo,proto3" json:"device_info,omitempty"` // Optional: for tracking
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginWithGoogleRequest) Reset() {
+	*x = LoginWithGoogleRequest{}
+	mi := &file_auth_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginWithGoogleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginWithGoogleRequest) ProtoMessage() {}
+
+func (x *LoginWithGoogleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginWithGoogleRequest.ProtoReflect.Descriptor instead.
+func (*LoginWithGoogleRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *LoginWithGoogleRequest) GetIdToken() string {
+	if x != nil {
+		return x.IdToken
+	}
+	return ""
+}
+
+func (x *LoginWithGoogleRequest) GetDeviceInfo() string {
+	if x != nil {
+		return x.DeviceInfo
+	}
+	return ""
+}
+
 var File_auth_proto protoreflect.FileDescriptor
 
 const file_auth_proto_rawDesc = "" +
@@ -2062,7 +2114,11 @@ const file_auth_proto_rawDesc = "" +
 	"\adetails\x18\x03 \x03(\v2\x1c.auth.AuthError.DetailsEntryR\adetails\x1a:\n" +
 	"\fDetailsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\xd7\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"T\n" +
+	"\x16LoginWithGoogleRequest\x12\x19\n" +
+	"\bid_token\x18\x01 \x01(\tR\aidToken\x12\x1f\n" +
+	"\vdevice_info\x18\x02 \x01(\tR\n" +
+	"deviceInfo*\xd7\x03\n" +
 	"\rAuthErrorCode\x12\x16\n" +
 	"\x12AUTH_ERROR_UNKNOWN\x10\x00\x12\"\n" +
 	"\x1eAUTH_ERROR_INVALID_CREDENTIALS\x10\x01\x12\x1d\n" +
@@ -2078,7 +2134,7 @@ const file_auth_proto_rawDesc = "" +
 	"\x12#\n" +
 	"\x1fAUTH_ERROR_INVALID_EMAIL_FORMAT\x10\v\x12\x1d\n" +
 	"\x19AUTH_ERROR_USERNAME_TAKEN\x10\f\x12\x1a\n" +
-	"\x16AUTH_ERROR_EMAIL_TAKEN\x10\r2\x90\x05\n" +
+	"\x16AUTH_ERROR_EMAIL_TAKEN\x10\r2\xd5\x05\n" +
 	"\vAuthService\x125\n" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x12.auth.AuthResponse\x12/\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x12.auth.AuthResponse\x123\n" +
@@ -2089,7 +2145,8 @@ const file_auth_proto_rawDesc = "" +
 	"\vVerifyEmail\x12\x18.auth.VerifyEmailRequest\x1a\x19.auth.VerifyEmailResponse\x12W\n" +
 	"\x12ResendVerification\x12\x1f.auth.ResendVerificationRequest\x1a .auth.ResendVerificationResponse\x126\n" +
 	"\aSendOTP\x12\x14.auth.SendOTPRequest\x1a\x15.auth.SendOTPResponse\x12<\n" +
-	"\tVerifyOTP\x12\x16.auth.VerifyOTPRequest\x1a\x17.auth.VerifyOTPResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/auth;authb\x06proto3"
+	"\tVerifyOTP\x12\x16.auth.VerifyOTPRequest\x1a\x17.auth.VerifyOTPResponse\x12C\n" +
+	"\x0fLoginWithGoogle\x12\x1c.auth.LoginWithGoogleRequest\x1a\x12.auth.AuthResponseBAZ?github.com/KennedySurianto/tpa_web/backend/shared/gen/auth;authb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
@@ -2104,7 +2161,7 @@ func file_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_auth_proto_goTypes = []any{
 	(AuthErrorCode)(0),                 // 0: auth.AuthErrorCode
 	(*SendOTPRequest)(nil),             // 1: auth.SendOTPRequest
@@ -2134,17 +2191,18 @@ var file_auth_proto_goTypes = []any{
 	(*UserStats)(nil),                  // 25: auth.UserStats
 	(*TokenInfo)(nil),                  // 26: auth.TokenInfo
 	(*AuthError)(nil),                  // 27: auth.AuthError
-	nil,                                // 28: auth.AuthError.DetailsEntry
-	(*timestamppb.Timestamp)(nil),      // 29: google.protobuf.Timestamp
+	(*LoginWithGoogleRequest)(nil),     // 28: auth.LoginWithGoogleRequest
+	nil,                                // 29: auth.AuthError.DetailsEntry
+	(*timestamppb.Timestamp)(nil),      // 30: google.protobuf.Timestamp
 }
 var file_auth_proto_depIdxs = []int32{
 	24, // 0: auth.RegisterRequest.preferences:type_name -> auth.UserPreferences
 	23, // 1: auth.AuthResponse.user:type_name -> auth.User
 	26, // 2: auth.AuthResponse.token_info:type_name -> auth.TokenInfo
-	29, // 3: auth.ValidateTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
-	29, // 4: auth.TokenInfo.issued_at:type_name -> google.protobuf.Timestamp
+	30, // 3: auth.ValidateTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	30, // 4: auth.TokenInfo.issued_at:type_name -> google.protobuf.Timestamp
 	0,  // 5: auth.AuthError.code:type_name -> auth.AuthErrorCode
-	28, // 6: auth.AuthError.details:type_name -> auth.AuthError.DetailsEntry
+	29, // 6: auth.AuthError.details:type_name -> auth.AuthError.DetailsEntry
 	5,  // 7: auth.AuthService.Register:input_type -> auth.RegisterRequest
 	6,  // 8: auth.AuthService.Login:input_type -> auth.LoginRequest
 	7,  // 9: auth.AuthService.Logout:input_type -> auth.LogoutRequest
@@ -2155,18 +2213,20 @@ var file_auth_proto_depIdxs = []int32{
 	14, // 14: auth.AuthService.ResendVerification:input_type -> auth.ResendVerificationRequest
 	1,  // 15: auth.AuthService.SendOTP:input_type -> auth.SendOTPRequest
 	3,  // 16: auth.AuthService.VerifyOTP:input_type -> auth.VerifyOTPRequest
-	15, // 17: auth.AuthService.Register:output_type -> auth.AuthResponse
-	15, // 18: auth.AuthService.Login:output_type -> auth.AuthResponse
-	16, // 19: auth.AuthService.Logout:output_type -> auth.LogoutResponse
-	17, // 20: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
-	15, // 21: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
-	20, // 22: auth.AuthService.ResetPassword:output_type -> auth.ResetPasswordResponse
-	21, // 23: auth.AuthService.VerifyEmail:output_type -> auth.VerifyEmailResponse
-	22, // 24: auth.AuthService.ResendVerification:output_type -> auth.ResendVerificationResponse
-	2,  // 25: auth.AuthService.SendOTP:output_type -> auth.SendOTPResponse
-	4,  // 26: auth.AuthService.VerifyOTP:output_type -> auth.VerifyOTPResponse
-	17, // [17:27] is the sub-list for method output_type
-	7,  // [7:17] is the sub-list for method input_type
+	28, // 17: auth.AuthService.LoginWithGoogle:input_type -> auth.LoginWithGoogleRequest
+	15, // 18: auth.AuthService.Register:output_type -> auth.AuthResponse
+	15, // 19: auth.AuthService.Login:output_type -> auth.AuthResponse
+	16, // 20: auth.AuthService.Logout:output_type -> auth.LogoutResponse
+	17, // 21: auth.AuthService.ValidateToken:output_type -> auth.ValidateTokenResponse
+	15, // 22: auth.AuthService.RefreshToken:output_type -> auth.AuthResponse
+	20, // 23: auth.AuthService.ResetPassword:output_type -> auth.ResetPasswordResponse
+	21, // 24: auth.AuthService.VerifyEmail:output_type -> auth.VerifyEmailResponse
+	22, // 25: auth.AuthService.ResendVerification:output_type -> auth.ResendVerificationResponse
+	2,  // 26: auth.AuthService.SendOTP:output_type -> auth.SendOTPResponse
+	4,  // 27: auth.AuthService.VerifyOTP:output_type -> auth.VerifyOTPResponse
+	15, // 28: auth.AuthService.LoginWithGoogle:output_type -> auth.AuthResponse
+	18, // [18:29] is the sub-list for method output_type
+	7,  // [7:18] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -2183,7 +2243,7 @@ func file_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc), len(file_auth_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   28,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

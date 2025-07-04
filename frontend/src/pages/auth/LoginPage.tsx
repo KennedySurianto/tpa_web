@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { LoginRequest } from "../../api/gen/auth";
+import { LoginRequest, LoginWithGoogleRequest } from "../../api/gen/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../utils/AuthProvider";
 import {
@@ -12,10 +12,10 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  Chrome,
   Sparkles,
 } from "lucide-react";
 import { authClient } from "../../api/grpc/authClient";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -116,9 +116,41 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked");
-    // Implement Google OAuth login logic here
+  const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError("Google login failed: No credential returned from Google.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    const request: LoginWithGoogleRequest = {
+      idToken: credentialResponse.credential,
+      deviceInfo: navigator.userAgent,
+    };
+
+    try {
+      // Assumes your authClient has a `LoginWithGoogle` method from the updated proto
+      const response = await authClient.LoginWithGoogle(request);
+      if (response.success) {
+        console.log("Google login successful:", response);
+        login(response); // Use the same login function from your AuthProvider
+        navigate("/home");
+      } else {
+        setError(response.message || response.error || "Google login failed on the server.");
+      }
+    } catch (err: any) {
+      console.error("Google login gRPC error:", err);
+      setError(err.message || "An error occurred during Google login.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    setError("Google login was cancelled or failed. Please try again.");
+    setIsLoading(false);
   };
 
   return (
@@ -253,10 +285,23 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Google Login */}
-          <button onClick={handleGoogleLogin} disabled={isLoading} className="google-button">
-            <Chrome size={18} />
-            <span>Continue with Google</span>
-          </button>
+          <div className="google-login-wrapper">
+            {isLoading ? (
+               <div className="google-button-disabled">
+                  <Loader2 size={18} className="loading-spinner" />
+                  <span>Loading...</span>
+               </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={handleGoogleLoginError}
+                theme="outline"
+                size="large"
+                shape="pill"
+                use_fedcm_for_prompt={true}
+              />
+            )}
+          </div>
 
           {/* Footer Links */}
           <div className="footer-links">
@@ -276,6 +321,27 @@ const LoginPage: React.FC = () => {
       </div>
 
       <style>{`
+        .google-login-wrapper {
+          margin-bottom: 2rem;
+        }
+
+        .google-button-disabled {
+          width: 100%;
+          padding: 1rem 1.5rem;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 9999px;
+          color: #ffffff;
+          font-size: 0.95rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .login-container {
           min-height: 100vh;
           display: flex;

@@ -18,6 +18,8 @@ service AuthService {
 
   rpc SendOTP (SendOTPRequest) returns (SendOTPResponse);
   rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
+
+  rpc LoginWithGoogle(LoginWithGoogleRequest) returns (AuthResponse);
 }
 
 // OTP REQUESTS AND RESPONSES
@@ -226,3 +228,9 @@ message AuthError {
   string message = 2;
   map<string, string> details = 3;  // Additional error details
 }
+
+message LoginWithGoogleRequest {
+  string id_token = 1;      // The ID token received from Google
+  string device_info = 2;   // Optional: for tracking
+}
+

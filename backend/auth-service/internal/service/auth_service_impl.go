@@ -5,15 +5,21 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
+	mathrand "math/rand"
+	"os"
 	"strings"
 	"time"
 
+	"google.golang.org/api/idtoken"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/KennedySurianto/tpa_web/backend/middleware"
 )
 
 type AuthServiceImpl struct {
@@ -194,6 +200,8 @@ func (s *AuthServiceImpl) validateRegisterRequest(req *auth.RegisterRequest) err
 
 	return nil
 }
+
+
 
 func (s *AuthServiceImpl) Login(ctx context.Context, req *auth.LoginRequest) (*auth.AuthResponse, error) {
 	// Input validation
@@ -443,5 +451,171 @@ func (s *AuthServiceImpl) storeRefreshToken(token string, userId uint64) {
 	s.tokenStorage[token] = &model.TokenInfo{
 		UserId:    userId,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days
+	}
+}
+
+func (s *AuthServiceImpl) LoginWithGoogle(ctx context.Context, req *auth.LoginWithGoogleRequest) (*auth.AuthResponse, error) {
+	// IMPORTANT: Set this environment variable in your deployment
+	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	if googleClientID == "" {
+		log.Println("ERROR: GOOGLE_CLIENT_ID environment variable not set")
+		return &auth.AuthResponse{Success: false, Message: "Server configuration error"}, errors.New("missing google client id")
+	}
+
+	// 1. Validate the ID token using Google's library
+	payload, err := idtoken.Validate(ctx, req.IdToken, googleClientID)
+	if err != nil {
+		log.Printf("Google ID token validation failed: %v", err)
+		return &auth.AuthResponse{Success: false, Message: "Invalid or expired Google session. Please sign in again."}, err
+	}
+
+	email, ok := payload.Claims["email"].(string)
+	if !ok || email == "" {
+		return &auth.AuthResponse{Success: false, Message: "Email not found in Google token"}, errors.New("email missing from token")
+	}
+	email = strings.ToLower(strings.TrimSpace(email))
+
+	// 2. Check if the user already exists in the database
+	existingUser, err := s.userClient.GetUserByEmail(ctx, &user.GetUserRequest{Email: email})
+
+	// --- Case 1: User exists, log them in ---
+	if err == nil && existingUser != nil {
+		log.Printf("Existing user logged in with Google: %s", email)
+		// Update last login time
+		_, updateErr := s.userClient.UpdateLastLogin(ctx, &user.UpdateLastLoginRequest{UserId: existingUser.Id})
+		if updateErr != nil {
+			log.Printf("Failed to update last login for user %d: %v", existingUser.Id, updateErr)
+		}
+
+		// Generate session tokens for the existing user
+		accessToken, refreshToken, tokenErr := s.generateTokens(existingUser.Id, existingUser.Email, existingUser.Username)
+		if tokenErr != nil {
+			return &auth.AuthResponse{Success: false, Message: "Failed to create session after login"}, tokenErr
+		}
+		s.storeRefreshToken(refreshToken, existingUser.Id)
+
+		accessExpiresAt := time.Now().Add(24 * time.Hour)
+		refreshExpiresAt := time.Now().Add(7 * 24 * time.Hour)
+
+		return &auth.AuthResponse{
+			Success:          true,
+			Message:          "Login successful",
+			AccessToken:      accessToken,
+			RefreshToken:     refreshToken,
+			User:             s.mapUserToAuthUser(existingUser),
+			ExpiresAt:        accessExpiresAt.Unix(),
+			RefreshExpiresAt: refreshExpiresAt.Unix(),
+			TokenInfo: &auth.TokenInfo{
+				TokenType: "Bearer",
+				ExpiresIn: int64(time.Until(accessExpiresAt).Seconds()),
+				IssuedAt:  timestamppb.Now(),
+				DeviceId:  req.DeviceInfo,
+			},
+		}, nil
+	}
+
+	// --- Case 2: User does not exist, create a new account ---
+	log.Printf("User with email %s not found. Creating a new user via Google Sign-Up.", email)
+
+	// Extract user info from the Google token payload
+	name, _ := payload.Claims["name"].(string)
+	// picture, _ := payload.Claims["picture"].(string) // This is a URL, but the proto expects bytes.
+
+	// Create a unique username from the email prefix
+	baseUsername := strings.Split(email, "@")[0]
+	username := baseUsername
+	for i := 0; i < 5; i++ {
+		_, userErr := s.userClient.GetUserByUsername(ctx, &user.GetUserByUsernameRequest{Username: username})
+		if userErr != nil {
+			break
+		}
+		username = fmt.Sprintf("%s%d", baseUsername, mathrand.Intn(9000)+1000)
+		if i == 4 {
+			return &auth.AuthResponse{Success: false, Message: "Could not generate a unique username."}, errors.New("username generation failed")
+		}
+	}
+
+	randomPasswordBytes := make([]byte, 16)
+	if _, err := rand.Read(randomPasswordBytes); err != nil {
+		return &auth.AuthResponse{Success: false, Message: "Failed to generate internal credentials"}, err
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword(randomPasswordBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return &auth.AuthResponse{Success: false, Message: "Failed to process internal credentials"}, err
+	}
+
+	// Create the new user in the database
+	createUserReq := &user.CreateUserRequest{
+		Username:    username,
+		Email:       email,
+		Password:    string(hashedPassword),
+		DisplayName: name,
+		IsPrivate:  false,
+		Preferences: &user.UserPreferences{ // Set default preferences
+			AllowDuet:             true,
+			AllowStitch:           true,
+			AllowDownload:         true,
+			AllowComments:         true,
+		},
+	}
+
+	newUserResponse, err := s.userClient.CreateUser(ctx, createUserReq)
+	if err != nil {
+		log.Printf("Failed to create user from Google login: %v", err)
+		return &auth.AuthResponse{Success: false, Message: "Failed to register your account. The email might already be in use with a different method."}, err
+	}
+
+	accessToken, refreshToken, err := s.generateTokens(newUserResponse.User.Id, newUserResponse.User.Email, newUserResponse.User.Username)
+	if err != nil {
+		return &auth.AuthResponse{Success: false, Message: "Account created but failed to create a session."}, err
+	}
+	s.storeRefreshToken(refreshToken, newUserResponse.User.Id)
+
+	SendWelcomeEmail(newUserResponse.User.Email, newUserResponse.User.Username)
+
+	accessExpiresAt := time.Now().Add(24 * time.Hour)
+	refreshExpiresAt := time.Now().Add(7 * 24 * time.Hour)
+
+	return &auth.AuthResponse{
+		Success:          true,
+		Message:          "Registration successful",
+		AccessToken:      accessToken,
+		RefreshToken:     refreshToken,
+		User:             s.mapUserToAuthUser(newUserResponse.User),
+		ExpiresAt:        accessExpiresAt.Unix(),
+		RefreshExpiresAt: refreshExpiresAt.Unix(),
+		TokenInfo: &auth.TokenInfo{
+			TokenType: "Bearer",
+			ExpiresIn: int64(time.Until(accessExpiresAt).Seconds()),
+			IssuedAt:  timestamppb.Now(),
+			DeviceId:  req.DeviceInfo,
+		},
+	}, nil
+}
+
+func (s *AuthServiceImpl) mapUserToAuthUser(u *user.User) *auth.User {
+	if u == nil {
+		return nil
+	}
+	// The user.User from user-service client needs to be mapped to auth.User for the response
+	// Note: The `Avatar` field in `auth.User` is `bytes`. We assume `user.User` from the client also has `bytes`.
+	return &auth.User{
+		Id:            u.Id,
+		Username:      u.Username,
+		Email:         u.Email,
+		DisplayName:   u.DisplayName,
+		Bio:           u.Bio,
+		Avatar:        u.Avatar, // Assuming u.Avatar is []byte
+		IsVerified:    u.IsVerified,
+		IsPrivate:     u.IsPrivate,
+		IsActive:      u.IsActive,
+		LastLoginAt:   u.LastLoginAt,
+		Country:       u.Country,
+		AllowDuet:     u.AllowDuet,
+		AllowStitch:   u.AllowStitch,
+		AllowDownload: u.AllowDownload,
+		AllowComments: u.AllowComments,
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
 	}
 }

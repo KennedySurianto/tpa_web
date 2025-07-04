@@ -24,6 +24,10 @@ func NewAuthController(authService service.AuthService, otpService service.OTPSe
 	}
 }
 
+func (c *AuthController) LoginWithGoogle(ctx context.Context, req *auth.LoginWithGoogleRequest) (*auth.AuthResponse, error) {
+	return c.authService.LoginWithGoogle(ctx, req)
+}
+
 func (c *AuthController) Register(ctx context.Context, req *auth.RegisterRequest) (*auth.AuthResponse, error) {
 	return c.authService.Register(ctx, req)
 }
