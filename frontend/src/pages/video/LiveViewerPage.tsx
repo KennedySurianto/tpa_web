@@ -362,6 +362,18 @@ const LiveViewerPage: React.FC = () => {
             setChatMessages((prev) => [...prev.slice(-49), endMessage]);
             setConnectionStatus("disconnected");
           }
+
+          if (type === "webcam-toggle" && message.sdpOrCandidate) {
+            try {
+              const data = JSON.parse(message.sdpOrCandidate);
+              const webcamEnabled = Boolean(data.enabled);
+              setHasWebcamStream(webcamEnabled);
+              console.log("✅ Webcam toggled:", webcamEnabled);
+            } catch (err) {
+              console.warn("Failed to handle webcam-toggle:", err);
+            }
+          }
+          
         } catch (err) {
           console.error("Error handling signal:", err);
           setConnectionStatus("error");

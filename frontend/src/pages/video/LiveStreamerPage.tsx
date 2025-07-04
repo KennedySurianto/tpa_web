@@ -389,6 +389,7 @@ const LiveStreamerPage: React.FC = () => {
       // Set webcam PiP
       setWebcamStream(webcamStream);
       setIsScreenSharing(true);
+      setIsVideoEnabled(true);
 
       screenTrack.onended = () => {
         webcamStream.getTracks().forEach((t) => t.stop());
@@ -407,21 +408,41 @@ const LiveStreamerPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isScreenSharing && webcamStream && webcamVideoRef.current) {
+    if (isScreenSharing && webcamStream && webcamVideoRef.current && isVideoEnabled) {
       webcamVideoRef.current.srcObject = webcamStream
     }
-  }, [isScreenSharing, webcamStream])
+  }, [isScreenSharing, webcamStream, isVideoEnabled])
 
   // Toggle video
   const toggleVideo = () => {
-    if (stream) {
-      const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
+    // Determine which stream's video to toggle
+    const videoStreamToToggle = isScreenSharing ? webcamStream : stream;
+
+    if (videoStreamToToggle && videoStreamToToggle.getVideoTracks().length > 0) {
+      const videoTrack = videoStreamToToggle.getVideoTracks()[0];
+      const newEnabledState = !videoTrack.enabled;
+      videoTrack.enabled = newEnabledState;
+      setIsVideoEnabled(newEnabledState);
+
+      // If we are toggling the main camera (not PiP), we might need to update the local preview
+      if (!isScreenSharing && localVideoRef.current && newEnabledState) {
+        localVideoRef.current.srcObject = stream;
       }
+
+      // Broadcast the toggle state to all viewers
+      peerConnections.current.forEach((_pc, viewerId) => {
+        const toggleSignal = SignalMessage.fromPartial({
+          sender: localUserId,
+          receiver: viewerId,
+          type: "webcam-toggle", // Viewers need to know which video to toggle
+          sdpOrCandidate: JSON.stringify({ 
+            enabled: newEnabledState,
+          }),
+        });
+        liveClient.SendSignal(toggleSignal);
+      });
     }
-  };
+  }
 
   // Toggle audio
   const toggleAudio = () => {
@@ -720,7 +741,7 @@ const LiveStreamerPage: React.FC = () => {
             />
 
             {/* Webcam PiP only if screen sharing */}
-            {isScreenSharing && (
+            {isVideoEnabled && isScreenSharing && (
               <video
                 ref={webcamVideoRef}
                 autoPlay
@@ -738,25 +759,6 @@ const LiveStreamerPage: React.FC = () => {
                   objectFit: "cover",
                 }}
               />
-            )}
-
-            {/* Video disabled overlay */}
-            {!isVideoEnabled && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "rgba(0, 0, 0, 0.8)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  gap: "1rem",
-                }}
-              >
-                <VideoOff size={48} style={{ color: "#ef4444" }} />
-                <p style={{ margin: 0, color: "#8b949e" }}>Camera is off</p>
-              </div>
             )}
 
             {/* Stream Controls Overlay */}
