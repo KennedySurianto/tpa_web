@@ -1,16 +1,20 @@
+import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
+import {
+  DeleteUserRequest,
+  GetUserByIdRequest,
+  UpdateUserRequest,
+  User,
+  UserResponse,
+} from "../../api/gen/user";
 
-import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
+import { useAuth } from "../../utils/AuthProvider";
 
-import { DeleteUserRequest, GetUserByIdRequest, UpdateUserRequest, User, UserResponse } from "../../api/gen/user"
+import { userClient } from "../../api/grpc/userClient";
 
-import { useAuth } from "../../utils/AuthProvider"
+import { useNavigate } from "react-router-dom";
 
-import { userClient } from "../../api/grpc/userClient"
-
-import { useNavigate } from "react-router-dom"
-
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
 
 import {
   UserIcon,
@@ -34,52 +38,52 @@ import {
   Check,
   Trash2,
   X,
-} from "lucide-react"
+} from "lucide-react";
 
 // Helper function to format Unix timestamps
 const formatTimestamp = (timestampStr: string | undefined): string => {
-  if (!timestampStr) return "N/A"
-  const timestampNum = Number.parseInt(timestampStr, 10)
+  if (!timestampStr) return "N/A";
+  const timestampNum = Number.parseInt(timestampStr, 10);
   if (isNaN(timestampNum)) {
-    return "Invalid date"
+    return "Invalid date";
   }
-  return new Date(timestampNum * 1000).toLocaleString()
-}
+  return new Date(timestampNum * 1000).toLocaleString();
+};
 
 // Helper function to generate random confirmation text
 const generateRandomText = (): string => {
-  const words = ["DELETE", "REMOVE", "CONFIRM", "ACCOUNT", "PERMANENT"]
+  const words = ["DELETE", "REMOVE", "CONFIRM", "ACCOUNT", "PERMANENT"];
   const numbers = Math.floor(Math.random() * 9999)
     .toString()
-    .padStart(4, "0")
-  const word = words[Math.floor(Math.random() * words.length)]
-  return `${word}-${numbers}`
-}
+    .padStart(4, "0");
+  const word = words[Math.floor(Math.random() * words.length)];
+  return `${word}-${numbers}`;
+};
 
 const EditProfilePage: React.FC = () => {
-  const { user: authUser, logout } = useAuth()
-  const [userProfile, setUserProfile] = useState<User | null>(null)
-  const [formData, setFormData] = useState<User | null>(null)
-  const [originalData, setOriginalData] = useState<User | null>(null)
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤")
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [successMessage, setSuccessMessage] = useState<string>("")
-  const [errorMessage, setErrorMessage] = useState<string>("")
-  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile")
+  const { user: authUser, logout } = useAuth();
+  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [formData, setFormData] = useState<User | null>(null);
+  const [originalData, setOriginalData] = useState<User | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
 
   // Delete account states
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
-  const [deleteConfirmationText, setDeleteConfirmationText] = useState<string>("")
-  const [userInputText, setUserInputText] = useState<string>("")
-  const [isDeleting, setIsDeleting] = useState<boolean>(false)
-  const [deleteError, setDeleteError] = useState<string>("")
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState<string>("");
+  const [userInputText, setUserInputText] = useState<string>("");
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string>("");
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Check if form has changes
   const hasChanges = React.useMemo(() => {
-    if (!formData || !originalData) return false
+    if (!formData || !originalData) return false;
 
     const compareFields = [
       "username",
@@ -94,120 +98,124 @@ const EditProfilePage: React.FC = () => {
       "allowDuet",
       "allowStitch",
       "allowDownload",
-    ]
+    ];
 
-    return compareFields.some((field) => formData[field as keyof User] !== originalData[field as keyof User])
-  }, [formData, originalData])
+    return compareFields.some(
+      (field) => formData[field as keyof User] !== originalData[field as keyof User],
+    );
+  }, [formData, originalData]);
 
   // Clear messages after 5 seconds
   useEffect(() => {
     if (successMessage || errorMessage) {
       const timer = setTimeout(() => {
-        setSuccessMessage("")
-        setErrorMessage("")
-      }, 5000)
-      return () => clearTimeout(timer)
+        setSuccessMessage("");
+        setErrorMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [successMessage, errorMessage])
+  }, [successMessage, errorMessage]);
 
   // Generate new confirmation text when modal opens
   useEffect(() => {
     if (showDeleteModal) {
-      setDeleteConfirmationText(generateRandomText())
-      setUserInputText("")
-      setDeleteError("")
+      setDeleteConfirmationText(generateRandomText());
+      setUserInputText("");
+      setDeleteError("");
     }
-  }, [showDeleteModal])
+  }, [showDeleteModal]);
 
   // Effect to fetch user data
   useEffect(() => {
     const fetchUser = async () => {
-      setIsLoading(true)
-      setErrorMessage("")
+      setIsLoading(true);
+      setErrorMessage("");
 
       if (!(authUser && authUser.id)) {
-        console.warn("No authenticated user ID found.")
-        setUserProfile(null)
-        setErrorMessage("No authenticated user found. Please log in.")
-        setIsLoading(false)
-        return
+        console.warn("No authenticated user ID found.");
+        setUserProfile(null);
+        setErrorMessage("No authenticated user found. Please log in.");
+        setIsLoading(false);
+        return;
       }
 
       try {
-        const req: GetUserByIdRequest = { id: authUser.id }
-        const res: User = await userClient.GetUserById(req)
-        console.log("Fetched user data:", res)
-        setUserProfile(res)
+        const req: GetUserByIdRequest = { id: authUser.id };
+        const res: User = await userClient.GetUserById(req);
+        console.log("Fetched user data:", res);
+        setUserProfile(res);
       } catch (err) {
-        console.error("Error fetching user:", err)
-        setUserProfile(null)
-        setErrorMessage("Failed to load profile data. Please try again.")
+        console.error("Error fetching user:", err);
+        setUserProfile(null);
+        setErrorMessage("Failed to load profile data. Please try again.");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUser()
-  }, [authUser])
+    fetchUser();
+  }, [authUser]);
 
   // Effect to update formData and profilePicturePreview when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      setFormData(userProfile)
-      setOriginalData(userProfile)
-      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤")
+      setFormData(userProfile);
+      setOriginalData(userProfile);
+      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤");
     } else {
-      setFormData(null)
-      setOriginalData(null)
-      setProfilePicturePreview("👤")
+      setFormData(null);
+      setOriginalData(null);
+      setProfilePicturePreview("👤");
     }
-  }, [userProfile])
+  }, [userProfile]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null))
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
 
     if (name === "avatar") {
-      setProfilePicturePreview(value || "👤")
+      setProfilePicturePreview(value || "👤");
     }
 
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("")
-      setErrorMessage("")
+      setSuccessMessage("");
+      setErrorMessage("");
     }
-  }
+  };
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target
-    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null))
+    const { name, checked } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null));
 
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("")
-      setErrorMessage("")
+      setSuccessMessage("");
+      setErrorMessage("");
     }
-  }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData) {
-      setErrorMessage("Profile data is not available.")
-      return
+      setErrorMessage("Profile data is not available.");
+      return;
     }
 
     if (!hasChanges) {
-      setErrorMessage("No changes to save.")
-      return
+      setErrorMessage("No changes to save.");
+      return;
     }
 
-    setIsSaving(true)
-    setErrorMessage("")
-    setSuccessMessage("")
+    setIsSaving(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
-      console.log("Form submitted:", formData)
+      console.log("Form submitted:", formData);
       const req: UpdateUserRequest = {
         id: Number(userProfile?.id) || 0,
         username: formData.username,
@@ -222,61 +230,61 @@ const EditProfilePage: React.FC = () => {
         allowStitch: formData.allowStitch,
         allowDownload: formData.allowDownload,
         allowComments: formData.allowComments,
-      }
+      };
 
-      const res = await userClient.UpdateUser(req)
+      const res = await userClient.UpdateUser(req);
       if (res) {
-        setSuccessMessage("Profile updated successfully!")
-        setOriginalData(formData)
+        setSuccessMessage("Profile updated successfully!");
+        setOriginalData(formData);
       }
     } catch (err) {
-      console.error("Error updating profile:", err)
-      setErrorMessage("Failed to update profile. Please try again.")
+      console.error("Error updating profile:", err);
+      setErrorMessage("Failed to update profile. Please try again.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDeleteAccount = async () => {
     if (!userProfile?.id) {
-      setDeleteError("User ID not found.")
-      return
+      setDeleteError("User ID not found.");
+      return;
     }
 
     if (userInputText.trim() !== deleteConfirmationText) {
-      setDeleteError("Confirmation text does not match. Please try again.")
-      return
+      setDeleteError("Confirmation text does not match. Please try again.");
+      return;
     }
 
-    setIsDeleting(true)
-    setDeleteError("")
+    setIsDeleting(true);
+    setDeleteError("");
 
     try {
-      const req: DeleteUserRequest = { 
-        email: userProfile.email 
-      }
-      const res: UserResponse = await userClient.DeleteUser(req)
+      const req: DeleteUserRequest = {
+        email: userProfile.email,
+      };
+      const res: UserResponse = await userClient.DeleteUser(req);
       if (res) {
         // Account deleted successfully
-        setShowDeleteModal(false)
-        setSuccessMessage("Account deleted successfully. You will be redirected shortly.")
-  
+        setShowDeleteModal(false);
+        setSuccessMessage("Account deleted successfully. You will be redirected shortly.");
+
         // Redirect to login page after a short delay
         setTimeout(() => {
           logout();
-        }, 3000)
+        }, 3000);
       }
     } catch (err) {
-      console.error("Error deleting account:", err)
-      setDeleteError("Failed to delete account. Please try again.")
+      console.error("Error deleting account:", err);
+      setDeleteError("Failed to delete account. Please try again.");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const handleProfilePictureError = () => {
-    setProfilePicturePreview("👤")
-  }
+    setProfilePicturePreview("👤");
+  };
 
   const renderProfilePicture = () => {
     if (profilePicturePreview === "👤") {
@@ -297,7 +305,7 @@ const EditProfilePage: React.FC = () => {
         >
           <UserIcon size={48} />
         </div>
-      )
+      );
     }
 
     return (
@@ -314,8 +322,8 @@ const EditProfilePage: React.FC = () => {
           transition: "all 0.3s ease",
         }}
       />
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -356,7 +364,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!formData) {
@@ -406,7 +414,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -502,7 +510,8 @@ const EditProfilePage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              background: activeTab === "profile" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
+              background:
+                activeTab === "profile" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
               border: "none",
               color: activeTab === "profile" ? "#ffffff" : "#8b949e",
               padding: "0.75rem 1rem",
@@ -525,7 +534,8 @@ const EditProfilePage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              background: activeTab === "settings" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
+              background:
+                activeTab === "settings" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
               border: "none",
               color: activeTab === "settings" ? "#ffffff" : "#8b949e",
               padding: "0.75rem 1rem",
@@ -609,16 +619,16 @@ const EditProfilePage: React.FC = () => {
                       name="avatar"
                       accept="image/*"
                       onChange={async (e) => {
-                        const file = e.target.files?.[0]
-                        if (!file) return
+                        const file = e.target.files?.[0];
+                        if (!file) return;
 
-                        const buffer = await file.arrayBuffer()
-                        const bytes = new Uint8Array(buffer)
-                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null))
+                        const buffer = await file.arrayBuffer();
+                        const bytes = new Uint8Array(buffer);
+                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null));
 
                         // Update preview
-                        const base64 = btoa(String.fromCharCode(...bytes))
-                        setProfilePicturePreview(`data:${file.type};base64,${base64}`)
+                        const base64 = btoa(String.fromCharCode(...bytes));
+                        setProfilePicturePreview(`data:${file.type};base64,${base64}`);
                       }}
                       style={{ display: "none" }}
                     />
@@ -687,14 +697,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6"
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
+                        e.currentTarget.style.borderColor = "#8b5cf6";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                        e.currentTarget.style.boxShadow = "none"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                       }}
                     />
                   </div>
@@ -732,14 +742,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6"
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
+                        e.currentTarget.style.borderColor = "#8b5cf6";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                        e.currentTarget.style.boxShadow = "none"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                       }}
                     />
                   </div>
@@ -777,14 +787,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6"
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
+                        e.currentTarget.style.borderColor = "#8b5cf6";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                        e.currentTarget.style.boxShadow = "none"
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                       }}
                     />
                   </div>
@@ -827,14 +837,14 @@ const EditProfilePage: React.FC = () => {
                       fontFamily: "inherit",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6"
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
+                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                      e.currentTarget.style.boxShadow = "none"
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.boxShadow = "none";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                     }}
                   />
                 </div>
@@ -884,7 +894,9 @@ const EditProfilePage: React.FC = () => {
                       <Hash size={14} />
                       User ID
                     </div>
-                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>{formData.id}</div>
+                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>
+                      {formData.id}
+                    </div>
                   </div>
 
                   <div
@@ -911,7 +923,9 @@ const EditProfilePage: React.FC = () => {
                       <Mail size={14} />
                       Email Address
                     </div>
-                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>{formData.email}</div>
+                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>
+                      {formData.email}
+                    </div>
                   </div>
 
                   <div
@@ -1015,10 +1029,10 @@ const EditProfilePage: React.FC = () => {
                       fontWeight: "500",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)"
+                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)"
+                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)";
                     }}
                   >
                     <Key size={16} />
@@ -1415,7 +1429,9 @@ const EditProfilePage: React.FC = () => {
                             background: "#ffffff",
                             transition: "all 0.3s ease",
                             borderRadius: "50%",
-                            transform: formData.allowComments ? "translateX(24px)" : "translateX(0)",
+                            transform: formData.allowComments
+                              ? "translateX(24px)"
+                              : "translateX(0)",
                           }}
                         />
                       </span>
@@ -1676,7 +1692,9 @@ const EditProfilePage: React.FC = () => {
                             background: "#ffffff",
                             transition: "all 0.3s ease",
                             borderRadius: "50%",
-                            transform: formData.allowDownload ? "translateX(24px)" : "translateX(0)",
+                            transform: formData.allowDownload
+                              ? "translateX(24px)"
+                              : "translateX(0)",
                           }}
                         />
                       </span>
@@ -1731,8 +1749,8 @@ const EditProfilePage: React.FC = () => {
                         lineHeight: 1.5,
                       }}
                     >
-                      Once you delete your account, there is no going back. This will permanently delete your account,
-                      all your videos, and remove all associated data.
+                      Once you delete your account, there is no going back. This will permanently
+                      delete your account, all your videos, and remove all associated data.
                     </p>
                   </div>
                   <button
@@ -1753,12 +1771,12 @@ const EditProfilePage: React.FC = () => {
                       fontWeight: "600",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)"
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)"
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
                     }}
                   >
                     <Trash2 size={16} />
@@ -1787,7 +1805,9 @@ const EditProfilePage: React.FC = () => {
                 alignItems: "center",
                 gap: "0.5rem",
                 background:
-                  hasChanges && !isSaving ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(75, 85, 99, 0.5)",
+                  hasChanges && !isSaving
+                    ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
+                    : "rgba(75, 85, 99, 0.5)",
                 border: "none",
                 color: hasChanges && !isSaving ? "#ffffff" : "#9ca3af",
                 padding: "0.75rem 2rem",
@@ -1800,14 +1820,14 @@ const EditProfilePage: React.FC = () => {
               }}
               onMouseEnter={(e) => {
                 if (hasChanges && !isSaving) {
-                  e.currentTarget.style.transform = "translateY(-1px)"
-                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(139, 92, 246, 0.4)"
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(139, 92, 246, 0.4)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (hasChanges && !isSaving) {
-                  e.currentTarget.style.transform = "translateY(0)"
-                  e.currentTarget.style.boxShadow = "none"
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }
               }}
             >
@@ -1850,7 +1870,7 @@ const EditProfilePage: React.FC = () => {
             }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                setShowDeleteModal(false)
+                setShowDeleteModal(false);
               }
             }}
           >
@@ -1900,7 +1920,8 @@ const EditProfilePage: React.FC = () => {
                     lineHeight: 1.5,
                   }}
                 >
-                  This action cannot be undone. This will permanently delete your account and remove all your data.
+                  This action cannot be undone. This will permanently delete your account and remove
+                  all your data.
                 </p>
               </div>
 
@@ -1941,8 +1962,8 @@ const EditProfilePage: React.FC = () => {
                   type="text"
                   value={userInputText}
                   onChange={(e) => {
-                    setUserInputText(e.target.value)
-                    setDeleteError("")
+                    setUserInputText(e.target.value);
+                    setDeleteError("");
                   }}
                   placeholder="Type the confirmation text here"
                   style={{
@@ -1960,14 +1981,14 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onFocus={(e) => {
                     if (!deleteError) {
-                      e.currentTarget.style.borderColor = "#8b5cf6"
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }
                   }}
                   onBlur={(e) => {
                     if (!deleteError) {
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.boxShadow = "none";
                     }
                   }}
                 />
@@ -2006,12 +2027,12 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!isDeleting) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isDeleting) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                     }
                   }}
                 >
@@ -2035,10 +2056,16 @@ const EditProfilePage: React.FC = () => {
                         ? "rgba(239, 68, 68, 0.5)"
                         : "rgba(75, 85, 99, 0.5)"
                     }`,
-                    color: !isDeleting && userInputText.trim() === deleteConfirmationText ? "#ef4444" : "#9ca3af",
+                    color:
+                      !isDeleting && userInputText.trim() === deleteConfirmationText
+                        ? "#ef4444"
+                        : "#9ca3af",
                     padding: "0.75rem 1.5rem",
                     borderRadius: "8px",
-                    cursor: !isDeleting && userInputText.trim() === deleteConfirmationText ? "pointer" : "not-allowed",
+                    cursor:
+                      !isDeleting && userInputText.trim() === deleteConfirmationText
+                        ? "pointer"
+                        : "not-allowed",
                     transition: "all 0.2s ease",
                     fontSize: "0.875rem",
                     fontWeight: "600",
@@ -2046,14 +2073,14 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!isDeleting && userInputText.trim() === deleteConfirmationText) {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.3)"
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.7)"
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.3)";
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.7)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isDeleting && userInputText.trim() === deleteConfirmationText) {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)"
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
                     }
                   }}
                 >
@@ -2158,7 +2185,7 @@ const EditProfilePage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default EditProfilePage
+export default EditProfilePage;

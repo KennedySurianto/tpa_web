@@ -1,41 +1,41 @@
-import React from "react"
-import { useEffect, useState } from "react"
-import { GetPlaylistRequest, Playlist } from "../api/gen/playlist"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import { playlistClient } from "../api/grpc/playlistClient"
-import { GetPlaylistByUserIdResponse } from "../api/gen/playlist"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../utils/AuthProvider"
-import { Plus, Music, Settings, Play } from "lucide-react"
+import React from "react";
+import { useEffect, useState } from "react";
+import { GetPlaylistRequest, Playlist } from "../api/gen/playlist";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import { playlistClient } from "../api/grpc/playlistClient";
+import { GetPlaylistByUserIdResponse } from "../api/gen/playlist";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../utils/AuthProvider";
+import { Plus, Music, Settings, Play } from "lucide-react";
 
 interface PlaylistTabProps {
-  userId: string
-  isOwnProfile: boolean
+  userId: string;
+  isOwnProfile: boolean;
 }
 
 const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
-  const { user } = useAuth()
-  const [playlists, setPlaylists] = useState<Playlist[]>([])
-  const navigate = useNavigate()
+  const { user } = useAuth();
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPlaylists = async () => {
       const req: GetPlaylistRequest = {
         id: userId,
         currentUserId: user?.id?.toString() ?? "0",
-      }
+      };
 
       try {
-        const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req)
-        setPlaylists(res.playlists)
-        console.log("fetched playlists: ", res.playlists)
+        const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req);
+        setPlaylists(res.playlists);
+        console.log("fetched playlists: ", res.playlists);
       } catch (error) {
-        console.error("Failed to fetch playlists:", error)
+        console.error("Failed to fetch playlists:", error);
       }
-    }
+    };
 
-    fetchPlaylists()
-  }, [userId])
+    fetchPlaylists();
+  }, [userId]);
 
   return (
     <div className="playlist-container">
@@ -74,7 +74,11 @@ const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
 
       {/* Playlists Grid */}
       {playlists.map((playlist) => (
-        <div key={playlist.id} className="playlist-card" onClick={() => alert(`Open playlist: ${playlist.name}`)}>
+        <div
+          key={playlist.id}
+          className="playlist-card"
+          onClick={() => alert(`Open playlist: ${playlist.name}`)}
+        >
           <div className="playlist-thumbnails">
             {playlist.videos.slice(0, 3).map((video, index) => (
               <div key={index} className="thumbnail-wrapper">
@@ -92,7 +96,7 @@ const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
                     playsInline
                     preload="metadata"
                     onLoadedMetadata={(e) => {
-                      ;(e.target as HTMLVideoElement).currentTime = 0
+                      (e.target as HTMLVideoElement).currentTime = 0;
                     }}
                   >
                     <source src={video.videoUrl} type="video/mp4" />
@@ -426,7 +430,7 @@ const PlaylistTab: React.FC<PlaylistTabProps> = ({ userId, isOwnProfile }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default PlaylistTab
+export default PlaylistTab;

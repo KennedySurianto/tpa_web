@@ -1,17 +1,17 @@
-import type React from "react"
-import { Link, useNavigate } from "react-router-dom"
-import type { Video } from "../api/gen/video"
-import { avatarBytesToUrl } from "../utils/avatarConverter"
-import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react"
+import type React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import type { Video } from "../api/gen/video";
+import { avatarBytesToUrl } from "../utils/avatarConverter";
+import { Upload, Play, Eye, Heart, MessageCircle, VideoIcon } from "lucide-react";
 
 interface VideoGridProps {
-  videos: Video[]
-  isOwnProfile: boolean
-  isVideoTab: boolean
+  videos: Video[];
+  isOwnProfile: boolean;
+  isVideoTab: boolean;
 }
 
 const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="video-container">
@@ -68,7 +68,7 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
                 playsInline
                 preload="metadata"
                 onLoadedMetadata={(e) => {
-                  ;(e.target as HTMLVideoElement).currentTime = 0
+                  (e.target as HTMLVideoElement).currentTime = 0;
                 }}
               >
                 <source src={video.videoUrl} type="video/mp4" />
@@ -403,7 +403,7 @@ const VideoTab: React.FC<VideoGridProps> = ({ videos, isOwnProfile, isVideoTab }
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default VideoTab
+export default VideoTab;

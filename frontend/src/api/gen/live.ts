@@ -24,8 +24,7 @@ export interface SignalMessage {
   sdpOrCandidate: string;
 }
 
-export interface Empty {
-}
+export interface Empty {}
 
 function createBaseJoinRequest(): JoinRequest {
   return { userId: 0 };
@@ -357,9 +356,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -371,7 +371,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -388,9 +392,10 @@ export class GrpcWebImpl {
     const DEFAULT_TIMEOUT_TIME: number = 3_000;
     const request = { ..._request, ...methodDesc.requestType };
     const transport = this.options.streamingTransport ?? this.options.transport;
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Observable((observer) => {
       const upStream = () => {
         const client = grpc.invoke(methodDesc, {
@@ -422,14 +427,19 @@ export class GrpcWebImpl {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -437,7 +447,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

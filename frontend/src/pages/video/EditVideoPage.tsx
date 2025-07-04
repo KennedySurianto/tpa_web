@@ -1,6 +1,6 @@
-import type React from "react"
-import { useEffect, useState, useCallback } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import type React from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Save,
   ArrowLeft,
@@ -16,26 +16,32 @@ import {
   Copy,
   Scissors,
   Lock,
-} from "lucide-react"
-import { videoClient } from "../../api/grpc/videoClient"
-import { useAuth } from "../../utils/AuthProvider"
-import type { GetVideoRequest, GetVideoResponse, UpdateVideoRequest, UpdateVideoResponse, Video } from "../../api/gen/video"
-import { avatarBytesToUrl } from "../../utils/avatarConverter"
+} from "lucide-react";
+import { videoClient } from "../../api/grpc/videoClient";
+import { useAuth } from "../../utils/AuthProvider";
+import type {
+  GetVideoRequest,
+  GetVideoResponse,
+  UpdateVideoRequest,
+  UpdateVideoResponse,
+  Video,
+} from "../../api/gen/video";
+import { avatarBytesToUrl } from "../../utils/avatarConverter";
 
-type EditVideoPageProps = {}
+type EditVideoPageProps = {};
 
 interface FormData extends Omit<UpdateVideoRequest, "id"> {
-  id: number
+  id: number;
 }
 
 const EditVideoPage: React.FC<EditVideoPageProps> = () => {
-  const { user, getAuthMetadata } = useAuth()
-  const navigate = useNavigate()
-  const params = useParams<{ videoId: string }>()
-  const videoId = params?.videoId
+  const { user, getAuthMetadata } = useAuth();
+  const navigate = useNavigate();
+  const params = useParams<{ videoId: string }>();
+  const videoId = params?.videoId;
 
   // State management with proper TypeScript types
-  const [video, setVideo] = useState<Video | null>(null)
+  const [video, setVideo] = useState<Video | null>(null);
   const [formData, setFormData] = useState<FormData>({
     id: 0,
     caption: "",
@@ -44,38 +50,38 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
     allowDuet: true,
     allowStitch: false,
     isPublished: false,
-  })
-  const [loading, setLoading] = useState<boolean>(true)
-  const [saving, setSaving] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [hasChanges, setHasChanges] = useState<boolean>(false)
-  const [isOwner, setIsOwner] = useState<boolean>(false)
+  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
 
   // Fetch video data
   const fetchVideo = useCallback(async (): Promise<void> => {
-    if (!videoId || !user?.id) return
+    if (!videoId || !user?.id) return;
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       const req: GetVideoRequest = {
         videoId: videoId,
         currentUserId: user.id,
-      }
+      };
 
-      const res: GetVideoResponse = await videoClient.GetVideo(req, getAuthMetadata())
+      const res: GetVideoResponse = await videoClient.GetVideo(req, getAuthMetadata());
 
       if (res && res.video) {
-        const video: Video = res.video
-        setVideo(video)
+        const video: Video = res.video;
+        setVideo(video);
 
         // Check if current user is the owner of the video
-        const videoOwner = String(video.userId) === String(user.id)
-        setIsOwner(videoOwner)
+        const videoOwner = String(video.userId) === String(user.id);
+        setIsOwner(videoOwner);
 
         if (videoOwner) {
           setFormData({
@@ -86,90 +92,90 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
             allowDuet: video.allowDuet ?? true,
             allowStitch: video.allowStitch ?? false,
             isPublished: video.isPublished ?? false,
-          })
+          });
 
           // Set thumbnail preview if exists
           if (video.thumbnail) {
-            const thumbnailUrl = avatarBytesToUrl(video.thumbnail)
+            const thumbnailUrl = avatarBytesToUrl(video.thumbnail);
             if (thumbnailUrl) {
-              setThumbnailPreview(thumbnailUrl)
+              setThumbnailPreview(thumbnailUrl);
             }
           }
         }
       }
     } catch (err) {
-      console.error("Failed to fetch video:", err)
-      setError("Failed to load video. Please try again.")
+      console.error("Failed to fetch video:", err);
+      setError("Failed to load video. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [videoId, user?.id, getAuthMetadata])
+  }, [videoId, user?.id, getAuthMetadata]);
 
   useEffect(() => {
     if (user?.id && videoId) {
-      fetchVideo()
+      fetchVideo();
     }
-  }, [user?.id, videoId, fetchVideo])
+  }, [user?.id, videoId, fetchVideo]);
 
   // Handle form changes
   const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-    setHasChanges(true)
-    setSuccess(null)
-    setError(null)
-  }, [])
+    }));
+    setHasChanges(true);
+    setSuccess(null);
+    setError(null);
+  }, []);
 
   // Handle thumbnail upload
   const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError("Thumbnail file size must be less than 5MB")
-        return
+        setError("Thumbnail file size must be less than 5MB");
+        return;
       }
 
       if (!file.type.startsWith("image/")) {
-        setError("Please select a valid image file")
-        return
+        setError("Please select a valid image file");
+        return;
       }
 
-      setThumbnailFile(file)
+      setThumbnailFile(file);
 
       // Create preview
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         if (e.target?.result) {
-          setThumbnailPreview(e.target.result as string)
+          setThumbnailPreview(e.target.result as string);
         }
-      }
-      reader.readAsDataURL(file)
+      };
+      reader.readAsDataURL(file);
 
-      setHasChanges(true)
-      setError(null)
+      setHasChanges(true);
+      setError(null);
     }
-  }, [])
+  }, []);
 
   // Handle form submission
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-      e.preventDefault()
-      if (!video || !videoId || !isOwner) return
+      e.preventDefault();
+      if (!video || !videoId || !isOwner) return;
 
-      console.log("videoId: ", videoId)
+      console.log("videoId: ", videoId);
 
-      setSaving(true)
-      setError(null)
-      setSuccess(null)
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
 
       try {
         // Convert thumbnail to bytes if uploaded
-        let thumbnailBytes: Uint8Array | undefined
+        let thumbnailBytes: Uint8Array | undefined;
         if (thumbnailFile) {
-          const arrayBuffer = await thumbnailFile.arrayBuffer()
-          thumbnailBytes = new Uint8Array(arrayBuffer)
+          const arrayBuffer = await thumbnailFile.arrayBuffer();
+          thumbnailBytes = new Uint8Array(arrayBuffer);
         }
 
         const req: UpdateVideoRequest = {
@@ -181,50 +187,50 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
           allowStitch: formData.allowStitch,
           isPublished: formData.isPublished,
           ...(thumbnailBytes && { thumbnail: thumbnailBytes }),
-        }
+        };
 
-        const res: UpdateVideoResponse = await videoClient.UpdateVideo(req, getAuthMetadata())
+        const res: UpdateVideoResponse = await videoClient.UpdateVideo(req, getAuthMetadata());
 
         if (res && res.video) {
-          setSuccess("Video updated successfully!")
-          setHasChanges(false)
-          await fetchVideo()
+          setSuccess("Video updated successfully!");
+          setHasChanges(false);
+          await fetchVideo();
         }
       } catch (err) {
-        console.error("Failed to update video:", err)
-        setError("Failed to update video. Please try again.")
+        console.error("Failed to update video:", err);
+        setError("Failed to update video. Please try again.");
       } finally {
-        setSaving(false)
+        setSaving(false);
       }
     },
     [video, videoId, formData, thumbnailFile, getAuthMetadata, fetchVideo, isOwner],
-  )
+  );
 
   // Handle navigation with unsaved changes warning
   const handleNavigation = useCallback(
     (path: string): void => {
       if (hasChanges && isOwner) {
         if (window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
-          navigate(path)
+          navigate(path);
         }
       } else {
-        navigate(path)
+        navigate(path);
       }
     },
     [hasChanges, navigate, isOwner],
-  )
+  );
 
   // Format date
   const formatDate = useCallback((dateString: string | undefined): string => {
-    if (!dateString) return "Unknown"
+    if (!dateString) return "Unknown";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }, [])
+    });
+  }, []);
 
   // Loading state
   if (loading) {
@@ -265,7 +271,7 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
           }
         `}</style>
       </div>
-    )
+    );
   }
 
   // Error state
@@ -291,11 +297,23 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
             textAlign: "center",
           }}
         >
-          <AlertCircle style={{ width: "48px", height: "48px", color: "#ef4444", margin: "0 auto 1rem" }} />
-          <h2 style={{ fontSize: "1.25rem", fontWeight: "600", color: "white", marginBottom: "0.5rem", margin: 0 }}>
+          <AlertCircle
+            style={{ width: "48px", height: "48px", color: "#ef4444", margin: "0 auto 1rem" }}
+          />
+          <h2
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: "600",
+              color: "white",
+              marginBottom: "0.5rem",
+              margin: 0,
+            }}
+          >
             Error Loading Video
           </h2>
-          <p style={{ color: "#9ca3af", marginBottom: "1.5rem", margin: "0.5rem 0 1.5rem 0" }}>{error}</p>
+          <p style={{ color: "#9ca3af", marginBottom: "1.5rem", margin: "0.5rem 0 1.5rem 0" }}>
+            {error}
+          </p>
           <button
             onClick={() => navigate("/manage-videos")}
             style={{
@@ -313,12 +331,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
               fontSize: "0.875rem",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)"
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)"
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)"
-              e.currentTarget.style.boxShadow = "none"
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
             <ArrowLeft style={{ width: "16px", height: "16px", marginRight: "0.5rem" }} />
@@ -326,7 +344,7 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Not owner view - Read-only video details
@@ -370,12 +388,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                   fontSize: "0.875rem",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)"
-                  e.currentTarget.style.borderColor = "#6b7280"
+                  e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)";
+                  e.currentTarget.style.borderColor = "#6b7280";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)"
-                  e.currentTarget.style.borderColor = "#4b5563"
+                  e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)";
+                  e.currentTarget.style.borderColor = "#4b5563";
                 }}
               >
                 <ArrowLeft style={{ width: "16px", height: "16px", marginRight: "0.5rem" }} />
@@ -395,7 +413,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 >
                   Video Details
                 </h1>
-                <p style={{ color: "#9ca3af", fontSize: "0.875rem", marginTop: "0.25rem", margin: "0.25rem 0 0 0" }}>
+                <p
+                  style={{
+                    color: "#9ca3af",
+                    fontSize: "0.875rem",
+                    marginTop: "0.25rem",
+                    margin: "0.25rem 0 0 0",
+                  }}
+                >
                   Created {formatDate(video.createdAt?.toString())}
                 </p>
               </div>
@@ -487,7 +512,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
 
                 {/* Video Info */}
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
                     <div
                       style={{
                         padding: "0.25rem 0.5rem",
@@ -520,15 +552,21 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.likeCount || 0}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                        {video.likeCount || 0}
+                      </div>
                       <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Likes</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.viewsCount || 0}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                        {video.viewsCount || 0}
+                      </div>
                       <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Views</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.commentsCount || 0}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                        {video.commentsCount || 0}
+                      </div>
                       <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Comments</div>
                     </div>
                   </div>
@@ -562,7 +600,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 Video Details
               </h3>
             </div>
-            <div style={{ padding: "0 1.5rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div
+              style={{
+                padding: "0 1.5rem 1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+              }}
+            >
               {/* Caption */}
               <div>
                 <label
@@ -656,7 +701,7 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Owner view - Editable form
@@ -700,12 +745,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 fontSize: "0.875rem",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)"
-                e.currentTarget.style.borderColor = "#6b7280"
+                e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)";
+                e.currentTarget.style.borderColor = "#6b7280";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)"
-                e.currentTarget.style.borderColor = "#4b5563"
+                e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)";
+                e.currentTarget.style.borderColor = "#4b5563";
               }}
             >
               <ArrowLeft style={{ width: "16px", height: "16px", marginRight: "0.5rem" }} />
@@ -726,8 +771,16 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 Edit Video
               </h1>
               {video && (
-                <p style={{ color: "#9ca3af", fontSize: "0.875rem", marginTop: "0.25rem", margin: "0.25rem 0 0 0" }}>
-                  Created {formatDate(video.createdAt?.toString())} | Last Updated {formatDate(video.updatedAt?.toString())}
+                <p
+                  style={{
+                    color: "#9ca3af",
+                    fontSize: "0.875rem",
+                    marginTop: "0.25rem",
+                    margin: "0.25rem 0 0 0",
+                  }}
+                >
+                  Created {formatDate(video.createdAt?.toString())} | Last Updated{" "}
+                  {formatDate(video.updatedAt?.toString())}
                 </p>
               )}
             </div>
@@ -766,7 +819,15 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
               marginBottom: "1.5rem",
             }}
           >
-            <X style={{ width: "16px", height: "16px", color: "#ef4444", flexShrink: 0, marginTop: "0.125rem" }} />
+            <X
+              style={{
+                width: "16px",
+                height: "16px",
+                color: "#ef4444",
+                flexShrink: 0,
+                marginTop: "0.125rem",
+              }}
+            />
             <div style={{ fontSize: "0.875rem", color: "#ef4444" }}>{error}</div>
           </div>
         )}
@@ -784,12 +845,23 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
               marginBottom: "1.5rem",
             }}
           >
-            <Check style={{ width: "16px", height: "16px", color: "#22c55e", flexShrink: 0, marginTop: "0.125rem" }} />
+            <Check
+              style={{
+                width: "16px",
+                height: "16px",
+                color: "#22c55e",
+                flexShrink: 0,
+                marginTop: "0.125rem",
+              }}
+            />
             <div style={{ fontSize: "0.875rem", color: "#22c55e" }}>{success}</div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+        >
           {/* Video Preview */}
           {video && (
             <div
@@ -859,7 +931,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
 
                   {/* Video Info */}
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginBottom: "1rem",
+                      }}
+                    >
                       <div
                         style={{
                           padding: "0.25rem 0.5rem",
@@ -892,15 +971,21 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.likeCount || 0}</div>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                          {video.likeCount || 0}
+                        </div>
                         <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Likes</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.viewsCount || 0}</div>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                          {video.viewsCount || 0}
+                        </div>
                         <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Views</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>{video.commentsCount || 0}</div>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                          {video.commentsCount || 0}
+                        </div>
                         <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>Comments</div>
                       </div>
                     </div>
@@ -935,7 +1020,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 Video Details
               </h3>
             </div>
-            <div style={{ padding: "0 1.5rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div
+              style={{
+                padding: "0 1.5rem 1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+              }}
+            >
               {/* Caption */}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <label
@@ -954,7 +1046,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                   id="caption"
                   type="text"
                   value={formData.caption || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("caption", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange("caption", e.target.value)
+                  }
                   placeholder="Enter video caption..."
                   required
                   style={{
@@ -970,12 +1064,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     boxSizing: "border-box",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#8b5cf6"
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                    e.currentTarget.style.borderColor = "#8b5cf6";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#4b5563"
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = "#4b5563";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 />
               </div>
@@ -997,7 +1091,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 <select
                   id="privacy"
                   value={formData.privacy || "public"}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("privacy", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    handleInputChange("privacy", e.target.value)
+                  }
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",
@@ -1012,12 +1108,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     boxSizing: "border-box",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#8b5cf6"
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                    e.currentTarget.style.borderColor = "#8b5cf6";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#4b5563"
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = "#4b5563";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <option value="public" style={{ backgroundColor: "#1f2937", color: "white" }}>
@@ -1073,10 +1169,10 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       transition: "border-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6"
+                      e.currentTarget.style.borderColor = "#8b5cf6";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#4b5563"
+                      e.currentTarget.style.borderColor = "#4b5563";
                     }}
                   >
                     <ImageIcon style={{ width: "20px", height: "20px", color: "#8b5cf6" }} />
@@ -1084,7 +1180,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       <div style={{ fontWeight: "500" }}>
                         {thumbnailFile ? thumbnailFile.name : "Choose thumbnail image"}
                       </div>
-                      <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>PNG, JPG up to 5MB</div>
+                      <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
+                        PNG, JPG up to 5MB
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1134,10 +1232,10 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     backgroundColor: formData.isPublished ? "#8b5cf6" : "#4b5563",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)"
+                    e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <span
@@ -1156,7 +1254,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
 
               {/* Interaction Settings */}
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <h3 style={{ fontSize: "1.125rem", fontWeight: "500", margin: 0 }}>Interaction Settings</h3>
+                <h3 style={{ fontSize: "1.125rem", fontWeight: "500", margin: 0 }}>
+                  Interaction Settings
+                </h3>
 
                 {/* Allow Comments */}
                 <div
@@ -1174,14 +1274,18 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     <MessageCircle style={{ width: "20px", height: "20px" }} />
                     <div>
                       <div style={{ fontWeight: "500" }}>Allow Comments</div>
-                      <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>Let people comment on your video</div>
+                      <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
+                        Let people comment on your video
+                      </div>
                     </div>
                   </div>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={formData.allowComments ?? true}
-                    onClick={() => handleInputChange("allowComments", !(formData.allowComments ?? true))}
+                    onClick={() =>
+                      handleInputChange("allowComments", !(formData.allowComments ?? true))
+                    }
                     style={{
                       position: "relative",
                       display: "inline-flex",
@@ -1196,10 +1300,10 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       backgroundColor: formData.allowComments ? "#8b5cf6" : "#4b5563",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)"
+                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
                     <span
@@ -1256,10 +1360,10 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       backgroundColor: formData.allowDuet ? "#8b5cf6" : "#4b5563",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)"
+                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
                     <span
@@ -1301,7 +1405,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                     type="button"
                     role="switch"
                     aria-checked={formData.allowStitch ?? false}
-                    onClick={() => handleInputChange("allowStitch", !(formData.allowStitch ?? false))}
+                    onClick={() =>
+                      handleInputChange("allowStitch", !(formData.allowStitch ?? false))
+                    }
                     style={{
                       position: "relative",
                       display: "inline-flex",
@@ -1316,10 +1422,10 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                       backgroundColor: formData.allowStitch ? "#8b5cf6" : "#4b5563",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)"
+                      e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 92, 246, 0.5)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
                     <span
@@ -1359,12 +1465,12 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 fontSize: "0.875rem",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)"
-                e.currentTarget.style.borderColor = "#6b7280"
+                e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.8)";
+                e.currentTarget.style.borderColor = "#6b7280";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)"
-                e.currentTarget.style.borderColor = "#4b5563"
+                e.currentTarget.style.backgroundColor = "rgba(31, 41, 55, 0.5)";
+                e.currentTarget.style.borderColor = "#4b5563";
               }}
             >
               Cancel
@@ -1380,7 +1486,9 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
                 borderRadius: "0.5rem",
                 border: "none",
                 background:
-                  hasChanges && !saving ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(75, 85, 99, 0.5)",
+                  hasChanges && !saving
+                    ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
+                    : "rgba(75, 85, 99, 0.5)",
                 color: hasChanges && !saving ? "white" : "#9ca3af",
                 fontWeight: "600",
                 cursor: hasChanges && !saving ? "pointer" : "not-allowed",
@@ -1390,14 +1498,14 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
               }}
               onMouseEnter={(e) => {
                 if (hasChanges && !saving) {
-                  e.currentTarget.style.transform = "translateY(-1px)"
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)"
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (hasChanges && !saving) {
-                  e.currentTarget.style.transform = "translateY(0)"
-                  e.currentTarget.style.boxShadow = "none"
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }
               }}
             >
@@ -1441,7 +1549,7 @@ const EditVideoPage: React.FC<EditVideoPageProps> = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default EditVideoPage
+export default EditVideoPage;

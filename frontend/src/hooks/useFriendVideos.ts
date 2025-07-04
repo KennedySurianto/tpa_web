@@ -19,7 +19,7 @@ export function useFriendVideos() {
       try {
         const res = await videoClient.GetFriendVideos(req, getAuthMetadata());
         if (res && res.videos && res.videos.length !== 0) {
-          setVideos(res.videos.filter(video => video.isPublished) || []);
+          setVideos(res.videos.filter((video) => video.isPublished) || []);
         }
       } catch (err) {
         console.error("Failed to fetch friend videos:", err);

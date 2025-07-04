@@ -1,11 +1,11 @@
-import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { Upload, Video, ImageIcon, Settings, Check, Eye, Plus, List } from "lucide-react"
+import type React from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Upload, Video, ImageIcon, Settings, Check, Eye, Plus, List } from "lucide-react";
 
 // Assuming these imports exist in your project
-import type { CreateVideoRequest, CreateVideoResponse } from "../../api/gen/video"
-import { useAuth } from "../../utils/AuthProvider"
-import { videoClient } from "../../api/grpc/videoClient"
+import type { CreateVideoRequest, CreateVideoResponse } from "../../api/gen/video";
+import { useAuth } from "../../utils/AuthProvider";
+import { videoClient } from "../../api/grpc/videoClient";
 
 // Import playlist-related types and client from the working example
 import type {
@@ -14,107 +14,108 @@ import type {
   Playlist,
   UpdatePlaylistRequest,
   UpdatePlaylistResponse,
-} from "../../api/gen/playlist"
-import { playlistClient } from "../../api/grpc/playlistClient"
+} from "../../api/gen/playlist";
+import { playlistClient } from "../../api/grpc/playlistClient";
 
 const UploadVideoPage: React.FC = () => {
-  const { user, getAuthMetadata } = useAuth()
-  const [file, setFile] = useState<File | null>(null)
-  const [caption, setCaption] = useState("")
-  const [description, setDescription] = useState("")
-  const [privacy, setPrivacy] = useState("public")
-  const [isPublished, setIsPublished] = useState(true) // true for publish, false for draft
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string>("")
-  const [allowComments, setAllowComments] = useState(true)
-  const [allowDuet, setAllowDuet] = useState(true)
-  const [allowStitch, setAllowStitch] = useState(true)
-  const [videoURL, setVideoURL] = useState<string>("")
-  const [uploadedVideoId, setUploadedVideoId] = useState<string>("")
-  const [loading, setLoading] = useState(false)
-  const [playlists, setPlaylists] = useState<Playlist[]>([])
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
-  const [addingToPlaylist, setAddingToPlaylist] = useState(false)
-  const [playlistAdded, setPlaylistAdded] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const { user, getAuthMetadata } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState("");
+  const [description, setDescription] = useState("");
+  const [privacy, setPrivacy] = useState("public");
+  const [isPublished, setIsPublished] = useState(true); // true for publish, false for draft
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+  const [allowComments, setAllowComments] = useState(true);
+  const [allowDuet, setAllowDuet] = useState(true);
+  const [allowStitch, setAllowStitch] = useState(true);
+  const [videoURL, setVideoURL] = useState<string>("");
+  const [uploadedVideoId, setUploadedVideoId] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [addingToPlaylist, setAddingToPlaylist] = useState(false);
+  const [playlistAdded, setPlaylistAdded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const previewVideoURL = useMemo(() => {
-    if (!file) return ""
-    const url = URL.createObjectURL(file)
-    return url
-  }, [file])
+    if (!file) return "";
+    const url = URL.createObjectURL(file);
+    return url;
+  }, [file]);
 
   useEffect(() => {
     return () => {
       if (previewVideoURL) {
-        URL.revokeObjectURL(previewVideoURL)
+        URL.revokeObjectURL(previewVideoURL);
       }
-    }
-  }, [previewVideoURL])
+    };
+  }, [previewVideoURL]);
 
   // Fetch user playlists when video is successfully uploaded
   const fetchPlaylists = async () => {
-    if (!user?.id) return
+    if (!user?.id) return;
     try {
       const req: GetPlaylistRequest = {
         id: user.id.toString(),
         currentUserId: user.id.toString(),
-      }
-      const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req)
+      };
+      const res: GetPlaylistByUserIdResponse = await playlistClient.GetPlaylistsByUserId(req);
       if (res && res.playlists && res.playlists.length !== 0) {
-        setPlaylists(res.playlists)
+        setPlaylists(res.playlists);
       }
-      console.log("Fetched playlists:", res.playlists)
+      console.log("Fetched playlists:", res.playlists);
     } catch (error) {
-      console.error("Failed to fetch playlists:", error)
+      console.error("Failed to fetch playlists:", error);
     }
-  }
+  };
 
   const handleAddToPlaylist = async () => {
     if (
       !selectedPlaylist ||
       !uploadedVideoId ||
       (selectedPlaylist.videos &&
-      selectedPlaylist.videos.some((v) => String(v.id) === uploadedVideoId))
-    ) return
+        selectedPlaylist.videos.some((v) => String(v.id) === uploadedVideoId))
+    )
+      return;
 
-    setAddingToPlaylist(true)
+    setAddingToPlaylist(true);
     try {
       const req: UpdatePlaylistRequest = {
         id: selectedPlaylist.id,
         name: selectedPlaylist.name,
-        videoIds: [
-          ...(selectedPlaylist.videos?.map((v) => String(v.id)) || []),
-          uploadedVideoId,
-        ],
-      }
-      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(req, getAuthMetadata())
+        videoIds: [...(selectedPlaylist.videos?.map((v) => String(v.id)) || []), uploadedVideoId],
+      };
+      const res: UpdatePlaylistResponse = await playlistClient.UpdatePlaylist(
+        req,
+        getAuthMetadata(),
+      );
 
       if (res && res.playlistId) {
-        setPlaylistAdded(true)
-        setTimeout(() => setPlaylistAdded(false), 3000)
-        console.log("Video added to playlist successfully")
+        setPlaylistAdded(true);
+        setTimeout(() => setPlaylistAdded(false), 3000);
+        console.log("Video added to playlist successfully");
       }
     } catch (error) {
-      console.error("Failed to add video to playlist:", error)
-      alert("Failed to add video to playlist. Please try again.")
+      console.error("Failed to add video to playlist:", error);
+      alert("Failed to add video to playlist. Please try again.");
     } finally {
-      setAddingToPlaylist(false)
+      setAddingToPlaylist(false);
     }
-  }
+  };
 
   const handleUpload = async () => {
-    if (!file || !user?.id) return
+    if (!file || !user?.id) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      let duration = 0
+      let duration = 0;
       if (videoRef.current && videoRef.current.duration) {
-        duration = Math.floor(videoRef.current.duration)
+        duration = Math.floor(videoRef.current.duration);
       }
 
-      const videoArrayBuffer = await file.arrayBuffer()
-      const thumbnailArrayBuffer = thumbnailFile ? await thumbnailFile.arrayBuffer() : null
+      const videoArrayBuffer = await file.arrayBuffer();
+      const thumbnailArrayBuffer = thumbnailFile ? await thumbnailFile.arrayBuffer() : null;
 
       const request: CreateVideoRequest = {
         userId: Number(user?.id),
@@ -130,30 +131,35 @@ const UploadVideoPage: React.FC = () => {
         videoUrl: "",
         thumbnail: thumbnailArrayBuffer ? new Uint8Array(thumbnailArrayBuffer) : undefined,
         isPublished,
-      }
+      };
 
-      const response: CreateVideoResponse = await videoClient.CreateVideo(request, getAuthMetadata())
+      const response: CreateVideoResponse = await videoClient.CreateVideo(
+        request,
+        getAuthMetadata(),
+      );
 
-      const url = response.video?.videoUrl ?? ""
-      const videoId = response.video?.id ?? ""
+      const url = response.video?.videoUrl ?? "";
+      const videoId = response.video?.id ?? "";
 
       if (url) {
-        setVideoURL(url)
-        setUploadedVideoId(videoId.toString())
+        setVideoURL(url);
+        setUploadedVideoId(videoId.toString());
         // Fetch playlists after successful upload
-        await fetchPlaylists()
+        await fetchPlaylists();
       }
     } catch (err: any) {
       if (err.message?.includes("upstream request timeout") || err.code === "DEADLINE_EXCEEDED") {
-        console.log("⏳ Video is still being processed. Please wait a few moments and check your profile.")
+        console.log(
+          "⏳ Video is still being processed. Please wait a few moments and check your profile.",
+        );
       } else {
-        alert("Upload failed: " + (err.message || "Unknown error"))
-        console.error("Upload failed:", err)
+        alert("Upload failed: " + (err.message || "Unknown error"));
+        console.error("Upload failed:", err);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="upload-container">
@@ -176,13 +182,13 @@ const UploadVideoPage: React.FC = () => {
                 type="file"
                 accept="video/*"
                 onChange={(e) => {
-                  const selected = e.target.files?.[0] || null
-                  setFile(selected)
-                  setVideoURL("")
-                  setUploadedVideoId("")
-                  setPlaylists([])
-                  setSelectedPlaylist(null)
-                  setPlaylistAdded(false)
+                  const selected = e.target.files?.[0] || null;
+                  setFile(selected);
+                  setVideoURL("");
+                  setUploadedVideoId("");
+                  setPlaylists([]);
+                  setSelectedPlaylist(null);
+                  setPlaylistAdded(false);
                 }}
                 className="file-input"
                 id="video-upload"
@@ -212,8 +218,8 @@ const UploadVideoPage: React.FC = () => {
                   controls
                   preload="metadata"
                   onLoadedMetadata={(e) => {
-                    const duration = (e.target as HTMLVideoElement).duration
-                    console.log("Video duration:", duration)
+                    const duration = (e.target as HTMLVideoElement).duration;
+                    console.log("Video duration:", duration);
                   }}
                 />
               </div>
@@ -235,10 +241,21 @@ const UploadVideoPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label htmlFor="privacy">Privacy</label>
-              <select id="privacy" value={privacy} onChange={(e) => setPrivacy(e.target.value)} className="form-select">
-                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="public">Public</option>
-                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="private">Private</option>
-                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="friends">Friends Only</option>
+              <select
+                id="privacy"
+                value={privacy}
+                onChange={(e) => setPrivacy(e.target.value)}
+                className="form-select"
+              >
+                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="public">
+                  Public
+                </option>
+                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="private">
+                  Private
+                </option>
+                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="friends">
+                  Friends Only
+                </option>
               </select>
             </div>
           </div>
@@ -252,8 +269,12 @@ const UploadVideoPage: React.FC = () => {
                 onChange={(e) => setIsPublished(e.target.value === "publish")}
                 className="form-select"
               >
-                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="publish">Publish Now</option>
-                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="draft">Save as Draft</option>
+                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="publish">
+                  Publish Now
+                </option>
+                <option style={{ backgroundColor: "#1f2937", color: "white" }} value="draft">
+                  Save as Draft
+                </option>
               </select>
             </div>
             <div className="form-group">{/* Empty div to maintain grid layout */}</div>
@@ -282,9 +303,9 @@ const UploadVideoPage: React.FC = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  const image = e.target.files?.[0] || null
-                  setThumbnailFile(image)
-                  setThumbnailPreview(image ? URL.createObjectURL(image) : "")
+                  const image = e.target.files?.[0] || null;
+                  setThumbnailFile(image);
+                  setThumbnailPreview(image ? URL.createObjectURL(image) : "");
                 }}
                 className="file-input"
                 id="thumbnail-upload"
@@ -366,7 +387,9 @@ const UploadVideoPage: React.FC = () => {
             <div className="success-section">
               <div className="success-header">
                 <Check size={24} />
-                <h3>{isPublished ? "Video Published Successfully!" : "Draft Saved Successfully!"}</h3>
+                <h3>
+                  {isPublished ? "Video Published Successfully!" : "Draft Saved Successfully!"}
+                </h3>
               </div>
               <div className="success-video">
                 <video src={videoURL} controls />
@@ -397,15 +420,21 @@ const UploadVideoPage: React.FC = () => {
                         id="playlist-select"
                         value={selectedPlaylist ? selectedPlaylist.id : ""}
                         onChange={(e) => {
-                          const selected = playlists.find((p) => p.id === e.target.value) || null
+                          const selected = playlists.find((p) => p.id === e.target.value) || null;
                           if (!selected) return;
-                          setSelectedPlaylist(selected)
+                          setSelectedPlaylist(selected);
                         }}
                         className="form-select"
                       >
-                        <option style={{ backgroundColor: "#1f2937", color: "white" }} value="">Choose a playlist...</option>
+                        <option style={{ backgroundColor: "#1f2937", color: "white" }} value="">
+                          Choose a playlist...
+                        </option>
                         {playlists.map((playlist) => (
-                          <option style={{ backgroundColor: "#1f2937", color: "white" }} key={playlist.id} value={playlist.id}>
+                          <option
+                            style={{ backgroundColor: "#1f2937", color: "white" }}
+                            key={playlist.id}
+                            value={playlist.id}
+                          >
                             {playlist.name} ({playlist.videos?.length || 0} videos)
                           </option>
                         ))}
@@ -929,7 +958,7 @@ const UploadVideoPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default UploadVideoPage
+export default UploadVideoPage;

@@ -118,8 +118,7 @@ export interface UserListResponse {
 }
 
 /** Utility Messages */
-export interface Empty {
-}
+export interface Empty {}
 
 /** Additional specialized messages for different user views */
 export interface UserProfile {
@@ -165,7 +164,10 @@ function createBaseGetUserByUsernameRequest(): GetUserByUsernameRequest {
 }
 
 export const GetUserByUsernameRequest: MessageFns<GetUserByUsernameRequest> = {
-  encode(message: GetUserByUsernameRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetUserByUsernameRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.username !== "") {
       writer.uint32(10).string(message.username);
     }
@@ -208,10 +210,14 @@ export const GetUserByUsernameRequest: MessageFns<GetUserByUsernameRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(base?: I): GetUserByUsernameRequest {
+  create<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(
+    base?: I,
+  ): GetUserByUsernameRequest {
     return GetUserByUsernameRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(object: I): GetUserByUsernameRequest {
+  fromPartial<I extends Exact<DeepPartial<GetUserByUsernameRequest>, I>>(
+    object: I,
+  ): GetUserByUsernameRequest {
     const message = createBaseGetUserByUsernameRequest();
     message.username = object.username ?? "";
     return message;
@@ -223,7 +229,10 @@ function createBaseUpdateUserPasswordRequest(): UpdateUserPasswordRequest {
 }
 
 export const UpdateUserPasswordRequest: MessageFns<UpdateUserPasswordRequest> = {
-  encode(message: UpdateUserPasswordRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: UpdateUserPasswordRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.email !== "") {
       writer.uint32(10).string(message.email);
     }
@@ -283,10 +292,14 @@ export const UpdateUserPasswordRequest: MessageFns<UpdateUserPasswordRequest> = 
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(base?: I): UpdateUserPasswordRequest {
+  create<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(
+    base?: I,
+  ): UpdateUserPasswordRequest {
     return UpdateUserPasswordRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(object: I): UpdateUserPasswordRequest {
+  fromPartial<I extends Exact<DeepPartial<UpdateUserPasswordRequest>, I>>(
+    object: I,
+  ): UpdateUserPasswordRequest {
     const message = createBaseUpdateUserPasswordRequest();
     message.email = object.email ?? "";
     message.newPassword = object.newPassword ?? "";
@@ -546,7 +559,9 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
       avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
       country: isSet(object.country) ? globalThis.String(object.country) : "",
       isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
-      preferences: isSet(object.preferences) ? UserPreferences.fromJSON(object.preferences) : undefined,
+      preferences: isSet(object.preferences)
+        ? UserPreferences.fromJSON(object.preferences)
+        : undefined,
     };
   },
 
@@ -595,9 +610,10 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     message.avatar = object.avatar ?? new Uint8Array(0);
     message.country = object.country ?? "";
     message.isPrivate = object.isPrivate ?? false;
-    message.preferences = (object.preferences !== undefined && object.preferences !== null)
-      ? UserPreferences.fromPartial(object.preferences)
-      : undefined;
+    message.preferences =
+      object.preferences !== undefined && object.preferences !== null
+        ? UserPreferences.fromPartial(object.preferences)
+        : undefined;
     return message;
   },
 };
@@ -1090,10 +1106,14 @@ export const UpdateLastLoginRequest: MessageFns<UpdateLastLoginRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdateLastLoginRequest>, I>>(base?: I): UpdateLastLoginRequest {
+  create<I extends Exact<DeepPartial<UpdateLastLoginRequest>, I>>(
+    base?: I,
+  ): UpdateLastLoginRequest {
     return UpdateLastLoginRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateLastLoginRequest>, I>>(object: I): UpdateLastLoginRequest {
+  fromPartial<I extends Exact<DeepPartial<UpdateLastLoginRequest>, I>>(
+    object: I,
+  ): UpdateLastLoginRequest {
     const message = createBaseUpdateLastLoginRequest();
     message.userId = object.userId ?? "0";
     return message;
@@ -1105,7 +1125,10 @@ function createBaseGetUsersByCountryRequest(): GetUsersByCountryRequest {
 }
 
 export const GetUsersByCountryRequest: MessageFns<GetUsersByCountryRequest> = {
-  encode(message: GetUsersByCountryRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetUsersByCountryRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.country !== "") {
       writer.uint32(10).string(message.country);
     }
@@ -1148,10 +1171,14 @@ export const GetUsersByCountryRequest: MessageFns<GetUsersByCountryRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUsersByCountryRequest>, I>>(base?: I): GetUsersByCountryRequest {
+  create<I extends Exact<DeepPartial<GetUsersByCountryRequest>, I>>(
+    base?: I,
+  ): GetUsersByCountryRequest {
     return GetUsersByCountryRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetUsersByCountryRequest>, I>>(object: I): GetUsersByCountryRequest {
+  fromPartial<I extends Exact<DeepPartial<GetUsersByCountryRequest>, I>>(
+    object: I,
+  ): GetUsersByCountryRequest {
     const message = createBaseGetUsersByCountryRequest();
     message.country = object.country ?? "";
     return message;
@@ -1580,7 +1607,8 @@ export const UserResponse: MessageFns<UserResponse> = {
   fromPartial<I extends Exact<DeepPartial<UserResponse>, I>>(object: I): UserResponse {
     const message = createBaseUserResponse();
     message.message = object.message ?? "";
-    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.user =
+      object.user !== undefined && object.user !== null ? User.fromPartial(object.user) : undefined;
     return message;
   },
 };
@@ -1656,7 +1684,9 @@ export const UserListResponse: MessageFns<UserListResponse> = {
 
   fromJSON(object: any): UserListResponse {
     return {
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      users: globalThis.Array.isArray(object?.users)
+        ? object.users.map((e: any) => User.fromJSON(e))
+        : [],
       totalCount: isSet(object.totalCount) ? globalThis.Number(object.totalCount) : 0,
       page: isSet(object.page) ? globalThis.Number(object.page) : 0,
       pageSize: isSet(object.pageSize) ? globalThis.Number(object.pageSize) : 0,
@@ -2249,7 +2279,9 @@ export const SearchUsersRequest: MessageFns<SearchUsersRequest> = {
   fromJSON(object: any): SearchUsersRequest {
     return {
       query: isSet(object.query) ? globalThis.String(object.query) : "",
-      pagination: isSet(object.pagination) ? PaginationRequest.fromJSON(object.pagination) : undefined,
+      pagination: isSet(object.pagination)
+        ? PaginationRequest.fromJSON(object.pagination)
+        : undefined,
       verifiedOnly: isSet(object.verifiedOnly) ? globalThis.Boolean(object.verifiedOnly) : false,
       activeOnly: isSet(object.activeOnly) ? globalThis.Boolean(object.activeOnly) : false,
       country: isSet(object.country) ? globalThis.String(object.country) : "",
@@ -2282,9 +2314,10 @@ export const SearchUsersRequest: MessageFns<SearchUsersRequest> = {
   fromPartial<I extends Exact<DeepPartial<SearchUsersRequest>, I>>(object: I): SearchUsersRequest {
     const message = createBaseSearchUsersRequest();
     message.query = object.query ?? "";
-    message.pagination = (object.pagination !== undefined && object.pagination !== null)
-      ? PaginationRequest.fromPartial(object.pagination)
-      : undefined;
+    message.pagination =
+      object.pagination !== undefined && object.pagination !== null
+        ? PaginationRequest.fromPartial(object.pagination)
+        : undefined;
     message.verifiedOnly = object.verifiedOnly ?? false;
     message.activeOnly = object.activeOnly ?? false;
     message.country = object.country ?? "";
@@ -2293,21 +2326,42 @@ export const SearchUsersRequest: MessageFns<SearchUsersRequest> = {
 };
 
 export interface UserService {
-  CreateUser(request: DeepPartial<CreateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
+  CreateUser(
+    request: DeepPartial<CreateUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse>;
   GetAllUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse>;
   GetUserByEmail(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
-  DeleteUser(request: DeepPartial<DeleteUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
+  DeleteUser(
+    request: DeepPartial<DeleteUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse>;
   GetUserById(request: DeepPartial<GetUserByIdRequest>, metadata?: grpc.Metadata): Promise<User>;
-  UpdateUserPassword(request: DeepPartial<UpdateUserPasswordRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
+  UpdateUserPassword(
+    request: DeepPartial<UpdateUserPasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse>;
   /** Additional profile and preference management endpoints */
-  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
-  UpdateLastLogin(request: DeepPartial<UpdateLastLoginRequest>, metadata?: grpc.Metadata): Promise<UserResponse>;
+  UpdateUser(
+    request: DeepPartial<UpdateUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse>;
+  UpdateLastLogin(
+    request: DeepPartial<UpdateLastLoginRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse>;
   GetUsersByCountry(
     request: DeepPartial<GetUsersByCountryRequest>,
     metadata?: grpc.Metadata,
   ): Promise<UserListResponse>;
-  GetVerifiedUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse>;
-  GetUserByUsername(request: DeepPartial<GetUserByUsernameRequest>, metadata?: grpc.Metadata): Promise<User>;
+  GetVerifiedUsers(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserListResponse>;
+  GetUserByUsername(
+    request: DeepPartial<GetUserByUsernameRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<User>;
 }
 
 export class UserServiceClientImpl implements UserService {
@@ -2328,8 +2382,15 @@ export class UserServiceClientImpl implements UserService {
     this.GetUserByUsername = this.GetUserByUsername.bind(this);
   }
 
-  CreateUser(request: DeepPartial<CreateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceCreateUserDesc, CreateUserRequest.fromPartial(request), metadata);
+  CreateUser(
+    request: DeepPartial<CreateUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse> {
+    return this.rpc.unary(
+      UserServiceCreateUserDesc,
+      CreateUserRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetAllUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse> {
@@ -2337,42 +2398,92 @@ export class UserServiceClientImpl implements UserService {
   }
 
   GetUserByEmail(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User> {
-    return this.rpc.unary(UserServiceGetUserByEmailDesc, GetUserRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      UserServiceGetUserByEmailDesc,
+      GetUserRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  DeleteUser(request: DeepPartial<DeleteUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceDeleteUserDesc, DeleteUserRequest.fromPartial(request), metadata);
+  DeleteUser(
+    request: DeepPartial<DeleteUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse> {
+    return this.rpc.unary(
+      UserServiceDeleteUserDesc,
+      DeleteUserRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetUserById(request: DeepPartial<GetUserByIdRequest>, metadata?: grpc.Metadata): Promise<User> {
-    return this.rpc.unary(UserServiceGetUserByIdDesc, GetUserByIdRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      UserServiceGetUserByIdDesc,
+      GetUserByIdRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  UpdateUserPassword(request: DeepPartial<UpdateUserPasswordRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceUpdateUserPasswordDesc, UpdateUserPasswordRequest.fromPartial(request), metadata);
+  UpdateUserPassword(
+    request: DeepPartial<UpdateUserPasswordRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse> {
+    return this.rpc.unary(
+      UserServiceUpdateUserPasswordDesc,
+      UpdateUserPasswordRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  UpdateUser(request: DeepPartial<UpdateUserRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceUpdateUserDesc, UpdateUserRequest.fromPartial(request), metadata);
+  UpdateUser(
+    request: DeepPartial<UpdateUserRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse> {
+    return this.rpc.unary(
+      UserServiceUpdateUserDesc,
+      UpdateUserRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  UpdateLastLogin(request: DeepPartial<UpdateLastLoginRequest>, metadata?: grpc.Metadata): Promise<UserResponse> {
-    return this.rpc.unary(UserServiceUpdateLastLoginDesc, UpdateLastLoginRequest.fromPartial(request), metadata);
+  UpdateLastLogin(
+    request: DeepPartial<UpdateLastLoginRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserResponse> {
+    return this.rpc.unary(
+      UserServiceUpdateLastLoginDesc,
+      UpdateLastLoginRequest.fromPartial(request),
+      metadata,
+    );
   }
 
   GetUsersByCountry(
     request: DeepPartial<GetUsersByCountryRequest>,
     metadata?: grpc.Metadata,
   ): Promise<UserListResponse> {
-    return this.rpc.unary(UserServiceGetUsersByCountryDesc, GetUsersByCountryRequest.fromPartial(request), metadata);
+    return this.rpc.unary(
+      UserServiceGetUsersByCountryDesc,
+      GetUsersByCountryRequest.fromPartial(request),
+      metadata,
+    );
   }
 
-  GetVerifiedUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<UserListResponse> {
+  GetVerifiedUsers(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<UserListResponse> {
     return this.rpc.unary(UserServiceGetVerifiedUsersDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetUserByUsername(request: DeepPartial<GetUserByUsernameRequest>, metadata?: grpc.Metadata): Promise<User> {
-    return this.rpc.unary(UserServiceGetUserByUsernameDesc, GetUserByUsernameRequest.fromPartial(request), metadata);
+  GetUserByUsername(
+    request: DeepPartial<GetUserByUsernameRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<User> {
+    return this.rpc.unary(
+      UserServiceGetUserByUsernameDesc,
+      GetUserByUsernameRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -2676,9 +2787,10 @@ export class GrpcWebImpl {
     metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata ?? this.options.metadata;
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+        : (metadata ?? this.options.metadata);
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -2690,7 +2802,11 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
           } else {
-            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            const err = new GrpcWebError(
+              response.statusMessage,
+              response.status,
+              response.trailers,
+            );
             reject(err);
           }
         },
@@ -2726,14 +2842,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
@@ -2741,7 +2862,11 @@ function isSet(value: any): boolean {
 }
 
 export class GrpcWebError extends globalThis.Error {
-  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+  constructor(
+    message: string,
+    public code: grpc.Code,
+    public metadata: grpc.Metadata,
+  ) {
     super(message);
   }
 }

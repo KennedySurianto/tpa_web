@@ -29,11 +29,11 @@ export function useVideos(limit: number = 10, lastVideoId: string = "") {
 
       try {
         const videoResponse = await videoClient.GetRecommendedVideos(request);
-        
+
         const videosWithAds: Video[] = [];
         if (videoResponse && videoResponse.videos) {
           console.log("Fetched recommended videos:", videoResponse.videos);
-          const rawVideos = videoResponse.videos.filter(video => video.isPublished); 
+          const rawVideos = videoResponse.videos.filter((video) => video.isPublished);
 
           for (let i = 0; i < rawVideos.length; i++) {
             videosWithAds.push(rawVideos[i]);
@@ -51,7 +51,7 @@ export function useVideos(limit: number = 10, lastVideoId: string = "") {
             }
           }
         }
-        
+
         setVideos(videosWithAds || []);
       } catch (err) {
         console.error("[useVideos.ts] Failed to fetch recommended videos", err);

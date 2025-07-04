@@ -1,5 +1,5 @@
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Heart,
   Users,
@@ -14,48 +14,60 @@ import {
   UserPlus,
   MoreVertical,
   AlertCircle,
-} from "lucide-react"
-import { useParams } from "react-router-dom"
-import { liveClient } from "../../api/grpc/liveClient"
-import { JoinRequest, SignalMessage } from "../../api/gen/live"
-import { useAuth } from "../../utils/AuthProvider"
-import type { GetUserByUsernameRequest, User } from "../../api/gen/user"
-import { userClient } from "../../api/grpc/userClient"
+} from "lucide-react";
+import { useParams } from "react-router-dom";
+import { liveClient } from "../../api/grpc/liveClient";
+import { JoinRequest, SignalMessage } from "../../api/gen/live";
+import { useAuth } from "../../utils/AuthProvider";
+import type { GetUserByUsernameRequest, User } from "../../api/gen/user";
+import { userClient } from "../../api/grpc/userClient";
 
 interface ChatMessage {
-  id: string
-  username: string
-  message: string
-  timestamp: Date
-  isStreamer?: boolean
-  isSystemMessage?: boolean
+  id: string;
+  username: string;
+  message: string;
+  timestamp: Date;
+  isStreamer?: boolean;
+  isSystemMessage?: boolean;
 }
 
 interface LiveStreamData {
-  id: string
-  title: string
-  streamerName: string
-  streamerAvatar: string
-  viewerCount: number
-  likeCount: number
-  duration: number
-  isLive: boolean
-  category: string
+  id: string;
+  title: string;
+  streamerName: string;
+  streamerAvatar: string;
+  viewerCount: number;
+  likeCount: number;
+  duration: number;
+  isLive: boolean;
+  category: string;
 }
 
 const LiveViewerPage: React.FC = () => {
-  const { remoteUsername } = useParams<{ remoteUsername: string }>()
-  const { user } = useAuth()
+  const { remoteUsername } = useParams<{ remoteUsername: string }>();
+  const { user } = useAuth();
 
   // WebRTC refs and state
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
-  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null)
-  const [localUserId, setLocalUserId] = useState<number>(0)
-  const [remoteUserId, setRemoteUserId] = useState<number>(0)
-  const [streamerUser, setStreamerUser] = useState<User | null>(null)
-  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" | "error">(
-    "connecting",
-  )
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const webcamVideoRef = useRef<HTMLVideoElement>(null);
+  const [hasScreenStream, setHasScreenStream] = useState(false);
+  const [hasWebcamStream, setHasWebcamStream] = useState(false);
+  
+  // FIX: Initialize MediaStream in refs to keep them stable
+  const screenStreamRef = useRef<MediaStream>(new MediaStream());
+  const webcamStreamRef = useRef<MediaStream>(new MediaStream());
+  
+  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
+  // FIX: Use state for pending tracks to trigger effects correctly
+  const [pendingTracks, setPendingTracks] = useState<MediaStreamTrack[]>([]);
+  const [trackRoles, setTrackRoles] = useState<Map<string, string>>(new Map());
+  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+  const [localUserId, setLocalUserId] = useState<number>(0);
+  const [remoteUserId, setRemoteUserId] = useState<number>(0);
+  const [streamerUser, setStreamerUser] = useState<User | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "error"
+  >("connecting");
 
   // Stream data state
   const [streamData, setStreamData] = useState<LiveStreamData>({
@@ -68,7 +80,7 @@ const LiveViewerPage: React.FC = () => {
     duration: 0,
     isLive: true,
     category: "Live",
-  })
+  });
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -79,75 +91,155 @@ const LiveViewerPage: React.FC = () => {
       timestamp: new Date(),
       isSystemMessage: true,
     },
-  ])
+  ]);
 
-  const [newMessage, setNewMessage] = useState("")
-  const [isLiked, setIsLiked] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showChat, setShowChat] = useState(true)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [newMessage, setNewMessage] = useState("");
+  const [isLiked, setIsLiked] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showChat, setShowChat] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Set local user ID
   useEffect(() => {
     if (user) {
-      setLocalUserId(Number(user.id))
+      setLocalUserId(Number(user.id));
     }
-  }, [user])
+  }, [user]);
 
   // Fetch streamer information
   useEffect(() => {
     const fetchStreamer = async () => {
       if (!remoteUsername) {
-        setError("No streamer username provided")
-        setIsLoading(false)
-        return
+        setError("No streamer username provided");
+        setIsLoading(false);
+        return;
       }
 
       try {
-        const req: GetUserByUsernameRequest = { username: remoteUsername }
-        const res: User = await userClient.GetUserByUsername(req)
+        const req: GetUserByUsernameRequest = { username: remoteUsername };
+        const res: User = await userClient.GetUserByUsername(req);
 
         if (res) {
-          setRemoteUserId(Number(res.id))
-          setStreamerUser(res)
+          setRemoteUserId(Number(res.id));
+          setStreamerUser(res);
           console.log("Streamer user: ", streamerUser);
           setStreamData((prev) => ({
             ...prev,
             streamerName: res.displayName || res.username || remoteUsername,
             title: `${res.displayName || res.username}'s Live Stream`,
-          }))
+          }));
         }
       } catch (err) {
-        console.error("Error fetching streamer:", err)
-        setError("Failed to load streamer information")
+        console.error("Error fetching streamer:", err);
+        setError("Failed to load streamer information");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
+    };
+
+    fetchStreamer();
+  }, [remoteUsername]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = screenStreamRef.current;
+    }
+  }, [hasScreenStream]);
+
+  useEffect(() => {
+    if (webcamVideoRef.current) {
+      webcamVideoRef.current.srcObject = webcamStreamRef.current;
+    }
+  }, [hasWebcamStream]);
+
+  // FIX: New central useEffect to process tracks when roles or pending tracks change.
+  // This replaces the old `applyTrackRoles` function and its related effects.
+  useEffect(() => {
+    if (trackRoles.size === 0 || pendingTracks.length === 0) {
+      return; // Not ready to process yet
     }
 
-    fetchStreamer()
-  }, [remoteUsername])
+    const unprocessedTracks: MediaStreamTrack[] = [];
+    let tracksAdded = false;
+
+    // Iterate through tracks waiting for a role
+    pendingTracks.forEach((track) => {
+      const role = trackRoles.get(track.id);
+      if (role) {
+        tracksAdded = true;
+        // A role has been found, add the track to the correct stream
+        if (track.kind === "video") {
+          if (role === "screen" && !screenStreamRef.current.getTrackById(track.id)) {
+            console.log(`✅ Assigning screen track: ${track.id}`);
+            screenStreamRef.current.addTrack(track);
+            setHasScreenStream(true);
+
+            if (remoteVideoRef.current) {
+              remoteVideoRef.current.onloadedmetadata = () => {
+                remoteVideoRef.current?.play().catch((e) => console.warn("Autoplay fail (screen):", e));
+              };
+            }
+          } else if (role === "webcam" && !webcamStreamRef.current.getTrackById(track.id)) {
+            console.log(`✅ Assigning webcam track: ${track.id}`);
+            webcamStreamRef.current.addTrack(track);
+            setHasWebcamStream(true);
+
+            if (webcamVideoRef.current) {
+              webcamVideoRef.current.onloadedmetadata = () => {
+                webcamVideoRef.current?.play().catch((e) => console.warn("Autoplay fail (webcam):", e));
+              };
+            }
+          }
+        } else if (track.kind === "audio" && !screenStreamRef.current.getTrackById(track.id)) {
+          // Audio tracks go with the main screen stream
+          screenStreamRef.current.addTrack(track);
+        }
+      } else {
+        // If role is still not found, keep it for the next run
+        unprocessedTracks.push(track);
+      }
+    });
+
+    if (tracksAdded) {
+      // Update the list of pending tracks to only include those that are still pending.
+      setPendingTracks(unprocessedTracks);
+    }
+  }, [pendingTracks, trackRoles]);
+
 
   // WebRTC connection setup
   useEffect(() => {
-    if (!localUserId || !remoteUserId) return
+    if (!localUserId || !remoteUserId) return;
+
+    // FIX: Assign the stable MediaStream objects from refs to the video elements once on setup.
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = screenStreamRef.current;
+      remoteVideoRef.current.onloadedmetadata = () => {
+        remoteVideoRef.current?.play().catch((e) => console.warn("Autoplay fail (screen):", e));
+      };
+    }
+    
+    if (webcamVideoRef.current) {
+      webcamVideoRef.current.srcObject = webcamStreamRef.current;
+      webcamVideoRef.current.onloadedmetadata = () => {
+        webcamVideoRef.current?.play().catch((e) => console.warn("Autoplay fail (webcam):", e));
+      };
+    }
 
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    })
+    });
 
     // Handle incoming video stream
     pc.ontrack = (event) => {
-      console.log("Received remote stream")
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0]
-        setConnectionStatus("connected")
-      }
-    }
+      console.log(`🔽 Incoming track received: ${event.track.kind}, ID: ${event.track.id}`);
+      // FIX: Add track to state to trigger the processing useEffect
+      setPendingTracks(prev => [...prev, event.track]);
+    };
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
@@ -157,102 +249,131 @@ const LiveViewerPage: React.FC = () => {
           receiver: remoteUserId,
           type: "candidate",
           sdpOrCandidate: JSON.stringify(event.candidate),
-        })
+        });
 
-        liveClient.SendSignal(candidateMsg)
+        liveClient.SendSignal(candidateMsg);
       }
-    }
+    };
 
     // Handle connection state changes
     pc.onconnectionstatechange = () => {
-      console.log("Connection state:", pc.connectionState)
+      console.log("Connection state:", pc.connectionState);
       switch (pc.connectionState) {
         case "connected":
-          setConnectionStatus("connected")
-          break
+          setConnectionStatus("connected");
+          break;
         case "disconnected":
         case "failed":
-          setConnectionStatus("disconnected")
-          break
+          setConnectionStatus("disconnected");
+          break;
         case "connecting":
-          setConnectionStatus("connecting")
-          break
+          setConnectionStatus("connecting");
+          break;
       }
-    }
+    };
 
-    setPeerConnection(pc)
+    setPeerConnection(pc);
 
     // Join the live stream room
-    const joinReq = JoinRequest.fromPartial({ userId: localUserId })
+    const joinReq = JoinRequest.fromPartial({ userId: localUserId });
 
     const subscription = liveClient.JoinRoom(joinReq).subscribe({
       next: async (message: SignalMessage) => {
-        console.log("Received signal:", message.type)
-        const type = message.type
+        console.log("Received signal:", message.type);
+        const type = message.type;
 
         try {
           if (type === "offer" && message.sdpOrCandidate) {
-            await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(message.sdpOrCandidate)))
+            await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(message.sdpOrCandidate)));
 
-            const answer = await pc.createAnswer()
-            await pc.setLocalDescription(answer)
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
 
             const answerMsg = SignalMessage.fromPartial({
               sender: localUserId,
               receiver: remoteUserId,
               type: "answer",
               sdpOrCandidate: JSON.stringify(answer),
-            })
+            });
 
-            liveClient.SendSignal(answerMsg)
+            liveClient.SendSignal(answerMsg);
+
+            // ✅ Now apply any queued ICE candidates
+            for (const candidate of pendingCandidates.current) {
+              try {
+                await pc.addIceCandidate(candidate);
+              } catch (err) {
+                console.warn("Failed to add buffered ICE candidate", err);
+              }
+            }
+            pendingCandidates.current = [];
           }
 
           if (type === "candidate" && message.sdpOrCandidate) {
-            await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(message.sdpOrCandidate)))
+            const candidate = new RTCIceCandidate(JSON.parse(message.sdpOrCandidate));
+
+            if (pc.remoteDescription && pc.remoteDescription.type) {
+              await pc.addIceCandidate(candidate);
+            } else {
+              pendingCandidates.current.push(candidate);
+            }
           }
 
           // Handle viewer count updates
           if (type === "viewer-count" && message.sdpOrCandidate) {
-            const count = Number.parseInt(message.sdpOrCandidate)
-            setStreamData((prev) => ({ ...prev, viewerCount: count }))
+            const count = Number.parseInt(message.sdpOrCandidate);
+            setStreamData((prev) => ({ ...prev, viewerCount: count }));
           }
 
           // Handle chat messages
           if (type === "chat" && message.sdpOrCandidate) {
-            const chatData = JSON.parse(message.sdpOrCandidate)
+            const chatData = JSON.parse(message.sdpOrCandidate);
             const newChatMessage: ChatMessage = {
               id: Date.now().toString(),
               username: chatData.username || "Anonymous",
               message: chatData.message,
               timestamp: new Date(),
               isStreamer: chatData.isStreamer || false,
+            };
+            setChatMessages((prev) => [...prev.slice(-49), newChatMessage]);
+          }
+
+          if (type === "stream-metadata" && message.sdpOrCandidate) {
+            try {
+              const parsed = JSON.parse(message.sdpOrCandidate);
+              const roleMap = new Map<string, string>(
+                parsed.map((entry: any) => [String(entry.id), String(entry.role)])
+              );
+              // FIX: This state update triggers the processing useEffect
+              setTrackRoles(roleMap);
+            } catch (err) {
+              console.error("Failed to parse stream metadata", err);
             }
-            setChatMessages((prev) => [...prev.slice(-49), newChatMessage])
           }
         } catch (err) {
-          console.error("Error handling signal:", err)
-          setConnectionStatus("error")
+          console.error("Error handling signal:", err);
+          setConnectionStatus("error");
         }
       },
       error: (err: Error) => {
-        console.error("JoinRoom error:", err)
-        setConnectionStatus("error")
-        setError("Failed to connect to live stream")
+        console.error("JoinRoom error:", err);
+        setConnectionStatus("error");
+        setError("Failed to connect to live stream");
       },
       complete: () => {
-        console.log("JoinRoom stream closed")
-        setConnectionStatus("disconnected")
+        console.log("JoinRoom stream closed");
+        setConnectionStatus("disconnected");
       },
-    })
+    });
 
     // Send viewer join notification
     const viewerJoin = SignalMessage.fromPartial({
       sender: localUserId,
       receiver: remoteUserId,
       type: "viewer-join",
-    })
+    });
 
-    liveClient.SendSignal(viewerJoin)
+    liveClient.SendSignal(viewerJoin);
 
     // Add join notification to chat
     const joinMessage: ChatMessage = {
@@ -261,38 +382,38 @@ const LiveViewerPage: React.FC = () => {
       message: `${user?.username || "Anonymous"} joined the stream`,
       timestamp: new Date(),
       isSystemMessage: true,
-    }
-    setChatMessages((prev) => [...prev, joinMessage])
+    };
+    setChatMessages((prev) => [...prev, joinMessage]);
 
     // Cleanup function
     return () => {
-      subscription.unsubscribe()
-      pc.close()
-    }
-  }, [localUserId, remoteUserId, user?.username])
+      subscription.unsubscribe();
+      pc.close();
+    };
+  }, [localUserId, remoteUserId, user?.username]);
 
   // Format duration
   const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`
-  }
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Format number with K/M suffix
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`
+      return `${(num / 1000000).toFixed(1)}M`;
     }
     if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`
+      return `${(num / 1000).toFixed(1)}K`;
     }
-    return num.toString()
-  }
+    return num.toString();
+  };
 
   // Update duration timer
   useEffect(() => {
@@ -301,33 +422,33 @@ const LiveViewerPage: React.FC = () => {
         setStreamData((prev) => ({
           ...prev,
           duration: prev.duration + 1,
-        }))
-      }, 1000)
+        }));
+      }, 1000);
 
-      return () => clearInterval(interval)
+      return () => clearInterval(interval);
     }
-  }, [connectionStatus])
+  }, [connectionStatus]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [chatMessages])
+  }, [chatMessages]);
 
   // Handle send message
   const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (newMessage.trim() && peerConnection) {
       const message: ChatMessage = {
         id: Date.now().toString(),
         username: user?.username || "You",
         message: newMessage.trim(),
         timestamp: new Date(),
-      }
+      };
 
       // Add to local chat
-      setChatMessages((prev) => [...prev, message])
+      setChatMessages((prev) => [...prev, message]);
 
       // Send to streamer via WebRTC signaling
       const chatSignal = SignalMessage.fromPartial({
@@ -339,20 +460,20 @@ const LiveViewerPage: React.FC = () => {
           message: newMessage.trim(),
           isStreamer: false,
         }),
-      })
+      });
 
-      liveClient.SendSignal(chatSignal)
-      setNewMessage("")
+      liveClient.SendSignal(chatSignal);
+      setNewMessage("");
     }
-  }
+  };
 
   // Handle like stream
   const handleLikeStream = () => {
-    setIsLiked(!isLiked)
+    setIsLiked(!isLiked);
     setStreamData((prev) => ({
       ...prev,
       likeCount: isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
-    }))
+    }));
 
     // Send like signal to streamer
     if (peerConnection) {
@@ -361,11 +482,11 @@ const LiveViewerPage: React.FC = () => {
         receiver: remoteUserId,
         type: "like",
         sdpOrCandidate: isLiked ? "unlike" : "like",
-      })
+      });
 
-      liveClient.SendSignal(likeSignal)
+      liveClient.SendSignal(likeSignal);
     }
-  }
+  };
 
   // Handle share stream
   const handleShareStream = () => {
@@ -374,19 +495,48 @@ const LiveViewerPage: React.FC = () => {
         title: streamData.title,
         text: `Check out this live stream by ${streamData.streamerName}!`,
         url: window.location.href,
-      })
+      });
     } else {
-      navigator.clipboard.writeText(window.location.href)
+      navigator.clipboard.writeText(window.location.href);
     }
-  }
+  };
 
   // Handle mute/unmute
   const handleMuteToggle = () => {
     if (remoteVideoRef.current) {
-      remoteVideoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
+      if (isMuted) {
+        // Trying to unmute
+        const playPromise = remoteVideoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              remoteVideoRef.current!.muted = false;
+              setIsMuted(false);
+            })
+            .catch((error) => {
+              console.warn("Unmute failed:", error);
+            });
+        }
+      } else {
+        // Muting
+        remoteVideoRef.current.muted = true;
+        setIsMuted(true);
+      }
     }
-  }
+  };
+
+  useEffect(() => {
+    const onClick = () => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.muted = false;
+        remoteVideoRef.current.play().catch(console.warn);
+      }
+      window.removeEventListener("click", onClick);
+    };
+
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, []);
 
   // Loading state
   if (isLoading) {
@@ -416,7 +566,7 @@ const LiveViewerPage: React.FC = () => {
           <p>Loading live stream...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Error state
@@ -452,7 +602,7 @@ const LiveViewerPage: React.FC = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -611,15 +761,31 @@ const LiveViewerPage: React.FC = () => {
             <video
               ref={remoteVideoRef}
               autoPlay
+              muted
               playsInline
-              muted={isMuted}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                background: "#000",
-              }}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
+
+            {/* Webcam PiP only if screen sharing */}
+            {hasWebcamStream && (
+              <video
+                ref={webcamVideoRef}
+                autoPlay
+                muted
+                playsInline
+                style={{
+                  position: "absolute",
+                  top: "1rem",
+                  left: "1rem",
+                  width: "180px",
+                  height: "120px",
+                  borderRadius: "8px",
+                  border: "2px solid white",
+                  background: "#000",
+                  objectFit: "cover",
+                }}
+              />
+            )}
 
             {/* Connection Status Overlay */}
             {connectionStatus !== "connected" && (
@@ -681,10 +847,10 @@ const LiveViewerPage: React.FC = () => {
                 transition: "opacity 0.3s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "1"
+                e.currentTarget.style.opacity = "1";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "0"
+                e.currentTarget.style.opacity = "0";
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -704,10 +870,10 @@ const LiveViewerPage: React.FC = () => {
                     transition: "background 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
                   }}
                 >
                   {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -731,10 +897,10 @@ const LiveViewerPage: React.FC = () => {
                     transition: "background 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
                   }}
                 >
                   <MessageCircle size={20} />
@@ -755,10 +921,10 @@ const LiveViewerPage: React.FC = () => {
                     transition: "background 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
                   }}
                 >
                   {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
@@ -797,13 +963,17 @@ const LiveViewerPage: React.FC = () => {
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <Heart size={18} style={{ color: "#ef4444" }} />
                   <span style={{ fontSize: "0.875rem", color: "#8b949e" }}>Likes:</span>
-                  <span style={{ fontSize: "0.875rem", fontWeight: "600" }}>{formatNumber(streamData.likeCount)}</span>
+                  <span style={{ fontSize: "0.875rem", fontWeight: "600" }}>
+                    {formatNumber(streamData.likeCount)}
+                  </span>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <Clock size={18} style={{ color: "#3b82f6" }} />
                   <span style={{ fontSize: "0.875rem", color: "#8b949e" }}>Duration:</span>
-                  <span style={{ fontSize: "0.875rem", fontWeight: "600" }}>{formatDuration(streamData.duration)}</span>
+                  <span style={{ fontSize: "0.875rem", fontWeight: "600" }}>
+                    {formatDuration(streamData.duration)}
+                  </span>
                 </div>
               </div>
 
@@ -827,14 +997,14 @@ const LiveViewerPage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!isLiked) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)"
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isLiked) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
                     }
                   }}
                 >
@@ -859,12 +1029,12 @@ const LiveViewerPage: React.FC = () => {
                     fontWeight: "500",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)"
-                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
-                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
                   }}
                 >
                   <Share2 size={16} />
@@ -887,12 +1057,12 @@ const LiveViewerPage: React.FC = () => {
                     fontWeight: "600",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-1px)"
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)"
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)"
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <UserPlus size={16} />
@@ -923,7 +1093,9 @@ const LiveViewerPage: React.FC = () => {
                 background: "rgba(255, 255, 255, 0.02)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              >
                 <h3
                   style={{
                     margin: 0,
@@ -949,10 +1121,10 @@ const LiveViewerPage: React.FC = () => {
                     transition: "color 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ffffff"
+                    e.currentTarget.style.color = "#ffffff";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#8b949e"
+                    e.currentTarget.style.color = "#8b949e";
                   }}
                 >
                   <MoreVertical size={16} />
@@ -1006,7 +1178,11 @@ const LiveViewerPage: React.FC = () => {
                           style={{
                             fontSize: "0.75rem",
                             fontWeight: "600",
-                            color: message.isStreamer ? "#8b5cf6" : message.username === "You" ? "#3b82f6" : "#ffffff",
+                            color: message.isStreamer
+                              ? "#8b5cf6"
+                              : message.username === "You"
+                                ? "#3b82f6"
+                                : "#ffffff",
                           }}
                         >
                           {message.username}
@@ -1027,7 +1203,10 @@ const LiveViewerPage: React.FC = () => {
                           )}
                         </span>
                         <span style={{ fontSize: "0.6rem", color: "#6b7280" }}>
-                          {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </span>
                       </div>
                       <p
@@ -1076,15 +1255,15 @@ const LiveViewerPage: React.FC = () => {
                   }}
                   onFocus={(e) => {
                     if (connectionStatus === "connected") {
-                      e.currentTarget.style.borderColor = "#8b5cf6"
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
+                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                     }
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
-                    e.currentTarget.style.boxShadow = "none"
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
+                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
                   }}
                 />
                 <button
@@ -1099,7 +1278,10 @@ const LiveViewerPage: React.FC = () => {
                     borderRadius: "8px",
                     padding: "0.75rem",
                     color: "#ffffff",
-                    cursor: newMessage.trim() && connectionStatus === "connected" ? "pointer" : "not-allowed",
+                    cursor:
+                      newMessage.trim() && connectionStatus === "connected"
+                        ? "pointer"
+                        : "not-allowed",
                     transition: "all 0.2s ease",
                     display: "flex",
                     alignItems: "center",
@@ -1108,14 +1290,14 @@ const LiveViewerPage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (newMessage.trim() && connectionStatus === "connected") {
-                      e.currentTarget.style.transform = "translateY(-1px)"
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)"
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.4)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (newMessage.trim() && connectionStatus === "connected") {
-                      e.currentTarget.style.transform = "translateY(0)"
-                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
                     }
                   }}
                 >
@@ -1185,7 +1367,7 @@ const LiveViewerPage: React.FC = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default LiveViewerPage
+export default LiveViewerPage;

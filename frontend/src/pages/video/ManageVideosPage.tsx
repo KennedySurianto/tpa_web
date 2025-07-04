@@ -75,11 +75,11 @@ const ManageVideosPage: React.FC = () => {
 
       if (res && res.videos) {
         // Separate published and draft videos
-        const published = res.videos.filter((video) => video.isPublished)
-        const drafts = res.videos.filter((video) => !video.isPublished)
+        const published = res.videos.filter((video) => video.isPublished);
+        const drafts = res.videos.filter((video) => !video.isPublished);
 
-        setPublishedVideos(published)
-        setDraftVideos(drafts)
+        setPublishedVideos(published);
+        setDraftVideos(drafts);
       }
     } catch (err) {
       console.error("Failed to fetch videos:", err);
@@ -627,7 +627,9 @@ const ManageVideosPage: React.FC = () => {
                       right: "12px",
                       padding: "4px 8px",
                       borderRadius: "6px",
-                      background: video.isPublished ? "rgba(34, 197, 94, 0.9)" : "rgba(251, 191, 36, 0.9)",
+                      background: video.isPublished
+                        ? "rgba(34, 197, 94, 0.9)"
+                        : "rgba(251, 191, 36, 0.9)",
                       color: "#ffffff",
                       fontSize: "0.7rem",
                       fontWeight: "600",
