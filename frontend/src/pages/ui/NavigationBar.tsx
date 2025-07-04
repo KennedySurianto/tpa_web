@@ -5,7 +5,6 @@ import {
   X,
   Search,
   Home,
-  Compass,
   Upload,
   Bell,
   User,
@@ -113,12 +112,10 @@ const NavigationBar: React.FC = () => {
   const navigationItems = useMemo(() => {
     const publicNavItems = [
       { path: "/home", label: "For You", icon: Home },
-      { path: "/explore", label: "Explore", icon: Compass },
     ];
 
     const authenticatedNavItems = [
       { path: "/upload", label: "Upload", icon: Upload },
-      { path: "/activity", label: "Activity", icon: Bell },
       { path: `/${user?.username}`, label: "Profile", icon: User },
       { path: "/following", label: "Following", icon: Users },
       { path: "/friends", label: "Friends", icon: Users },
