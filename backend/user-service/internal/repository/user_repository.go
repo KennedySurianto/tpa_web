@@ -10,7 +10,7 @@ type UserRepository interface {
 	CreateUser(user *model.User) error
 	GetAllUsers() ([]model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
-	UpdateUser(updatedUser *model.User) error
+	UpdateUser(id uint, updates map[string]interface{}) error
 	DeleteUser(email string) error
 	GetUserById(id uint) (*model.User, error)
 	UpdateUserPassword(email string, newPassword string) error

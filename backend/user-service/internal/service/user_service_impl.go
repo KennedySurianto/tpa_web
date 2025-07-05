@@ -36,6 +36,12 @@ func (u *UserServiceImpl) CreateUser(req *pb.CreateUserRequest) (*model.User, er
 		AllowStitch: req.Preferences.AllowStitch,
 		AllowDownload: req.Preferences.AllowDownload,
 		AllowComments: req.Preferences.AllowComments,
+
+		NewFollowerNotification: true,
+		MessageNotification: true,
+		MentionNotification: true,
+		LikeTabVisibility: "everyone",
+		ChatRestriction: "everyone",
 	}
 
 	err := u.userRepo.CreateUser(user)
@@ -58,23 +64,29 @@ func (u *UserServiceImpl) UpdateUserPassword(email string, newPassword string) e
 	return u.userRepo.UpdateUserPassword(email, newPassword);
 }
 
-func (u *UserServiceImpl) UpdateUser(id uint32, username, displayName, bio string, avatar []byte, IsVerified, isPrivate, IsActive bool, country string, allowDuet, allowStitch, allowDownload, allowComments bool) error {
-	updatedUser := &model.User{
-		Username:    username,
-		DisplayName: displayName,
-		Bio:         bio,
-		Avatar:      avatar,
-		IsVerified:  IsVerified,
-		IsPrivate:   isPrivate,
-		IsActive:    IsActive,
-		Country:     country,
-		AllowDuet:   allowDuet,
-		AllowStitch: allowStitch,
-		AllowDownload: allowDownload,
-		AllowComments: allowComments,
+func (u *UserServiceImpl) UpdateUser(id uint32, username, displayName, bio string, avatar []byte, IsVerified, isPrivate, IsActive bool, country string, allowDuet, allowStitch, allowDownload, allowComments, newFollowerNotification, mentionNotification, messageNotification bool, chatRestriction, likeTabVisibility string) error {
+	// Create a map of the fields to update.
+	updates := map[string]interface{}{
+		"username":                  username,
+		"display_name":              displayName,
+		"bio":                       bio,
+		"avatar":                    avatar,
+		"is_verified":               IsVerified,
+		"is_private":                isPrivate,
+		"is_active":                 IsActive,
+		"country":                   country,
+		"allow_duet":                allowDuet,
+		"allow_stitch":              allowStitch,
+		"allow_download":            allowDownload,
+		"allow_comments":            allowComments,
+		"new_follower_notification": newFollowerNotification,
+		"mention_notification":      mentionNotification,
+		"message_notification":      messageNotification,
+		"like_tab_visibility":       likeTabVisibility,
+		"chat_restriction":          chatRestriction,
 	}
-	updatedUser.ID = uint(id)
-	return u.userRepo.UpdateUser(updatedUser)
+
+	return u.userRepo.UpdateUser(uint(id), updates)
 }
 
 func (u *UserServiceImpl) DeleteUser(email string) error {

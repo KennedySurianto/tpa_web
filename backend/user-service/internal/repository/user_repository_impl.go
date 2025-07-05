@@ -43,8 +43,8 @@ func (r *UserRepositoryImpl) UpdateUserPassword(email string, newPassword string
 	return r.db.Model(&model.User{}).Where("email = ?", email).Update("password", newPassword).Error
 }
 
-func (r *UserRepositoryImpl) UpdateUser(updatedUser *model.User) error {
-	return r.db.Model(&model.User{}).Where("id = ?", updatedUser.ID).Updates(updatedUser).Error
+func (r *UserRepositoryImpl) UpdateUser(id uint, updates map[string]interface{}) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (r *UserRepositoryImpl) DeleteUser(email string) error {

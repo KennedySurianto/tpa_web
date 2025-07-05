@@ -38,4 +38,11 @@ type User struct {
 	AllowStitch   bool `json:"allow_stitch"`
 	AllowDownload bool `json:"allow_download"`
 	AllowComments bool `json:"allow_comments"`
+
+	// Notification and Privacy Settings
+	NewFollowerNotification bool   `json:"new_follower_notification"`
+	MessageNotification     bool   `json:"message_notification"`
+	MentionNotification     bool   `json:"mention_notification"`
+	LikeTabVisibility       string `json:"like_tab_visibility"`
+	ChatRestriction         string `json:"chat_restriction"`
 }

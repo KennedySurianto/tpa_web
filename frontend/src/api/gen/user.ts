@@ -66,6 +66,11 @@ export interface UpdateUserRequest {
   allowStitch: boolean;
   allowDownload: boolean;
   allowComments: boolean;
+  newFollowerNotification: boolean;
+  messageNotification: boolean;
+  mentionNotification: boolean;
+  likeTabVisibility: string;
+  chatRestriction: string;
 }
 
 export interface UpdateLastLoginRequest {
@@ -99,6 +104,11 @@ export interface User {
   createdAt: string;
   /** Unix timestamp */
   updatedAt: string;
+  newFollowerNotification: boolean;
+  messageNotification: boolean;
+  mentionNotification: boolean;
+  likeTabVisibility: string;
+  chatRestriction: string;
 }
 
 export interface UserResponse {
@@ -119,45 +129,6 @@ export interface UserListResponse {
 
 /** Utility Messages */
 export interface Empty {
-}
-
-/** Additional specialized messages for different user views */
-export interface UserProfile {
-  id: string;
-  username: string;
-  displayName: string;
-  bio: string;
-  avatar: Uint8Array;
-  isVerified: boolean;
-  isPrivate: boolean;
-  country: string;
-  createdAt: string;
-}
-
-export interface UserStats {
-  userId: string;
-  lastLoginAt: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/** Pagination request (for future use) */
-export interface PaginationRequest {
-  page: number;
-  pageSize: number;
-  sortBy: string;
-  /** "asc" or "desc" */
-  sortOrder: string;
-}
-
-/** Search request (for future use) */
-export interface SearchUsersRequest {
-  query: string;
-  pagination?: PaginationRequest | undefined;
-  verifiedOnly: boolean;
-  activeOnly: boolean;
-  country: string;
 }
 
 function createBaseGetUserByUsernameRequest(): GetUserByUsernameRequest {
@@ -791,6 +762,11 @@ function createBaseUpdateUserRequest(): UpdateUserRequest {
     allowStitch: false,
     allowDownload: false,
     allowComments: false,
+    newFollowerNotification: false,
+    messageNotification: false,
+    mentionNotification: false,
+    likeTabVisibility: "",
+    chatRestriction: "",
   };
 }
 
@@ -834,6 +810,21 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     }
     if (message.allowComments !== false) {
       writer.uint32(104).bool(message.allowComments);
+    }
+    if (message.newFollowerNotification !== false) {
+      writer.uint32(152).bool(message.newFollowerNotification);
+    }
+    if (message.messageNotification !== false) {
+      writer.uint32(160).bool(message.messageNotification);
+    }
+    if (message.mentionNotification !== false) {
+      writer.uint32(168).bool(message.mentionNotification);
+    }
+    if (message.likeTabVisibility !== "") {
+      writer.uint32(178).string(message.likeTabVisibility);
+    }
+    if (message.chatRestriction !== "") {
+      writer.uint32(186).string(message.chatRestriction);
     }
     return writer;
   },
@@ -949,6 +940,46 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
           message.allowComments = reader.bool();
           continue;
         }
+        case 19: {
+          if (tag !== 152) {
+            break;
+          }
+
+          message.newFollowerNotification = reader.bool();
+          continue;
+        }
+        case 20: {
+          if (tag !== 160) {
+            break;
+          }
+
+          message.messageNotification = reader.bool();
+          continue;
+        }
+        case 21: {
+          if (tag !== 168) {
+            break;
+          }
+
+          message.mentionNotification = reader.bool();
+          continue;
+        }
+        case 22: {
+          if (tag !== 178) {
+            break;
+          }
+
+          message.likeTabVisibility = reader.string();
+          continue;
+        }
+        case 23: {
+          if (tag !== 186) {
+            break;
+          }
+
+          message.chatRestriction = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -973,6 +1004,13 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
       allowStitch: isSet(object.allowStitch) ? globalThis.Boolean(object.allowStitch) : false,
       allowDownload: isSet(object.allowDownload) ? globalThis.Boolean(object.allowDownload) : false,
       allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
+      newFollowerNotification: isSet(object.newFollowerNotification)
+        ? globalThis.Boolean(object.newFollowerNotification)
+        : false,
+      messageNotification: isSet(object.messageNotification) ? globalThis.Boolean(object.messageNotification) : false,
+      mentionNotification: isSet(object.mentionNotification) ? globalThis.Boolean(object.mentionNotification) : false,
+      likeTabVisibility: isSet(object.likeTabVisibility) ? globalThis.String(object.likeTabVisibility) : "",
+      chatRestriction: isSet(object.chatRestriction) ? globalThis.String(object.chatRestriction) : "",
     };
   },
 
@@ -1017,6 +1055,21 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     if (message.allowComments !== false) {
       obj.allowComments = message.allowComments;
     }
+    if (message.newFollowerNotification !== false) {
+      obj.newFollowerNotification = message.newFollowerNotification;
+    }
+    if (message.messageNotification !== false) {
+      obj.messageNotification = message.messageNotification;
+    }
+    if (message.mentionNotification !== false) {
+      obj.mentionNotification = message.mentionNotification;
+    }
+    if (message.likeTabVisibility !== "") {
+      obj.likeTabVisibility = message.likeTabVisibility;
+    }
+    if (message.chatRestriction !== "") {
+      obj.chatRestriction = message.chatRestriction;
+    }
     return obj;
   },
 
@@ -1038,6 +1091,11 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     message.allowStitch = object.allowStitch ?? false;
     message.allowDownload = object.allowDownload ?? false;
     message.allowComments = object.allowComments ?? false;
+    message.newFollowerNotification = object.newFollowerNotification ?? false;
+    message.messageNotification = object.messageNotification ?? false;
+    message.mentionNotification = object.mentionNotification ?? false;
+    message.likeTabVisibility = object.likeTabVisibility ?? "";
+    message.chatRestriction = object.chatRestriction ?? "";
     return message;
   },
 };
@@ -1178,6 +1236,11 @@ function createBaseUser(): User {
     allowComments: false,
     createdAt: "0",
     updatedAt: "0",
+    newFollowerNotification: false,
+    messageNotification: false,
+    mentionNotification: false,
+    likeTabVisibility: "",
+    chatRestriction: "",
   };
 }
 
@@ -1236,6 +1299,21 @@ export const User: MessageFns<User> = {
     }
     if (message.updatedAt !== "0") {
       writer.uint32(144).int64(message.updatedAt);
+    }
+    if (message.newFollowerNotification !== false) {
+      writer.uint32(152).bool(message.newFollowerNotification);
+    }
+    if (message.messageNotification !== false) {
+      writer.uint32(160).bool(message.messageNotification);
+    }
+    if (message.mentionNotification !== false) {
+      writer.uint32(168).bool(message.mentionNotification);
+    }
+    if (message.likeTabVisibility !== "") {
+      writer.uint32(178).string(message.likeTabVisibility);
+    }
+    if (message.chatRestriction !== "") {
+      writer.uint32(186).string(message.chatRestriction);
     }
     return writer;
   },
@@ -1391,6 +1469,46 @@ export const User: MessageFns<User> = {
           message.updatedAt = reader.int64().toString();
           continue;
         }
+        case 19: {
+          if (tag !== 152) {
+            break;
+          }
+
+          message.newFollowerNotification = reader.bool();
+          continue;
+        }
+        case 20: {
+          if (tag !== 160) {
+            break;
+          }
+
+          message.messageNotification = reader.bool();
+          continue;
+        }
+        case 21: {
+          if (tag !== 168) {
+            break;
+          }
+
+          message.mentionNotification = reader.bool();
+          continue;
+        }
+        case 22: {
+          if (tag !== 178) {
+            break;
+          }
+
+          message.likeTabVisibility = reader.string();
+          continue;
+        }
+        case 23: {
+          if (tag !== 186) {
+            break;
+          }
+
+          message.chatRestriction = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1420,6 +1538,13 @@ export const User: MessageFns<User> = {
       allowComments: isSet(object.allowComments) ? globalThis.Boolean(object.allowComments) : false,
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "0",
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "0",
+      newFollowerNotification: isSet(object.newFollowerNotification)
+        ? globalThis.Boolean(object.newFollowerNotification)
+        : false,
+      messageNotification: isSet(object.messageNotification) ? globalThis.Boolean(object.messageNotification) : false,
+      mentionNotification: isSet(object.mentionNotification) ? globalThis.Boolean(object.mentionNotification) : false,
+      likeTabVisibility: isSet(object.likeTabVisibility) ? globalThis.String(object.likeTabVisibility) : "",
+      chatRestriction: isSet(object.chatRestriction) ? globalThis.String(object.chatRestriction) : "",
     };
   },
 
@@ -1479,6 +1604,21 @@ export const User: MessageFns<User> = {
     if (message.updatedAt !== "0") {
       obj.updatedAt = message.updatedAt;
     }
+    if (message.newFollowerNotification !== false) {
+      obj.newFollowerNotification = message.newFollowerNotification;
+    }
+    if (message.messageNotification !== false) {
+      obj.messageNotification = message.messageNotification;
+    }
+    if (message.mentionNotification !== false) {
+      obj.mentionNotification = message.mentionNotification;
+    }
+    if (message.likeTabVisibility !== "") {
+      obj.likeTabVisibility = message.likeTabVisibility;
+    }
+    if (message.chatRestriction !== "") {
+      obj.chatRestriction = message.chatRestriction;
+    }
     return obj;
   },
 
@@ -1505,6 +1645,11 @@ export const User: MessageFns<User> = {
     message.allowComments = object.allowComments ?? false;
     message.createdAt = object.createdAt ?? "0";
     message.updatedAt = object.updatedAt ?? "0";
+    message.newFollowerNotification = object.newFollowerNotification ?? false;
+    message.messageNotification = object.messageNotification ?? false;
+    message.mentionNotification = object.mentionNotification ?? false;
+    message.likeTabVisibility = object.likeTabVisibility ?? "";
+    message.chatRestriction = object.chatRestriction ?? "";
     return message;
   },
 };
@@ -1732,562 +1877,6 @@ export const Empty: MessageFns<Empty> = {
   },
   fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
     const message = createBaseEmpty();
-    return message;
-  },
-};
-
-function createBaseUserProfile(): UserProfile {
-  return {
-    id: "0",
-    username: "",
-    displayName: "",
-    bio: "",
-    avatar: new Uint8Array(0),
-    isVerified: false,
-    isPrivate: false,
-    country: "",
-    createdAt: "0",
-  };
-}
-
-export const UserProfile: MessageFns<UserProfile> = {
-  encode(message: UserProfile, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== "0") {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.username !== "") {
-      writer.uint32(18).string(message.username);
-    }
-    if (message.displayName !== "") {
-      writer.uint32(26).string(message.displayName);
-    }
-    if (message.bio !== "") {
-      writer.uint32(34).string(message.bio);
-    }
-    if (message.avatar.length !== 0) {
-      writer.uint32(42).bytes(message.avatar);
-    }
-    if (message.isVerified !== false) {
-      writer.uint32(48).bool(message.isVerified);
-    }
-    if (message.isPrivate !== false) {
-      writer.uint32(56).bool(message.isPrivate);
-    }
-    if (message.country !== "") {
-      writer.uint32(66).string(message.country);
-    }
-    if (message.createdAt !== "0") {
-      writer.uint32(72).int64(message.createdAt);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UserProfile {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUserProfile();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = reader.uint64().toString();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.username = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.displayName = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.bio = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.avatar = reader.bytes();
-          continue;
-        }
-        case 6: {
-          if (tag !== 48) {
-            break;
-          }
-
-          message.isVerified = reader.bool();
-          continue;
-        }
-        case 7: {
-          if (tag !== 56) {
-            break;
-          }
-
-          message.isPrivate = reader.bool();
-          continue;
-        }
-        case 8: {
-          if (tag !== 66) {
-            break;
-          }
-
-          message.country = reader.string();
-          continue;
-        }
-        case 9: {
-          if (tag !== 72) {
-            break;
-          }
-
-          message.createdAt = reader.int64().toString();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UserProfile {
-    return {
-      id: isSet(object.id) ? globalThis.String(object.id) : "0",
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
-      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
-      bio: isSet(object.bio) ? globalThis.String(object.bio) : "",
-      avatar: isSet(object.avatar) ? bytesFromBase64(object.avatar) : new Uint8Array(0),
-      isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
-      isPrivate: isSet(object.isPrivate) ? globalThis.Boolean(object.isPrivate) : false,
-      country: isSet(object.country) ? globalThis.String(object.country) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "0",
-    };
-  },
-
-  toJSON(message: UserProfile): unknown {
-    const obj: any = {};
-    if (message.id !== "0") {
-      obj.id = message.id;
-    }
-    if (message.username !== "") {
-      obj.username = message.username;
-    }
-    if (message.displayName !== "") {
-      obj.displayName = message.displayName;
-    }
-    if (message.bio !== "") {
-      obj.bio = message.bio;
-    }
-    if (message.avatar.length !== 0) {
-      obj.avatar = base64FromBytes(message.avatar);
-    }
-    if (message.isVerified !== false) {
-      obj.isVerified = message.isVerified;
-    }
-    if (message.isPrivate !== false) {
-      obj.isPrivate = message.isPrivate;
-    }
-    if (message.country !== "") {
-      obj.country = message.country;
-    }
-    if (message.createdAt !== "0") {
-      obj.createdAt = message.createdAt;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UserProfile>, I>>(base?: I): UserProfile {
-    return UserProfile.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<UserProfile>, I>>(object: I): UserProfile {
-    const message = createBaseUserProfile();
-    message.id = object.id ?? "0";
-    message.username = object.username ?? "";
-    message.displayName = object.displayName ?? "";
-    message.bio = object.bio ?? "";
-    message.avatar = object.avatar ?? new Uint8Array(0);
-    message.isVerified = object.isVerified ?? false;
-    message.isPrivate = object.isPrivate ?? false;
-    message.country = object.country ?? "";
-    message.createdAt = object.createdAt ?? "0";
-    return message;
-  },
-};
-
-function createBaseUserStats(): UserStats {
-  return { userId: "0", lastLoginAt: "0", isActive: false, createdAt: "0", updatedAt: "0" };
-}
-
-export const UserStats: MessageFns<UserStats> = {
-  encode(message: UserStats, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "0") {
-      writer.uint32(8).uint64(message.userId);
-    }
-    if (message.lastLoginAt !== "0") {
-      writer.uint32(16).int64(message.lastLoginAt);
-    }
-    if (message.isActive !== false) {
-      writer.uint32(24).bool(message.isActive);
-    }
-    if (message.createdAt !== "0") {
-      writer.uint32(32).int64(message.createdAt);
-    }
-    if (message.updatedAt !== "0") {
-      writer.uint32(40).int64(message.updatedAt);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UserStats {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUserStats();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.userId = reader.uint64().toString();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.lastLoginAt = reader.int64().toString();
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.isActive = reader.bool();
-          continue;
-        }
-        case 4: {
-          if (tag !== 32) {
-            break;
-          }
-
-          message.createdAt = reader.int64().toString();
-          continue;
-        }
-        case 5: {
-          if (tag !== 40) {
-            break;
-          }
-
-          message.updatedAt = reader.int64().toString();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UserStats {
-    return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "0",
-      lastLoginAt: isSet(object.lastLoginAt) ? globalThis.String(object.lastLoginAt) : "0",
-      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "0",
-      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "0",
-    };
-  },
-
-  toJSON(message: UserStats): unknown {
-    const obj: any = {};
-    if (message.userId !== "0") {
-      obj.userId = message.userId;
-    }
-    if (message.lastLoginAt !== "0") {
-      obj.lastLoginAt = message.lastLoginAt;
-    }
-    if (message.isActive !== false) {
-      obj.isActive = message.isActive;
-    }
-    if (message.createdAt !== "0") {
-      obj.createdAt = message.createdAt;
-    }
-    if (message.updatedAt !== "0") {
-      obj.updatedAt = message.updatedAt;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UserStats>, I>>(base?: I): UserStats {
-    return UserStats.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<UserStats>, I>>(object: I): UserStats {
-    const message = createBaseUserStats();
-    message.userId = object.userId ?? "0";
-    message.lastLoginAt = object.lastLoginAt ?? "0";
-    message.isActive = object.isActive ?? false;
-    message.createdAt = object.createdAt ?? "0";
-    message.updatedAt = object.updatedAt ?? "0";
-    return message;
-  },
-};
-
-function createBasePaginationRequest(): PaginationRequest {
-  return { page: 0, pageSize: 0, sortBy: "", sortOrder: "" };
-}
-
-export const PaginationRequest: MessageFns<PaginationRequest> = {
-  encode(message: PaginationRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.page !== 0) {
-      writer.uint32(8).int32(message.page);
-    }
-    if (message.pageSize !== 0) {
-      writer.uint32(16).int32(message.pageSize);
-    }
-    if (message.sortBy !== "") {
-      writer.uint32(26).string(message.sortBy);
-    }
-    if (message.sortOrder !== "") {
-      writer.uint32(34).string(message.sortOrder);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): PaginationRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePaginationRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.page = reader.int32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.pageSize = reader.int32();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.sortBy = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.sortOrder = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PaginationRequest {
-    return {
-      page: isSet(object.page) ? globalThis.Number(object.page) : 0,
-      pageSize: isSet(object.pageSize) ? globalThis.Number(object.pageSize) : 0,
-      sortBy: isSet(object.sortBy) ? globalThis.String(object.sortBy) : "",
-      sortOrder: isSet(object.sortOrder) ? globalThis.String(object.sortOrder) : "",
-    };
-  },
-
-  toJSON(message: PaginationRequest): unknown {
-    const obj: any = {};
-    if (message.page !== 0) {
-      obj.page = Math.round(message.page);
-    }
-    if (message.pageSize !== 0) {
-      obj.pageSize = Math.round(message.pageSize);
-    }
-    if (message.sortBy !== "") {
-      obj.sortBy = message.sortBy;
-    }
-    if (message.sortOrder !== "") {
-      obj.sortOrder = message.sortOrder;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PaginationRequest>, I>>(base?: I): PaginationRequest {
-    return PaginationRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PaginationRequest>, I>>(object: I): PaginationRequest {
-    const message = createBasePaginationRequest();
-    message.page = object.page ?? 0;
-    message.pageSize = object.pageSize ?? 0;
-    message.sortBy = object.sortBy ?? "";
-    message.sortOrder = object.sortOrder ?? "";
-    return message;
-  },
-};
-
-function createBaseSearchUsersRequest(): SearchUsersRequest {
-  return { query: "", pagination: undefined, verifiedOnly: false, activeOnly: false, country: "" };
-}
-
-export const SearchUsersRequest: MessageFns<SearchUsersRequest> = {
-  encode(message: SearchUsersRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.query !== "") {
-      writer.uint32(10).string(message.query);
-    }
-    if (message.pagination !== undefined) {
-      PaginationRequest.encode(message.pagination, writer.uint32(18).fork()).join();
-    }
-    if (message.verifiedOnly !== false) {
-      writer.uint32(24).bool(message.verifiedOnly);
-    }
-    if (message.activeOnly !== false) {
-      writer.uint32(32).bool(message.activeOnly);
-    }
-    if (message.country !== "") {
-      writer.uint32(42).string(message.country);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SearchUsersRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSearchUsersRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.query = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.pagination = PaginationRequest.decode(reader, reader.uint32());
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.verifiedOnly = reader.bool();
-          continue;
-        }
-        case 4: {
-          if (tag !== 32) {
-            break;
-          }
-
-          message.activeOnly = reader.bool();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.country = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SearchUsersRequest {
-    return {
-      query: isSet(object.query) ? globalThis.String(object.query) : "",
-      pagination: isSet(object.pagination) ? PaginationRequest.fromJSON(object.pagination) : undefined,
-      verifiedOnly: isSet(object.verifiedOnly) ? globalThis.Boolean(object.verifiedOnly) : false,
-      activeOnly: isSet(object.activeOnly) ? globalThis.Boolean(object.activeOnly) : false,
-      country: isSet(object.country) ? globalThis.String(object.country) : "",
-    };
-  },
-
-  toJSON(message: SearchUsersRequest): unknown {
-    const obj: any = {};
-    if (message.query !== "") {
-      obj.query = message.query;
-    }
-    if (message.pagination !== undefined) {
-      obj.pagination = PaginationRequest.toJSON(message.pagination);
-    }
-    if (message.verifiedOnly !== false) {
-      obj.verifiedOnly = message.verifiedOnly;
-    }
-    if (message.activeOnly !== false) {
-      obj.activeOnly = message.activeOnly;
-    }
-    if (message.country !== "") {
-      obj.country = message.country;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SearchUsersRequest>, I>>(base?: I): SearchUsersRequest {
-    return SearchUsersRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SearchUsersRequest>, I>>(object: I): SearchUsersRequest {
-    const message = createBaseSearchUsersRequest();
-    message.query = object.query ?? "";
-    message.pagination = (object.pagination !== undefined && object.pagination !== null)
-      ? PaginationRequest.fromPartial(object.pagination)
-      : undefined;
-    message.verifiedOnly = object.verifiedOnly ?? false;
-    message.activeOnly = object.activeOnly ?? false;
-    message.country = object.country ?? "";
     return message;
   },
 };

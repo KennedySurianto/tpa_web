@@ -30,26 +30,7 @@ func (u *UserController) CreateUser(ctx context.Context, req *pb.CreateUserReque
 
 	return &pb.UserResponse{
 		Message: "User created successfully",
-		User: &pb.User{
-			Id:          uint64(createdUser.ID),
-			Username:    createdUser.Username,
-			Email:       createdUser.Email,
-			Password:    createdUser.Password,
-			DisplayName: createdUser.DisplayName,
-			Bio:         createdUser.Bio,
-			Avatar:      createdUser.Avatar,
-			IsVerified:  createdUser.IsVerified,
-			IsPrivate:   createdUser.IsPrivate,
-			IsActive:    createdUser.IsActive,
-			LastLoginAt: createdUser.LastLoginAt.Unix(),
-			Country:     createdUser.Country,
-			AllowDuet:   createdUser.AllowDuet,
-			AllowStitch: createdUser.AllowStitch,
-			AllowDownload: createdUser.AllowDownload,
-			AllowComments: createdUser.AllowComments,
-			CreatedAt:     createdUser.CreatedAt.Unix(),
-			UpdatedAt:     createdUser.UpdatedAt.Unix(),
-		},
+		User: convertModelToPbUser(*createdUser),
 	}, nil
 }
 
@@ -107,33 +88,14 @@ func (u *UserController) GetUserById(ctx context.Context, req *pb.GetUserByIdReq
 }
 
 func (u *UserController) GetUserByUsername(ctx context.Context, req *pb.GetUserByUsernameRequest) (*pb.User, error) {
-    fmt.Println("[CONT 1] GOT REQ: ", req);
+	fmt.Println("[CONT 1] GOT REQ: ", req);
 	user, err := u.userService.GetUserByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("[CONT 2] GOT USER, RETURNING: ", user);
 
-	return &pb.User{
-        Id:            uint64(user.ID),
-        Username:      user.Username,
-        Email:         user.Email,
-        Password:      user.Password,
-        DisplayName:   user.DisplayName,
-        Bio:           user.Bio,
-        Avatar:        user.Avatar,
-        IsVerified:    user.IsVerified,
-        IsPrivate:     user.IsPrivate,
-        IsActive:      user.IsActive,
-        LastLoginAt:   user.LastLoginAt.Unix(),
-        Country:       user.Country,
-        AllowDuet:     user.AllowDuet,
-        AllowStitch:   user.AllowStitch,
-        AllowDownload: user.AllowDownload,
-        AllowComments: user.AllowComments,
-        CreatedAt:     user.CreatedAt.Unix(),
-        UpdatedAt:     user.UpdatedAt.Unix(),
-    }, nil
+	return convertModelToPbUser(*user), nil
 }
 
 func convertModelToPbUser(u model.User) *pb.User {
@@ -156,6 +118,12 @@ func convertModelToPbUser(u model.User) *pb.User {
 		AllowComments:    u.AllowComments,
 		CreatedAt:        u.CreatedAt.Unix(),
 		UpdatedAt:        u.UpdatedAt.Unix(),
+
+		NewFollowerNotification: u.NewFollowerNotification,
+		MessageNotification: u.MessageNotification,
+		MentionNotification: u.MentionNotification,
+		LikeTabVisibility: u.LikeTabVisibility,
+		ChatRestriction: u.ChatRestriction,
 	}
 }
 
@@ -174,6 +142,11 @@ func (u *UserController) UpdateUser(ctx context.Context, req *pb.UpdateUserReque
 		req.AllowStitch,
 		req.AllowDownload,
 		req.AllowComments,
+		req.NewFollowerNotification,
+		req.MentionNotification,
+		req.MessageNotification,
+		req.ChatRestriction,
+		req.LikeTabVisibility,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user profile: %v", err)

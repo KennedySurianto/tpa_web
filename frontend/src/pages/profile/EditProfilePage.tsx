@@ -1,20 +1,14 @@
-import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
 
-import {
-  DeleteUserRequest,
-  GetUserByIdRequest,
-  UpdateUserRequest,
-  User,
-  UserResponse,
-} from "../../api/gen/user";
+import type { GetUserByIdRequest, UpdateUserRequest, User, DeleteUserRequest } from "../../api/gen/user"
 
-import { useAuth } from "../../utils/AuthProvider";
+import { useAuth } from "../../utils/AuthProvider"
 
-import { userClient } from "../../api/grpc/userClient";
+import { userClient } from "../../api/grpc/userClient"
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
 
-import { avatarBytesToUrl } from "../../utils/avatarConverter";
+import { avatarBytesToUrl } from "../../utils/avatarConverter"
 
 import {
   UserIcon,
@@ -38,52 +32,65 @@ import {
   Check,
   Trash2,
   X,
-} from "lucide-react";
+  Heart,
+} from "lucide-react"
 
 // Helper function to format Unix timestamps
 const formatTimestamp = (timestampStr: string | undefined): string => {
-  if (!timestampStr) return "N/A";
-  const timestampNum = Number.parseInt(timestampStr, 10);
+  if (!timestampStr) return "N/A"
+  const timestampNum = Number.parseInt(timestampStr, 10)
   if (isNaN(timestampNum)) {
-    return "Invalid date";
+    return "Invalid date"
   }
-  return new Date(timestampNum * 1000).toLocaleString();
-};
+  return new Date(timestampNum * 1000).toLocaleString()
+}
 
 // Helper function to generate random confirmation text
 const generateRandomText = (): string => {
-  const words = ["DELETE", "REMOVE", "CONFIRM", "ACCOUNT", "PERMANENT"];
+  const words = ["DELETE", "REMOVE", "CONFIRM", "ACCOUNT", "PERMANENT"]
   const numbers = Math.floor(Math.random() * 9999)
     .toString()
-    .padStart(4, "0");
-  const word = words[Math.floor(Math.random() * words.length)];
-  return `${word}-${numbers}`;
-};
+    .padStart(4, "0")
+  const word = words[Math.floor(Math.random() * words.length)]
+  return `${word}-${numbers}`
+}
 
 const EditProfilePage: React.FC = () => {
-  const { user: authUser, logout } = useAuth();
-  const [userProfile, setUserProfile] = useState<User | null>(null);
-  const [formData, setFormData] = useState<User | null>(null);
-  const [originalData, setOriginalData] = useState<User | null>(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
+  const authUser = useAuth().user
+  const [userProfile, setUserProfile] = useState<User | null>(null)
+  const [formData, setFormData] = useState<User | null>(null)
+  const [originalData, setOriginalData] = useState<User | null>(null)
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("👤")
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isSaving, setIsSaving] = useState<boolean>(false)
+  const [successMessage, setSuccessMessage] = useState<string>("")
+  const [errorMessage, setErrorMessage] = useState<string>("")
+  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile")
+
+  // Add these new fields to track the additional settings
+  const [notificationSettings, setNotificationSettings] = useState({
+    newFollower: true,
+    message: true,
+    mentions: true,
+  })
+
+  const [privacySettings, setPrivacySettings] = useState({
+    likeTabVisibility: "everyone" as "everyone" | "friends" | "none",
+    chatRestriction: "everyone" as "everyone" | "friends" | "none",
+  })
 
   // Delete account states
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [deleteConfirmationText, setDeleteConfirmationText] = useState<string>("");
-  const [userInputText, setUserInputText] = useState<string>("");
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [deleteError, setDeleteError] = useState<string>("");
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState<string>("")
+  const [userInputText, setUserInputText] = useState<string>("")
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [deleteError, setDeleteError] = useState<string>("")
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   // Check if form has changes
   const hasChanges = React.useMemo(() => {
-    if (!formData || !originalData) return false;
+    if (!formData || !originalData) return false
 
     const compareFields = [
       "username",
@@ -98,124 +105,187 @@ const EditProfilePage: React.FC = () => {
       "allowDuet",
       "allowStitch",
       "allowDownload",
-    ];
+    ]
 
-    return compareFields.some(
+    const formFieldsChanged = compareFields.some(
       (field) => formData[field as keyof User] !== originalData[field as keyof User],
-    );
-  }, [formData, originalData]);
+    )
+
+    // Check if notification or privacy settings changed
+    const notificationChanged =
+      JSON.stringify(notificationSettings) !==
+      JSON.stringify({
+        newFollower: originalData.newFollowerNotification ?? true,
+        message: originalData.messageNotification ?? true,
+        mentions: originalData.mentionNotification ?? true,
+      })
+
+    const privacyChanged =
+      JSON.stringify(privacySettings) !==
+      JSON.stringify({
+        likeTabVisibility: (originalData.likeTabVisibility as "everyone" | "friends" | "none") ?? "everyone",
+        chatRestriction: (originalData.chatRestriction as "everyone" | "friends" | "none") ?? "everyone",
+      })
+
+    return formFieldsChanged || notificationChanged || privacyChanged
+  }, [formData, originalData, notificationSettings, privacySettings])
 
   // Clear messages after 5 seconds
   useEffect(() => {
     if (successMessage || errorMessage) {
       const timer = setTimeout(() => {
-        setSuccessMessage("");
-        setErrorMessage("");
-      }, 5000);
-      return () => clearTimeout(timer);
+        setSuccessMessage("")
+        setErrorMessage("")
+      }, 5000)
+      return () => clearTimeout(timer)
     }
-  }, [successMessage, errorMessage]);
+  }, [successMessage, errorMessage])
 
   // Generate new confirmation text when modal opens
   useEffect(() => {
     if (showDeleteModal) {
-      setDeleteConfirmationText(generateRandomText());
-      setUserInputText("");
-      setDeleteError("");
+      setDeleteConfirmationText(generateRandomText())
+      setUserInputText("")
+      setDeleteError("")
     }
-  }, [showDeleteModal]);
+  }, [showDeleteModal])
 
   // Effect to fetch user data
   useEffect(() => {
     const fetchUser = async () => {
-      setIsLoading(true);
-      setErrorMessage("");
+      setIsLoading(true)
+      setErrorMessage("")
 
       if (!(authUser && authUser.id)) {
-        console.warn("No authenticated user ID found.");
-        setUserProfile(null);
-        setErrorMessage("No authenticated user found. Please log in.");
-        setIsLoading(false);
-        return;
+        console.warn("No authenticated user ID found.")
+        setUserProfile(null)
+        setErrorMessage("No authenticated user found. Please log in.")
+        setIsLoading(false)
+        return
       }
 
       try {
-        const req: GetUserByIdRequest = { id: authUser.id };
-        const res: User = await userClient.GetUserById(req);
-        console.log("Fetched user data:", res);
-        setUserProfile(res);
+        const req: GetUserByIdRequest = { id: authUser.id }
+        const res: User = await userClient.GetUserById(req)
+        console.log("Fetched user data:", res)
+        setUserProfile(res)
       } catch (err) {
-        console.error("Error fetching user:", err);
-        setUserProfile(null);
-        setErrorMessage("Failed to load profile data. Please try again.");
+        console.error("Error fetching user:", err)
+        setUserProfile(null)
+        setErrorMessage("Failed to load profile data. Please try again.")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchUser();
-  }, [authUser]);
+    fetchUser()
+  }, [authUser])
 
-  // Effect to update formData and profilePicturePreview when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      setFormData(userProfile);
-      setOriginalData(userProfile);
-      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤");
-    } else {
-      setFormData(null);
-      setOriginalData(null);
-      setProfilePicturePreview("👤");
-    }
-  }, [userProfile]);
+      setFormData(userProfile)
+      setOriginalData(userProfile)
+      setProfilePicturePreview(avatarBytesToUrl(userProfile.avatar) || "👤")
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+      // Set notification settings from user profile
+      setNotificationSettings({
+        newFollower: userProfile.newFollowerNotification ?? true,
+        message: userProfile.messageNotification ?? true,
+        mentions: userProfile.mentionNotification ?? true,
+      })
+
+      // Set privacy settings from user profile
+      setPrivacySettings({
+        likeTabVisibility: (userProfile.likeTabVisibility as "everyone" | "friends" | "none") ?? "everyone",
+        chatRestriction: (userProfile.chatRestriction as "everyone" | "friends" | "none") ?? "everyone",
+      })
+    } else {
+      setFormData(null)
+      setOriginalData(null)
+      setProfilePicturePreview("👤")
+      setNotificationSettings({
+        newFollower: true,
+        message: true,
+        mentions: true,
+      })
+      setPrivacySettings({
+        likeTabVisibility: "everyone",
+        chatRestriction: "everyone",
+      })
+    }
+  }, [userProfile])
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null))
 
     if (name === "avatar") {
-      setProfilePicturePreview(value || "👤");
+      setProfilePicturePreview(value || "👤")
     }
 
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("");
-      setErrorMessage("");
+      setSuccessMessage("")
+      setErrorMessage("")
     }
-  };
+  }
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null));
+    const { name, checked } = e.target
+    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null))
 
     // Clear messages when user starts editing
     if (successMessage || errorMessage) {
-      setSuccessMessage("");
-      setErrorMessage("");
+      setSuccessMessage("")
+      setErrorMessage("")
     }
-  };
+  }
+
+  const handleNotificationChange = (setting: keyof typeof notificationSettings, checked: boolean) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      [setting]: checked,
+    }))
+
+    // Clear messages when user starts editing
+    if (successMessage || errorMessage) {
+      setSuccessMessage("")
+      setErrorMessage("")
+    }
+  }
+
+  const handlePrivacyChange = (setting: keyof typeof privacySettings, value: "everyone" | "friends" | "none") => {
+    setPrivacySettings((prev) => ({
+      ...prev,
+      [setting]: value,
+    }))
+
+    // Clear messages when user starts editing
+    if (successMessage || errorMessage) {
+      setSuccessMessage("")
+      setErrorMessage("")
+    }
+  }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!formData) {
-      setErrorMessage("Profile data is not available.");
-      return;
+      setErrorMessage("Profile data is not available.")
+      return
     }
 
     if (!hasChanges) {
-      setErrorMessage("No changes to save.");
-      return;
+      setErrorMessage("No changes to save.")
+      return
     }
 
-    setIsSaving(true);
-    setErrorMessage("");
-    setSuccessMessage("");
+    setIsSaving(true)
+    setErrorMessage("")
+    setSuccessMessage("")
 
     try {
-      console.log("Form submitted:", formData);
+      console.log("Form submitted:", formData)
       const req: UpdateUserRequest = {
         id: Number(userProfile?.id) || 0,
         username: formData.username,
@@ -230,61 +300,73 @@ const EditProfilePage: React.FC = () => {
         allowStitch: formData.allowStitch,
         allowDownload: formData.allowDownload,
         allowComments: formData.allowComments,
-      };
+        // Add new notification settings
+        newFollowerNotification: notificationSettings.newFollower,
+        messageNotification: notificationSettings.message,
+        mentionNotification: notificationSettings.mentions,
+        // Add new privacy settings
+        likeTabVisibility: privacySettings.likeTabVisibility,
+        chatRestriction: privacySettings.chatRestriction,
+      }
 
-      const res = await userClient.UpdateUser(req);
+      const res = await userClient.UpdateUser(req)
       if (res) {
-        setSuccessMessage("Profile updated successfully!");
-        setOriginalData(formData);
+        console.log("Update User Response: ", res);
+        setSuccessMessage("Profile updated successfully!")
+        setOriginalData({
+          ...formData,
+          newFollowerNotification: notificationSettings.newFollower,
+          messageNotification: notificationSettings.message,
+          mentionNotification: notificationSettings.mentions,
+          likeTabVisibility: privacySettings.likeTabVisibility,
+          chatRestriction: privacySettings.chatRestriction,
+        })
       }
     } catch (err) {
-      console.error("Error updating profile:", err);
-      setErrorMessage("Failed to update profile. Please try again.");
+      console.error("Error updating profile:", err)
+      setErrorMessage("Failed to update profile. Please try again.")
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleDeleteAccount = async () => {
     if (!userProfile?.id) {
-      setDeleteError("User ID not found.");
-      return;
+      setDeleteError("User ID not found.")
+      return
     }
 
     if (userInputText.trim() !== deleteConfirmationText) {
-      setDeleteError("Confirmation text does not match. Please try again.");
-      return;
+      setDeleteError("Confirmation text does not match. Please try again.")
+      return
     }
 
-    setIsDeleting(true);
-    setDeleteError("");
+    setIsDeleting(true)
+    setDeleteError("")
 
     try {
-      const req: DeleteUserRequest = {
-        email: userProfile.email,
-      };
-      const res: UserResponse = await userClient.DeleteUser(req);
-      if (res) {
-        // Account deleted successfully
-        setShowDeleteModal(false);
-        setSuccessMessage("Account deleted successfully. You will be redirected shortly.");
+      const req: DeleteUserRequest = { email: userProfile.email }
+      await userClient.DeleteUser(req)
 
-        // Redirect to login page after a short delay
-        setTimeout(() => {
-          logout();
-        }, 3000);
-      }
+      // Account deleted successfully
+      setShowDeleteModal(false)
+      setSuccessMessage("Account deleted successfully. You will be redirected shortly.")
+
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        navigate("/login")
+      }, 2000)
     } catch (err) {
-      console.error("Error deleting account:", err);
-      setDeleteError("Failed to delete account. Please try again.");
+      console.error("Error deleting account:", err)
+      setDeleteError("Failed to delete account. Please try again.")
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleProfilePictureError = () => {
-    setProfilePicturePreview("👤");
-  };
+    setProfilePicturePreview("👤")
+  }
 
   const renderProfilePicture = () => {
     if (profilePicturePreview === "👤") {
@@ -305,7 +387,7 @@ const EditProfilePage: React.FC = () => {
         >
           <UserIcon size={48} />
         </div>
-      );
+      )
     }
 
     return (
@@ -322,8 +404,8 @@ const EditProfilePage: React.FC = () => {
           transition: "all 0.3s ease",
         }}
       />
-    );
-  };
+    )
+  }
 
   if (isLoading) {
     return (
@@ -364,7 +446,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!formData) {
@@ -414,7 +496,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -510,8 +592,7 @@ const EditProfilePage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              background:
-                activeTab === "profile" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
+              background: activeTab === "profile" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
               border: "none",
               color: activeTab === "profile" ? "#ffffff" : "#8b949e",
               padding: "0.75rem 1rem",
@@ -534,8 +615,7 @@ const EditProfilePage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              background:
-                activeTab === "settings" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
+              background: activeTab === "settings" ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "none",
               border: "none",
               color: activeTab === "settings" ? "#ffffff" : "#8b949e",
               padding: "0.75rem 1rem",
@@ -619,16 +699,16 @@ const EditProfilePage: React.FC = () => {
                       name="avatar"
                       accept="image/*"
                       onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
+                        const file = e.target.files?.[0]
+                        if (!file) return
 
-                        const buffer = await file.arrayBuffer();
-                        const bytes = new Uint8Array(buffer);
-                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null));
+                        const buffer = await file.arrayBuffer()
+                        const bytes = new Uint8Array(buffer)
+                        setFormData((prev) => (prev ? { ...prev, avatar: bytes } : null))
 
                         // Update preview
-                        const base64 = btoa(String.fromCharCode(...bytes));
-                        setProfilePicturePreview(`data:${file.type};base64,${base64}`);
+                        const base64 = btoa(String.fromCharCode(...bytes))
+                        setProfilePicturePreview(`data:${file.type};base64,${base64}`)
                       }}
                       style={{ display: "none" }}
                     />
@@ -697,14 +777,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                        e.currentTarget.style.borderColor = "#8b5cf6"
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                        e.currentTarget.style.boxShadow = "none";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.boxShadow = "none"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
                       }}
                     />
                   </div>
@@ -742,14 +822,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                        e.currentTarget.style.borderColor = "#8b5cf6"
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                        e.currentTarget.style.boxShadow = "none";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.boxShadow = "none"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
                       }}
                     />
                   </div>
@@ -787,14 +867,14 @@ const EditProfilePage: React.FC = () => {
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
-                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                        e.currentTarget.style.borderColor = "#8b5cf6"
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                        e.currentTarget.style.boxShadow = "none";
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.boxShadow = "none"
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
                       }}
                     />
                   </div>
@@ -837,14 +917,14 @@ const EditProfilePage: React.FC = () => {
                       fontFamily: "inherit",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                      e.currentTarget.style.borderColor = "#8b5cf6"
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                      e.currentTarget.style.boxShadow = "none";
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                      e.currentTarget.style.boxShadow = "none"
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
                     }}
                   />
                 </div>
@@ -894,9 +974,7 @@ const EditProfilePage: React.FC = () => {
                       <Hash size={14} />
                       User ID
                     </div>
-                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>
-                      {formData.id}
-                    </div>
+                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>{formData.id}</div>
                   </div>
 
                   <div
@@ -923,9 +1001,7 @@ const EditProfilePage: React.FC = () => {
                       <Mail size={14} />
                       Email Address
                     </div>
-                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>
-                      {formData.email}
-                    </div>
+                    <div style={{ fontSize: "0.9rem", color: "#ffffff", textAlign: "right" }}>{formData.email}</div>
                   </div>
 
                   <div
@@ -1029,10 +1105,10 @@ const EditProfilePage: React.FC = () => {
                       fontWeight: "500",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)";
+                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)"
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)";
+                      e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)"
                     }}
                   >
                     <Key size={16} />
@@ -1429,9 +1505,7 @@ const EditProfilePage: React.FC = () => {
                             background: "#ffffff",
                             transition: "all 0.3s ease",
                             borderRadius: "50%",
-                            transform: formData.allowComments
-                              ? "translateX(24px)"
-                              : "translateX(0)",
+                            transform: formData.allowComments ? "translateX(24px)" : "translateX(0)",
                           }}
                         />
                       </span>
@@ -1692,13 +1766,469 @@ const EditProfilePage: React.FC = () => {
                             background: "#ffffff",
                             transition: "all 0.3s ease",
                             borderRadius: "50%",
-                            transform: formData.allowDownload
-                              ? "translateX(24px)"
-                              : "translateX(0)",
+                            transform: formData.allowDownload ? "translateX(24px)" : "translateX(0)",
                           }}
                         />
                       </span>
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification Settings Section */}
+              <div style={{ marginBottom: "2.5rem" }}>
+                <h2
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    margin: "0 0 1.5rem 0",
+                    fontSize: "1.25rem",
+                    fontWeight: "600",
+                    color: "#ffffff",
+                    paddingBottom: "0.75rem",
+                    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  }}
+                >
+                  <MessageCircle size={20} />
+                  Notification Settings
+                </h2>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1.5rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          fontSize: "1rem",
+                          fontWeight: "500",
+                          color: "#ffffff",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        <Users size={16} />
+                        New Follower Notifications
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#8b949e",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Get notified when someone follows you
+                      </div>
+                    </div>
+                    <label
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        width: "48px",
+                        height: "24px",
+                        marginLeft: "1rem",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={notificationSettings.newFollower}
+                        onChange={(e) => handleNotificationChange("newFollower", e.target.checked)}
+                        style={{ opacity: 0, width: 0, height: 0 }}
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          cursor: "pointer",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: notificationSettings.newFollower
+                            ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
+                            : "rgba(255, 255, 255, 0.1)",
+                          border: `1px solid ${
+                            notificationSettings.newFollower ? "transparent" : "rgba(255, 255, 255, 0.2)"
+                          }`,
+                          transition: "all 0.3s ease",
+                          borderRadius: "24px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            content: '""',
+                            height: "18px",
+                            width: "18px",
+                            left: "2px",
+                            bottom: "2px",
+                            background: "#ffffff",
+                            transition: "all 0.3s ease",
+                            borderRadius: "50%",
+                            transform: notificationSettings.newFollower ? "translateX(24px)" : "translateX(0)",
+                          }}
+                        />
+                      </span>
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1.5rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          fontSize: "1rem",
+                          fontWeight: "500",
+                          color: "#ffffff",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        <Mail size={16} />
+                        Message Notifications
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#8b949e",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Get notified when you receive messages
+                      </div>
+                    </div>
+                    <label
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        width: "48px",
+                        height: "24px",
+                        marginLeft: "1rem",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={notificationSettings.message}
+                        onChange={(e) => handleNotificationChange("message", e.target.checked)}
+                        style={{ opacity: 0, width: 0, height: 0 }}
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          cursor: "pointer",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: notificationSettings.message
+                            ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
+                            : "rgba(255, 255, 255, 0.1)",
+                          border: `1px solid ${
+                            notificationSettings.message ? "transparent" : "rgba(255, 255, 255, 0.2)"
+                          }`,
+                          transition: "all 0.3s ease",
+                          borderRadius: "24px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            content: '""',
+                            height: "18px",
+                            width: "18px",
+                            left: "2px",
+                            bottom: "2px",
+                            background: "#ffffff",
+                            transition: "all 0.3s ease",
+                            borderRadius: "50%",
+                            transform: notificationSettings.message ? "translateX(24px)" : "translateX(0)",
+                          }}
+                        />
+                      </span>
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1.5rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          fontSize: "1rem",
+                          fontWeight: "500",
+                          color: "#ffffff",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        <Hash size={16} />
+                        Mention Notifications
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#8b949e",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Get notified when someone mentions you
+                      </div>
+                    </div>
+                    <label
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        width: "48px",
+                        height: "24px",
+                        marginLeft: "1rem",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={notificationSettings.mentions}
+                        onChange={(e) => handleNotificationChange("mentions", e.target.checked)}
+                        style={{ opacity: 0, width: 0, height: 0 }}
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          cursor: "pointer",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: notificationSettings.mentions
+                            ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
+                            : "rgba(255, 255, 255, 0.1)",
+                          border: `1px solid ${
+                            notificationSettings.mentions ? "transparent" : "rgba(255, 255, 255, 0.2)"
+                          }`,
+                          transition: "all 0.3s ease",
+                          borderRadius: "24px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            content: '""',
+                            height: "18px",
+                            width: "18px",
+                            left: "2px",
+                            bottom: "2px",
+                            background: "#ffffff",
+                            transition: "all 0.3s ease",
+                            borderRadius: "50%",
+                            transform: notificationSettings.mentions ? "translateX(24px)" : "translateX(0)",
+                          }}
+                        />
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy & Visibility Settings Section */}
+              <div style={{ marginBottom: "2.5rem" }}>
+                <h2
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    margin: "0 0 1.5rem 0",
+                    fontSize: "1.25rem",
+                    fontWeight: "600",
+                    color: "#ffffff",
+                    paddingBottom: "0.75rem",
+                    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  }}
+                >
+                  <Eye size={20} />
+                  Privacy & Visibility
+                </h2>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1.5rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          fontSize: "1rem",
+                          fontWeight: "500",
+                          color: "#ffffff",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        <Heart size={16} />
+                        Like Tab Visibility
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#8b949e",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Control who can see your liked videos
+                      </div>
+                    </div>
+                    <select
+                      value={privacySettings.likeTabVisibility}
+                      onChange={(e) =>
+                        handlePrivacyChange("likeTabVisibility", e.target.value as "everyone" | "friends" | "none")
+                      }
+                      style={{
+                        marginLeft: "1rem",
+                        padding: "0.5rem 1rem",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        color: "#ffffff",
+                        fontSize: "0.9rem",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        minWidth: "120px",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#8b5cf6"
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.boxShadow = "none"
+                      }}
+                    >
+                      <option value="everyone" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        Everyone
+                      </option>
+                      <option value="friends" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        Friends
+                      </option>
+                      <option value="none" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        None
+                      </option>
+                    </select>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1.5rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          fontSize: "1rem",
+                          fontWeight: "500",
+                          color: "#ffffff",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        <MessageCircle size={16} />
+                        Chat Restriction Setting
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#8b949e",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Control who can message you
+                      </div>
+                    </div>
+                    <select
+                      value={privacySettings.chatRestriction}
+                      onChange={(e) =>
+                        handlePrivacyChange("chatRestriction", e.target.value as "everyone" | "friends" | "none")
+                      }
+                      style={{
+                        marginLeft: "1rem",
+                        padding: "0.5rem 1rem",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        color: "#ffffff",
+                        fontSize: "0.9rem",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        minWidth: "120px",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#8b5cf6"
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.boxShadow = "none"
+                      }}
+                    >
+                      <option value="everyone" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        Everyone
+                      </option>
+                      <option value="friends" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        Friends
+                      </option>
+                      <option value="none" style={{ background: "#1a1a1a", color: "#ffffff" }}>
+                        None
+                      </option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -1749,8 +2279,8 @@ const EditProfilePage: React.FC = () => {
                         lineHeight: 1.5,
                       }}
                     >
-                      Once you delete your account, there is no going back. This will permanently
-                      delete your account, all your videos, and remove all associated data.
+                      Once you delete your account, there is no going back. This will permanently delete your account,
+                      all your videos, and remove all associated data.
                     </p>
                   </div>
                   <button
@@ -1771,12 +2301,12 @@ const EditProfilePage: React.FC = () => {
                       fontWeight: "600",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)"
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)"
                     }}
                   >
                     <Trash2 size={16} />
@@ -1805,9 +2335,7 @@ const EditProfilePage: React.FC = () => {
                 alignItems: "center",
                 gap: "0.5rem",
                 background:
-                  hasChanges && !isSaving
-                    ? "linear-gradient(135deg, #8b5cf6, #3b82f6)"
-                    : "rgba(75, 85, 99, 0.5)",
+                  hasChanges && !isSaving ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(75, 85, 99, 0.5)",
                 border: "none",
                 color: hasChanges && !isSaving ? "#ffffff" : "#9ca3af",
                 padding: "0.75rem 2rem",
@@ -1820,14 +2348,14 @@ const EditProfilePage: React.FC = () => {
               }}
               onMouseEnter={(e) => {
                 if (hasChanges && !isSaving) {
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(139, 92, 246, 0.4)";
+                  e.currentTarget.style.transform = "translateY(-1px)"
+                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(139, 92, 246, 0.4)"
                 }
               }}
               onMouseLeave={(e) => {
                 if (hasChanges && !isSaving) {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.transform = "translateY(0)"
+                  e.currentTarget.style.boxShadow = "none"
                 }
               }}
             >
@@ -1870,7 +2398,7 @@ const EditProfilePage: React.FC = () => {
             }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                setShowDeleteModal(false);
+                setShowDeleteModal(false)
               }
             }}
           >
@@ -1920,8 +2448,7 @@ const EditProfilePage: React.FC = () => {
                     lineHeight: 1.5,
                   }}
                 >
-                  This action cannot be undone. This will permanently delete your account and remove
-                  all your data.
+                  This action cannot be undone. This will permanently delete your account and remove all your data.
                 </p>
               </div>
 
@@ -1962,8 +2489,8 @@ const EditProfilePage: React.FC = () => {
                   type="text"
                   value={userInputText}
                   onChange={(e) => {
-                    setUserInputText(e.target.value);
-                    setDeleteError("");
+                    setUserInputText(e.target.value)
+                    setDeleteError("")
                   }}
                   placeholder="Type the confirmation text here"
                   style={{
@@ -1981,14 +2508,14 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onFocus={(e) => {
                     if (!deleteError) {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                      e.currentTarget.style.borderColor = "#8b5cf6"
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
                     }
                   }}
                   onBlur={(e) => {
                     if (!deleteError) {
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                      e.currentTarget.style.boxShadow = "none";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)"
+                      e.currentTarget.style.boxShadow = "none"
                     }
                   }}
                 />
@@ -2027,12 +2554,12 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!isDeleting) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)"
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isDeleting) {
-                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"
                     }
                   }}
                 >
@@ -2056,16 +2583,10 @@ const EditProfilePage: React.FC = () => {
                         ? "rgba(239, 68, 68, 0.5)"
                         : "rgba(75, 85, 99, 0.5)"
                     }`,
-                    color:
-                      !isDeleting && userInputText.trim() === deleteConfirmationText
-                        ? "#ef4444"
-                        : "#9ca3af",
+                    color: !isDeleting && userInputText.trim() === deleteConfirmationText ? "#ef4444" : "#9ca3af",
                     padding: "0.75rem 1.5rem",
                     borderRadius: "8px",
-                    cursor:
-                      !isDeleting && userInputText.trim() === deleteConfirmationText
-                        ? "pointer"
-                        : "not-allowed",
+                    cursor: !isDeleting && userInputText.trim() === deleteConfirmationText ? "pointer" : "not-allowed",
                     transition: "all 0.2s ease",
                     fontSize: "0.875rem",
                     fontWeight: "600",
@@ -2073,14 +2594,14 @@ const EditProfilePage: React.FC = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!isDeleting && userInputText.trim() === deleteConfirmationText) {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.3)";
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.7)";
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.3)"
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.7)"
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isDeleting && userInputText.trim() === deleteConfirmationText) {
-                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                      e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"
+                      e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)"
                     }
                   }}
                 >
@@ -2185,7 +2706,7 @@ const EditProfilePage: React.FC = () => {
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-export default EditProfilePage;
+export default EditProfilePage
