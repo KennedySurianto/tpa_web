@@ -99,6 +99,26 @@ services:
       retries: 3
       start_period: 10s
 
+  notification-db:
+    container_name: notification-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+    ports:
+      - "5438:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${NOTIFICATION_DB_NAME}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   # Application services
   envoy:
     container_name: envoy
@@ -370,6 +390,34 @@ services:
       retries: 3
       start_period: 20s
 
+  notification-service:
+    container_name: notification-service
+    build:
+      context: ./backend
+      dockerfile: notification-service/Dockerfile.dev
+    expose:
+      - "50058"
+    ports:
+      - 50058:50058
+    environment:
+      PORT: ${NOTIFICATION_SERVICE_PORT}
+      DATABASE_URL: ${DATABASE_URL_NOTIFICATION}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+    volumes:
+      - ./backend/notification-service:/app/notification-service
+      - ./backend/shared:/app/shared
+      - ./backend/middleware:/app/middleware
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50058"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
   frontend:
     container_name: frontend
     build: ./frontend
@@ -393,6 +441,7 @@ volumes:
   activity-db-data:
   chat-db-data:
   playlist-db-data:
+  notification-db-data:
   minio-data:
 
 networks:

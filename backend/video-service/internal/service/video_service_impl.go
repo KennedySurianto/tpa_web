@@ -295,9 +295,17 @@ func (s *VideoServiceImpl) GetRecommendedVideos(userID, lastVideoID, deviceID ui
 		recommended = append(recommended, s.video)
 	}
 
+	fmt.Println("recommended videos: ", recommended)
+
 	if len(recommended) < int(limit) {
-		randoms, _ := s.videoRepo.GetRandomPublicVideos(limit - int32(len(recommended)))
+		randoms, _ := s.videoRepo.GetRandomPublicVideos(uint32(int(limit)-len(recommended)), userID)
 		recommended = append(recommended, randoms...)
+
+		fmt.Println("random videos: ", randoms)
+	}
+
+	if len(recommended) == 0 {
+		return nil, nil
 	}
 
 	// ✅ Deduplicate
@@ -426,4 +434,8 @@ func (s *VideoServiceImpl) GetRandomAd(ctx context.Context) (*model.Video, error
 
 	fmt.Println("[GetRandomAd] Returning ad object.")
 	return ad, nil
+}
+
+func (s *VideoServiceImpl) GetVideosByUserIDs(userIDs []uint32) ([]model.Video, error) {
+	return s.videoRepo.GetVideosByUserIDs(userIDs)
 }

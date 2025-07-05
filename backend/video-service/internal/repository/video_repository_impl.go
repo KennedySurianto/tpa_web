@@ -78,9 +78,16 @@ func (r *VideoRepositoryImpl) GetRecommendedVideos(userID, lastVideoID, deviceID
 	return videos, nil
 }
 
-func (r *VideoRepositoryImpl) GetRandomPublicVideos(limit int32) ([]*model.Video, error) {
+func (r *VideoRepositoryImpl) GetRandomPublicVideos(limit, userID uint32) ([]*model.Video, error) {
 	var videos []*model.Video
-	err := r.db.Where("privacy = ?", "public").Order("RANDOM()").Limit(int(limit)).Find(&videos).Error
+	query := r.db.Where("privacy = ?", "public").Order("RANDOM()").Limit(int(limit))
+
+	// Add this condition to exclude the user's own videos
+	if userID != 0 {
+		query = query.Where("user_id != ?", userID)
+	}
+
+	err := query.Find(&videos).Error
 	return videos, err
 }
 
@@ -128,4 +135,11 @@ func (r *VideoRepositoryImpl) GetVideosByIDs(ids []uint) ([]*model.Video, error)
 		return nil, err
 	}
 	return videos, nil
+}
+
+func (r *VideoRepositoryImpl) GetVideosByUserIDs(userIDs []uint32) ([]model.Video, error) {
+	var videos []model.Video
+	// Use a single query to get all videos for the given user IDs
+	err := r.db.Where("user_id IN ?", userIDs).Order("created_at DESC").Find(&videos).Error
+	return videos, err
 }

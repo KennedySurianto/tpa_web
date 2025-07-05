@@ -70,6 +70,12 @@ proto:
 		--grpc-gateway_out=backend/shared/gen/playlist --grpc-gateway_opt=paths=source_relative \
 		proto/playlist.proto
 
+	protoc -Iproto \
+		--go_out=backend/shared/gen/notification --go_opt=paths=source_relative \
+		--go-grpc_out=backend/shared/gen/notification --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=backend/shared/gen/notification --grpc-gateway_opt=paths=source_relative \
+		proto/notification.proto
+
 # Generate gRPC-Web files
 	@echo "Generating gRPC-Web files..."
 	protoc \

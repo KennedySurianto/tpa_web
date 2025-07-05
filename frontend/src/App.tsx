@@ -23,6 +23,7 @@ import VideoPage from "./pages/video/VideoPage";
 import ManageVideosPage from "./pages/video/ManageVideosPage";
 import EditVideoPage from "./pages/video/EditVideoPage";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import NotificationTester from "./pages/NotificationTest";
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -46,6 +47,7 @@ const App = () => {
 
               {/* Always accessible */}
               <Route path="/forgot-password" element={<ResetPasswordPage />} />
+              <Route path="/notif" element={<NotificationTester />} />
 
               <Route element={<Layout />}>
                 <Route path="/home" element={<VideoFeed />} />
@@ -75,5 +77,17 @@ const App = () => {
     </BrowserRouter>
   );
 };
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('Service Worker registration failed: ', registrationError);
+      });
+  });
+}
 
 export default App;

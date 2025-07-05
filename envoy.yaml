@@ -115,6 +115,12 @@ static_resources:
                           route:
                             cluster: playlist-service
 
+                        # Route notification-service gRPC calls
+                        - match:
+                            prefix: "/notification.NotificationService/"
+                          route:
+                            cluster: notification-service
+
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -253,6 +259,22 @@ static_resources:
                     socket_address:
                       address: playlist-service
                       port_value: 50057
+
+    # Notification Service cluster
+    - name: notification-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}  # Enable HTTP/2 for gRPC
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: notification-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: notification-service
+                      port_value: 50058
 
 admin:
   access_log_path: "/tmp/admin_access.log"

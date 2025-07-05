@@ -4,13 +4,13 @@ import { GetVideosByUserIdRequest, Video } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
 export function useFollowingVideos() {
-  const { user, getAuthMetadata } = useAuth();
+  const { user, loading: authLoading, getAuthMetadata } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFriendVideos = async () => {
-      if (!user?.id) return;
+      if (authLoading || !user || !user.id) return;
 
       try {
         const req: GetVideosByUserIdRequest = {

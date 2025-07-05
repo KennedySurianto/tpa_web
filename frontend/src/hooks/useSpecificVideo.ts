@@ -4,12 +4,12 @@ import { GetVideoRequest, Video } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
 export function useSpecificVideo(videoId: string) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !user.id) return;
+    if (authLoading || !user || !user.id) return;
 
     const fetchSpecificVideo = async () => {
       try {

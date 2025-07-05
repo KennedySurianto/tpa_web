@@ -233,12 +233,12 @@ func (vc *VideoController) GetRecommendedVideos(ctx context.Context, req *pb.Get
 
     var response pb.GetVideosResponse
     for _, v := range videos {
-        // Skip if this is the currently logged-in user's own video
-        if req.UserId != 0 && uint32(v.UserID) == req.UserId {
-            continue
-        }
+			// Skip if this is the currently logged-in user's own video
+			if req.UserId != 0 && uint32(v.UserID) == req.UserId {
+				continue
+			}
 
-		response.Videos = append(response.Videos, vc.modelToProto(ctx, v, uint64(req.UserId)))
+			response.Videos = append(response.Videos, vc.modelToProto(ctx, v, uint64(req.UserId)))
     }
 
     return &response, nil
@@ -271,23 +271,19 @@ func (vc *VideoController) GetFriendVideos(ctx context.Context, req *pb.GetVideo
 		}
 	}
 
-	var allVideos []model.Video
-	for _, friendID := range friendIds {
-		videos, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: friendID})
-		if err == nil {
-			allVideos = append(allVideos, videos...)
-		}
+	fmt.Println("[FRIEND IDS] ", friendIds)
+	if len(friendIds) == 0 {
+		return vc.GetRecommendedVideos(ctx, &pb.GetRecommendedVideosRequest{
+			UserId: req.CurrentUserId,
+		})
 	}
 
-	if len(allVideos) == 0 {
-		return vc.GetRecommendedVideos(ctx, &pb.GetRecommendedVideosRequest{
-            UserId: req.CurrentUserId,
-            LastVideoId: 0,
-            DeviceId: 0,
-            Language: "",
-            Limit: 10,
-        })
+	allVideos, err := vc.videoService.GetVideosByUserIDs(friendIds)
+	if err != nil {
+		return nil, err
 	}
+
+	fmt.Println("[FRIEND VIDEOS] ", allVideos)
 
 	sort.Slice(allVideos, func(i, j int) bool {
 		return allVideos[i].CreatedAt.After(allVideos[j].CreatedAt)
@@ -309,27 +305,20 @@ func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVi
 		return nil, fmt.Errorf("failed to get following: %w", err)
 	}
 
-	var allVideos []model.Video
-	followingIDs := make(map[uint64]bool)
-
+	followingIDs := make([]uint32, 0, len(followingResp.Follows))
 	for _, f := range followingResp.Follows {
-		followedId := uint64(f.FollowedId)
-		followingIDs[followedId] = true
-
-		videos, err := vc.videoService.GetVideosByUserId(&pb.GetVideosByUserIdRequest{UserId: uint32(f.FollowedId)})
-		if err == nil {
-			allVideos = append(allVideos, videos...)
-		}
+		followingIDs = append(followingIDs, f.FollowedId)
 	}
 
-	if len(allVideos) == 0 {
+	if len(followingIDs) == 0 {
 		return vc.GetRecommendedVideos(ctx, &pb.GetRecommendedVideosRequest{
-            UserId: req.CurrentUserId,
-            LastVideoId: 0,
-            DeviceId: 0,
-            Language: "",
-            Limit: 10,
-        })
+			UserId: req.CurrentUserId,
+		})
+	}
+
+	allVideos, err := vc.videoService.GetVideosByUserIDs(followingIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	sort.Slice(allVideos, func(i, j int) bool {

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/notification;notification";
+
+// The subscription object from the browser's Push API
+message PushSubscription {
+  string endpoint = 1;
+  string p256dh = 2;
+  string auth = 3;
+}
+
+message SubscribeRequest {
+  string user_id = 1;
+  PushSubscription subscription = 2;
+}
+
+message SubscribeResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// RPC to trigger a push notification to a specific user
+message SendNotificationToUserRequest {
+  string user_id = 1;
+  string title = 2;
+  string body = 3;
+  string icon_url = 4;
+}
+
+message SendNotificationResponse {
+  bool success = 1;
+}
+
+service NotificationService {
+  rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+  rpc SendNotificationToUser(SendNotificationToUserRequest) returns (SendNotificationResponse);
+}

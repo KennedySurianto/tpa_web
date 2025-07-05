@@ -17,6 +17,7 @@ type VideoService interface {
 	GetCaptionsByVideoID(videoID uint) ([]model.Caption, error)
 	GetAllVideos() ([]model.Video, error)
 	GetLikedVideosByUserId(userId uint32) ([]*model.Video, error)
+	GetVideosByUserIDs(userIDs []uint32) ([]model.Video, error)
 
 	// ads
 	GetRandomAd(ctx context.Context) (*model.Video, error)

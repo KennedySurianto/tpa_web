@@ -6,11 +6,13 @@ import { useAuth } from "../utils/AuthProvider";
 const VIDEO_INTERVAL = 1;
 
 export function useVideos(limit: number = 10, lastVideoId: string = "") {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+
     const fetchVideos = async () => {
       setLoading(true);
       console.log("fetchVideos is called");

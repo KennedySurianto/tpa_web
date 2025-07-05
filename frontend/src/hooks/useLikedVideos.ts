@@ -4,12 +4,12 @@ import type { Video, GetVideosByUserIdRequest } from "../api/gen/video";
 import { useAuth } from "../utils/AuthProvider";
 
 export function useLikedVideos(userId: number) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId || Number.isNaN(userId)) return;
+    if (authLoading || !userId || Number.isNaN(userId)) return;
 
     const fetchLikedVideos = async () => {
       const currentUserId: number = Number(user?.id) ?? 0;
