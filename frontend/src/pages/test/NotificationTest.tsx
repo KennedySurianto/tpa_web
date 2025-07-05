@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../utils/AuthProvider'; // Adjust path if needed
-import { notificationClient } from '../api/grpc/notificationClient'; // Adjust path
-import { SubscribeRequest, PushSubscription, SubscribeResponse } from '../api/gen/notification'; // Adjust path
+import { useAuth } from '../../utils/AuthProvider'; // Adjust path if needed
+import { notificationClient } from '../../api/grpc/notificationClient'; // Adjust path
+import { SubscribeRequest, PushSubscription, SubscribeResponse } from '../../api/gen/notification'; // Adjust path
 
 // --- IMPORTANT ---
 // Replace this with the VAPID Public Key you generated

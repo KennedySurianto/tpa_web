@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom"
 
 import { avatarBytesToUrl } from "../../utils/avatarConverter"
 
+import { usePushNotifications } from "../../hooks/usePushNotification";
+
 import {
   UserIcon,
   Settings,
@@ -33,6 +35,7 @@ import {
   Trash2,
   X,
   Heart,
+  Bell,
 } from "lucide-react"
 
 // Helper function to format Unix timestamps
@@ -66,6 +69,13 @@ const EditProfilePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile")
+
+  const { 
+    isPushSubscribed, 
+    isPushLoading, 
+    handlePushSubscriptionChange, 
+    pushStatusMessage 
+  } = usePushNotifications(authUser?.id);
 
   // Add these new fields to track the additional settings
   const [notificationSettings, setNotificationSettings] = useState({
@@ -1795,6 +1805,46 @@ const EditProfilePage: React.FC = () => {
                 </h2>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    alignItems: "center", 
+                    padding: "1.5rem", 
+                    background: "rgba(255, 255, 255, 0.02)", 
+                    border: "1px solid rgba(255, 255, 255, 0.05)", 
+                    borderRadius: "12px" 
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "0.75rem", 
+                        fontSize: "1rem", 
+                        fontWeight: "500", 
+                        color: "#ffffff", 
+                        marginBottom: "0.25rem" 
+                      }}>
+                        <Bell size={16} /> 
+                        Enable Notifications on this Device
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#8b949e", lineHeight: 1.4, transition: "color 0.3s ease" }}>
+                        {isPushLoading ? "Checking status..." : pushStatusMessage}
+                      </div>
+                    </div>
+                    <label style={{ position: "relative", display: "inline-block", width: "48px", height: "24px", marginLeft: "1rem" }}>
+                      <input
+                        type="checkbox"
+                        checked={isPushSubscribed}
+                        onChange={(e) => handlePushSubscriptionChange(e.target.checked)}
+                        disabled={isPushLoading}
+                        style={{ opacity: 0, width: 0, height: 0 }}
+                      />
+                      <span style={{ position: "absolute", cursor: isPushLoading ? "not-allowed" : "pointer", top: 0, left: 0, right: 0, bottom: 0, background: isPushSubscribed ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(255, 255, 255, 0.1)", border: `1px solid ${isPushSubscribed ? "transparent" : "rgba(255, 255, 255, 0.2)"}`, transition: "all 0.3s ease", borderRadius: "24px", opacity: isPushLoading ? 0.5 : 1 }}>
+                        <span style={{ position: "absolute", content: '""', height: "18px", width: "18px", left: "2px", bottom: "2px", background: "#ffffff", transition: "all 0.3s ease", borderRadius: "50%", transform: isPushSubscribed ? "translateX(24px)" : "translateX(0)" }} />
+                      </span>
+                    </label>
+                  </div>
+
                   <div
                     style={{
                       display: "flex",

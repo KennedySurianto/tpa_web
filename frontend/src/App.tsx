@@ -23,7 +23,7 @@ import VideoPage from "./pages/video/VideoPage";
 import ManageVideosPage from "./pages/video/ManageVideosPage";
 import EditVideoPage from "./pages/video/EditVideoPage";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import NotificationTester from "./pages/NotificationTest";
+import NotificationTester from "./pages/test/NotificationTest";
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
