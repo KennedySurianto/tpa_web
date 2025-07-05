@@ -50,6 +50,7 @@ const ProfilePage: React.FC = () => {
   const [isFollowingModalOpen, setFollowingModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("videos");
   const [totalLikes, setTotalLikes] = useState<number>(0);
+  const [isFriend, setIsFriend] = useState<boolean>(false);
 
   const {
     followings,
@@ -67,6 +68,26 @@ const ProfilePage: React.FC = () => {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
+
+  // Add this new useEffect hook
+  useEffect(() => {
+    // A friendship can only exist if the current user is following the selected user.
+    if (!isFollowing) {
+      setIsFriend(false);
+      return;
+    }
+
+    // Check if the selectedUser's following list includes the current user.
+    // This confirms a mutual follow (friendship).
+    if (user && followings) {
+      const selectedUserFollowsBack = followings.some(
+        (followedUser) => Number(followedUser.id) === Number(user.id),
+      );
+      setIsFriend(selectedUserFollowsBack);
+    } else {
+      setIsFriend(false);
+    }
+  }, [isFollowing, followings, user]); // This effect depends on these values
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -528,13 +549,17 @@ const ProfilePage: React.FC = () => {
                 <Play size={18} />
                 Videos
               </button>
-              <button
-                onClick={() => handleTabChange("likedVideos")}
-                className={`tab ${activeTab === "likedVideos" ? "active" : ""}`}
-              >
-                <Heart size={18} />
-                Liked Videos
-              </button>
+              {(isOwnProfile ||
+                selectedUser.likeTabVisibility === "everyone" ||
+                (selectedUser.likeTabVisibility === "friends" && isFriend)) && (
+                <button
+                  onClick={() => handleTabChange("likedVideos")}
+                  className={`tab ${activeTab === "likedVideos" ? "active" : ""}`}
+                >
+                  <Heart size={18} />
+                  Liked Videos
+                </button>
+              )}
               <button
                 onClick={() => handleTabChange("playlists")}
                 className={`tab ${activeTab === "playlists" ? "active" : ""}`}
