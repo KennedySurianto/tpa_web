@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Send,
   Paperclip,
@@ -28,6 +28,8 @@ import ChatWebSocket from "../../components/ChatWebSocket";
 import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import defaultAvatar from "../../assets/default.jpg";
 import BreathingBubble from "../../components/BreathingBubble";
+import type { SendNotificationResponse, SendNotificationToUserRequest } from "../../api/gen/notification";
+import { notificationClient } from "../../api/grpc/notificationClient";
 
 type Message = {
   id: number; // local message ID for React rendering
@@ -51,6 +53,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const handleTyping = () => {
     if (typingTimeout.current) {
@@ -222,6 +225,25 @@ export default function ChatPage() {
         prev.map((m) => (m.id === myMessage.id ? { ...m, status: "sent" } : m)),
       );
     }
+
+    if (receiver.messageNotification) {
+      // notification
+      const notifReq: SendNotificationToUserRequest = {
+        userId: receiver.id,
+        title: "New message from " + user.username,
+        body: text,
+        iconUrl: avatarBytesToUrl(user.avatar) || defaultAvatar,
+      }
+      
+      try {
+        const notifRes: SendNotificationResponse =  await notificationClient.SendNotificationToUser(notifReq);
+        if (notifRes.success) {
+          console.log("Notification sent!");
+        }
+      } catch (err) {
+        console.log("Error sending notification: ", err);
+      }
+    }
   };
 
   const handleUnsendMessage = async (message: Message) => {
@@ -320,6 +342,10 @@ export default function ChatPage() {
         return null;
     }
   };
+
+  if (user && receiver && receiver.id === user.id) {
+    navigate("/messages");
+  }
 
   if (!user) {
     return (
