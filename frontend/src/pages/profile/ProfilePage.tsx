@@ -462,7 +462,7 @@ const ProfilePage: React.FC = () => {
         </div>
 
         {/* Private Account Message */}
-        {selectedUser.isPrivate && !isOwnProfile ? (
+        {selectedUser.isPrivate && !isFriend && !isOwnProfile ? (
           <div className="private-account">
             <Lock size={48} className="private-icon" />
             <h3 className="private-title">This account is private</h3>
