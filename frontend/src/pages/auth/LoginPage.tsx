@@ -281,7 +281,7 @@ const LoginPage: React.FC = () => {
 
           {/* Divider */}
           <div className="divider">
-            <span className="divider-text">or continue with</span>
+            <span className="divider-text">or</span>
           </div>
 
           {/* Google Login */}

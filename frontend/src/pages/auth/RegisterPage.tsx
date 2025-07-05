@@ -2,6 +2,7 @@ import type React from "react";
 import { useState } from "react";
 import {
   AuthServiceClientImpl,
+  LoginWithGoogleRequest,
   type RegisterRequest,
   type SendOTPRequest,
   type UserPreferences,
@@ -35,6 +36,8 @@ import {
   MapPin,
   Check,
 } from "lucide-react";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useAuth } from "../../utils/AuthProvider";
 
 const transport = new GrpcWebImpl("http://localhost:8080", {
   transport: undefined,
@@ -72,6 +75,7 @@ interface FormData {
 }
 
 const RegisterPage: React.FC = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -113,6 +117,43 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+
+  const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError("Google login failed: No credential returned from Google.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const request: LoginWithGoogleRequest = {
+      idToken: credentialResponse.credential,
+      deviceInfo: navigator.userAgent,
+    };
+
+    try {
+      // Assumes your authClient has a `LoginWithGoogle` method from the updated proto
+      const response = await authClient.LoginWithGoogle(request);
+      if (response.success) {
+        console.log("Google login successful:", response);
+        login(response); // Use the same login function from your AuthProvider
+        navigate("/home");
+      } else {
+        setError(response.message || response.error || "Google login failed on the server.");
+      }
+    } catch (err: any) {
+      console.error("Google login gRPC error:", err);
+      setError(err.message || "An error occurred during Google login.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    setError("Google login was cancelled or failed. Please try again.");
+    setLoading(false);
+  };
 
   const validateField = (name: string, value: string) => {
     const errors: { [key: string]: string } = {};
@@ -1075,6 +1116,31 @@ const RegisterPage: React.FC = () => {
             {currentStep === 4 && renderStep4()}
           </form>
 
+          {/* Divider */}
+          <div className="divider">
+            <span className="divider-text">or</span>
+          </div>
+
+          {/* Google Login */}
+          <div className="google-login-wrapper">
+            {loading ? (
+              <div className="google-button-disabled">
+                <Loader2 size={18} className="loading-spinner" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={handleGoogleLoginError}
+                text="signup_with"
+                theme="outline"
+                size="large"
+                shape="pill"
+                use_fedcm_for_prompt={true}
+              />
+            )}
+          </div>
+
           {/* Footer */}
           <div className="footer-section">
             <div className="login-link">
@@ -1092,6 +1158,49 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <style>{`
+        .divider {
+          display: flex;
+          align-items: center;
+          margin: 2rem 0;
+          position: relative;
+        }
+
+        .divider::before {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+
+        .divider-text {
+          padding: 0 1.5rem;
+          color: #6b7280;
+          font-size: 0.875rem;
+          font-weight: 500;
+          background: rgba(26, 26, 26, 0.8);
+        }
+
+        .google-login-wrapper {
+          margin-bottom: 2rem;
+        }
+
+        .google-button-disabled {
+          width: 100%;
+          padding: 1rem 1.5rem;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 9999px;
+          color: #ffffff;
+          font-size: 0.95rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .register-container {
           min-height: 100vh;
           display: flex;
