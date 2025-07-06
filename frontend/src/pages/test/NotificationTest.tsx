@@ -29,10 +29,10 @@ const NotificationTester: React.FC = () => {
 
   // Automatically set the user ID if the user is logged in
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user?.id) {
       setTargetUserId(String(user.id));
     }
-  }, [user, authLoading]);
+  }, [user?.id, authLoading]);
 
   // Check if the browser is already subscribed when the page loads
   useEffect(() => {

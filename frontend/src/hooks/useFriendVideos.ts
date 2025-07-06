@@ -33,7 +33,7 @@ export function useFriendVideos() {
     };
 
     fetchFriendVideos();
-  }, [user]);
+  }, [authLoading, user?.id]);
 
   return { videos, setVideos, loading };
 }

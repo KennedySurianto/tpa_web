@@ -37,7 +37,7 @@ export function useFavoriteVideos(userId : string) {
     };
 
     fetchFavoriteVideos();
-  }, [authLoading, currentUser, userId]);
+  }, [authLoading, currentUser?.id, userId]);
 
   return { videos, setVideos, loading };
 }

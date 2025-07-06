@@ -30,7 +30,7 @@ export function useFollowingVideos() {
     };
 
     fetchFriendVideos();
-  }, [user]);
+  }, [authLoading, user?.id]);
 
   return { videos, setVideos, loading };
 }

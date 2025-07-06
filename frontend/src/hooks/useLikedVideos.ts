@@ -35,7 +35,7 @@ export function useLikedVideos(userId: number) {
     };
 
     fetchLikedVideos();
-  }, [user, userId]);
+  }, [authLoading, user?.id, userId]);
 
   return { videos, loading };
 }

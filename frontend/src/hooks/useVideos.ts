@@ -11,7 +11,12 @@ export function useVideos(limit: number = 10, lastVideoId: string = "") {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading){
+      console.log("auth is still loading..");
+      return;
+    } else {
+      console.log("auth is loaded.");
+    }
 
     const fetchVideos = async () => {
       setLoading(true);
@@ -64,7 +69,7 @@ export function useVideos(limit: number = 10, lastVideoId: string = "") {
     };
 
     fetchVideos();
-  }, [user?.id]);
+  }, [authLoading, user?.id]);
 
   return { videos, setVideos, loading };
 }

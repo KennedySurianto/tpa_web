@@ -30,7 +30,7 @@ export function useSpecificVideo(videoId: string) {
     if (videoId) {
       fetchSpecificVideo();
     }
-  }, [videoId, user]);
+  }, [authLoading, videoId, user?.id]);
 
   return { videos, setVideos, loading };
 }

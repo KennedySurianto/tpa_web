@@ -35,7 +35,7 @@ export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user
     };
 
     checkFollowAndCount();
-  }, [currentUser?.id, user.id]);
+  }, [authLoading, currentUser?.id, user.id]);
 
   const handleToggleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation();
