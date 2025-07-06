@@ -9,15 +9,19 @@ import { useAuth } from "../utils/AuthProvider";
 import defaultAvatar from "../assets/default.jpg";
 import { avatarBytesToUrl } from "../utils/avatarConverter";
 import { CheckCircle, Users, UserPlus, UserMinus } from "lucide-react";
+import type { SendNotificationResponse, SendNotificationToUserRequest } from "../api/gen/notification";
+import { notificationClient } from "../api/grpc/notificationClient";
 
 export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user }) => {
-  const { user: currentUser, getAuthMetadata } = useAuth();
+  const { user: currentUser, loading: authLoading, getAuthMetadata } = useAuth();
   const navigate = useNavigate();
   const [isFollowed, setIsFollowed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
+    if (authLoading) return;
+
     const checkFollowAndCount = async () => {
       if (currentUser?.id) {
         try {
@@ -52,6 +56,26 @@ export const UserCard: React.FC<{ user: User; currentUserId: number }> = ({ user
         await followClient.Follow(req, getAuthMetadata());
         setIsFollowed(true);
         setFollowerCount((prevCount) => prevCount + 1);
+
+        if (user.newFollowerNotification) {
+          const notifReq: SendNotificationToUserRequest = {
+            userId: user.id,
+            title: "New Follower!",
+            body: "@" + currentUser.username + " has followed you.",
+            iconUrl: avatarBytesToUrl(currentUser.avatar) || defaultAvatar,
+          }
+
+          try {
+            const notifRes: SendNotificationResponse = await notificationClient.SendNotificationToUser(notifReq);
+            if (notifRes.success) {
+              console.log("Follow notification has sent successfully to " + user.username);
+            } else {
+              console.log("Failed to send follow notification to " + user.username);
+            }
+          } catch (err) {
+            console.log("Error send follow notification: ", err);
+          }
+        }
       }
     } catch (err) {
       console.error("Follow/unfollow error:", err);
