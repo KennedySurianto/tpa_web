@@ -121,6 +121,12 @@ static_resources:
                           route:
                             cluster: notification-service
 
+                        # Route favorite-service gRPC calls
+                        - match:
+                            prefix: "/favorite.FavoriteService/"
+                          route:
+                            cluster: favorite-service
+
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -275,6 +281,22 @@ static_resources:
                     socket_address:
                       address: notification-service
                       port_value: 50058
+    
+    # favorite Service cluster
+    - name: favorite-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}  # Enable HTTP/2 for gRPC
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: favorite-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: favorite-service
+                      port_value: 50059
 
 admin:
   access_log_path: "/tmp/admin_access.log"

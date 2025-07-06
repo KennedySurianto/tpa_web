@@ -18,6 +18,7 @@ import (
 	userpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
 	pb "github.com/KennedySurianto/tpa_web/backend/shared/gen/video"
 	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
+	favoritepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/favorite"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/model"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/service"
 )
@@ -30,6 +31,7 @@ type VideoController struct {
 	followClient followpb.FollowServiceClient
 	watchClient watchpb.WatchServiceClient
 	commentClient commentpb.CommentServiceClient
+	favoriteClient favoritepb.FavoriteServiceClient
 }
 
 func NewVideoController(
@@ -39,6 +41,7 @@ func NewVideoController(
 	followClient followpb.FollowServiceClient,
 	watchClient watchpb.WatchServiceClient,
 	commentClient commentpb.CommentServiceClient,
+	favoriteClient favoritepb.FavoriteServiceClient,
 	) *VideoController {
 	return &VideoController{
 		videoService: videoService,
@@ -47,11 +50,12 @@ func NewVideoController(
 		followClient: followClient,
 		watchClient:  watchClient,
 		commentClient: commentClient,
+		favoriteClient: favoriteClient,
 	}
 }
 
 func (s *VideoController) modelToProto(ctx context.Context, video *model.Video, currentUserId uint64) *pb.Video {
-	likesCount, commentsCount, viewsCount, isLiked, user, err := s.fetchVideoAttributes(ctx, uint32(video.ID), uint32(video.UserID), uint32(currentUserId))
+	likesCount, commentsCount, viewsCount, isLiked, user, isFavorite, err := s.fetchVideoAttributes(ctx, uint32(video.ID), uint32(video.UserID), uint32(currentUserId))
 	if err != nil {
 		fmt.Printf("Error fetching video attributes for video %d: %v\n", video.ID, err)
 	}
@@ -81,6 +85,7 @@ func (s *VideoController) modelToProto(ctx context.Context, video *model.Video, 
 		CreatedAt:     timestamppb.New(video.CreatedAt),
 		UpdatedAt:     timestamppb.New(video.UpdatedAt),
 		IsPublished: video.IsPublished,
+		IsFavorite: isFavorite,
 	}
 
 	if video.SoundID != nil {
@@ -342,17 +347,17 @@ func (vc *VideoController) GetFollowingVideos(ctx context.Context, req *pb.GetVi
 }
 
 func (vc *VideoController) fetchVideoAttributes(
-    ctx context.Context, 
-    videoId uint32,
+	ctx context.Context, 
+	videoId uint32,
 	userId uint32,
-    currentUserId uint32,
-) (uint64, uint64, uint64, bool, *userpb.User, error) {
-    // Fetch Likes Count
-    likeResp, _ := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: videoId})
+	currentUserId uint32,
+) (uint64, uint64, uint64, bool, *userpb.User, bool, error) {
+	// Fetch Likes Count
+	likeResp, _ := vc.likeClient.GetVideoLikeCount(ctx, &likepb.GetVideoLikeCountRequest{VideoId: videoId})
 	likesCount := uint64(0);
-    if likeResp != nil {
-        likesCount = likeResp.Count;
-    }
+	if likeResp != nil {
+		likesCount = likeResp.Count;
+	}
 
 	// Fetch views count from watch service (if applicable)
 	viewsResp, _ := vc.watchClient.GetViewCount(ctx, &watchpb.GetViewCountRequest{VideoId: videoId})
@@ -361,40 +366,55 @@ func (vc *VideoController) fetchVideoAttributes(
 		viewsCount = uint64(viewsResp.Count)
 	}
 
-    // Fetch Comments Count
+	// Fetch Comments Count
 	commentResp, _ := vc.commentClient.GetCommentCount(ctx, &commentpb.GetCommentCountRequest{VideoId: videoId})
 	commentsCount := uint64(0)
 	if commentResp != nil {
 		commentsCount = commentResp.Count
 	}
 
-    // Fetch IsLiked status for the user if userId is provided
-    isLiked := false
-    if currentUserId != 0 {
-        likeResp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{
-            UserId:  currentUserId,
-            VideoId: videoId,
-        })
-        if err != nil || likeResp == nil {
-            isLiked = false
+	// Fetch IsLiked status for the user if userId is provided
+	isLiked := false
+	if currentUserId != 0 {
+		likeResp, err := vc.likeClient.IsLiked(ctx, &likepb.IsLikedRequest{
+			UserId:  currentUserId,
+			VideoId: videoId,
+		})
+		if err != nil || likeResp == nil {
+			isLiked = false
 			fmt.Println("Error fetching like status:", err)
-        } else {
-            isLiked = likeResp.Liked
+		} else {
+			isLiked = likeResp.Liked
 			fmt.Println("Like status for video", videoId, "by user", currentUserId, "is", isLiked)
-        }
-    }
+		}
+	}
 
-    // Fetch user info if available
+	isFavorite := false
+	if currentUserId != 0 {
+		favoriteResp, err := vc.favoriteClient.IsFavorited(ctx, &favoritepb.IsFavoritedRequest{
+			UserId:  uint64(currentUserId),
+			VideoId: uint64(videoId),
+		})
+		if err != nil || likeResp == nil {
+			isFavorite = false
+			fmt.Println("Error fetching favorite status:", err)
+		} else {
+			isFavorite = favoriteResp.IsFavorited
+			fmt.Println("Favorite status for video", videoId, "by user", currentUserId, "is", isFavorite)
+		}
+	}
+
+	// Fetch user info if available
 	var user *userpb.User
 	if userId != 0 {
 		var err error
 		user, err = vc.userClient.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: uint64(userId)})
 		if err != nil {
-			return likesCount, commentsCount, viewsCount, isLiked, nil, fmt.Errorf("failed to fetch user info: %v", err)
+			return likesCount, commentsCount, viewsCount, isLiked, nil, isFavorite, fmt.Errorf("failed to fetch user info: %v", err)
 		}
 	}
 
-	return likesCount, commentsCount, viewsCount, isLiked, user, nil
+	return likesCount, commentsCount, viewsCount, isLiked, user, isFavorite, nil
 }
 
 func (vc *VideoController) GetAllVideos(ctx context.Context, req *pb.GetVideosByUserIdRequest) (*pb.GetVideosResponse, error) {

@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useFollowings } from "../../hooks/useFollowings";
 import { useFollowers } from "../../hooks/useFollowers";
+import { useFavoriteVideos } from "../../hooks/useFavoriteVideos";
 
 const ProfilePage: React.FC = () => {
   const { user, getAuthMetadata, logout } = useAuth();
@@ -64,6 +65,7 @@ const ProfilePage: React.FC = () => {
   } = useFollowers(selectedUser?.id ? Number(selectedUser.id) : 0);
 
   const { videos: likedVideos } = useLikedVideos(selectedUser?.id ? Number(selectedUser.id) : 0);
+  const { videos: favoriteVideos } = useFavoriteVideos(selectedUser?.id ? selectedUser.id : "0");
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -567,13 +569,15 @@ const ProfilePage: React.FC = () => {
                 <List size={18} />
                 Playlists
               </button>
-              <button
-                onClick={() => handleTabChange("favouriteVideos")}
-                className={`tab ${activeTab === "favouriteVideos" ? "active" : ""}`}
-              >
-                <Star size={18} />
-                Favorite Videos
-              </button>
+              { isOwnProfile && (
+                <button
+                  onClick={() => handleTabChange("favouriteVideos")}
+                  className={`tab ${activeTab === "favouriteVideos" ? "active" : ""}`}
+                >
+                  <Star size={18} />
+                  Favorite Videos
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -587,8 +591,8 @@ const ProfilePage: React.FC = () => {
               {activeTab === "playlists" && (
                 <PlaylistTab userId={selectedUser.id} isOwnProfile={isOwnProfile} />
               )}
-              {activeTab === "favouriteVideos" && (
-                <VideoTab videos={videos} isOwnProfile={isOwnProfile} isVideoTab={false} />
+              {activeTab === "favouriteVideos" && isOwnProfile && (
+                <VideoTab videos={favoriteVideos} isOwnProfile={isOwnProfile} isVideoTab={false} />
               )}
             </div>
           </>

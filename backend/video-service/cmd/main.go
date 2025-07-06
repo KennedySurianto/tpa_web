@@ -14,6 +14,7 @@ import (
 	followpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/follow"
 	watchpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/watch"
 	commentpb "github.com/KennedySurianto/tpa_web/backend/shared/gen/comment"
+	favoritepb "github.com/KennedySurianto/tpa_web/backend/shared/gen/favorite"
 	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/controller"
 	"github.com/KennedySurianto/tpa_web/backend/video-service/internal/database"
@@ -55,13 +56,14 @@ func main() {
 	followClient := getFollowClient()
 	watchClient := getWatchClient()
 	commentClient := getCommentClient()
+	favoriteClient := getFavoriteClient()
 
 	// Dependency Injection
 	db := database.ConnectDatabase()
 	videoRepo := repository.NewVideoRepository(db)
 	minioClient := storage.NewMinIOClient()
 	videoService := service.NewVideoService(videoRepo, minioClient, likeClient, watchClient, commentClient)
-	videoController := controller.NewVideoController(videoService, userClient, likeClient, followClient, watchClient, commentClient)
+	videoController := controller.NewVideoController(videoService, userClient, likeClient, followClient, watchClient, commentClient, favoriteClient)
 
 	// Register gRPC service
 	pb.RegisterVideoServiceServer(grpcServer, videoController)
@@ -179,4 +181,20 @@ func getCommentClient() commentpb.CommentServiceClient {
     }
     
 	return commentpb.NewCommentServiceClient(conn)
+}
+
+func getFavoriteClient() favoritepb.FavoriteServiceClient {
+	favoriteServiceHost := os.Getenv("FAVORITE_SERVICE_HOST")
+	favoriteServicePort := os.Getenv("FAVORITE_SERVICE_PORT")
+
+	conn, err := grpc.NewClient(
+        fmt.Sprintf("%s:%s", favoriteServiceHost, favoriteServicePort),
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+    )
+
+    if err != nil {
+        log.Fatalf("Failed to connect to activity service: %v", err)
+    }
+    
+	return favoritepb.NewFavoriteServiceClient(conn)
 }

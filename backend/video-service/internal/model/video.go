@@ -23,6 +23,7 @@ type Video struct {
 	ViewsCount    uint `gorm:"default:0" json:"views_count"`
 	LikesCount    uint `gorm:"default:0" json:"likes_count"`
 	CommentsCount uint `gorm:"default:0" json:"comments_count"`
+	FavoritesCount uint `gorm:"default:0" json:"favorite_count"`
 
 	// Feature flags (editable by creator)
 	AllowComments bool `json:"allow_comments"`

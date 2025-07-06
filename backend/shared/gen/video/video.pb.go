@@ -104,15 +104,17 @@ type Video struct {
 	LikesCount    uint32 `protobuf:"varint,14,opt,name=likes_count,json=likesCount,proto3" json:"likes_count,omitempty"`
 	CommentsCount uint32 `protobuf:"varint,15,opt,name=comments_count,json=commentsCount,proto3" json:"comments_count,omitempty"`
 	// Feature flags
-	AllowComments bool   `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
-	AllowDuet     bool   `protobuf:"varint,17,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
-	AllowStitch   bool   `protobuf:"varint,18,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
-	User          *User  `protobuf:"bytes,19,opt,name=user,proto3" json:"user,omitempty"`
-	IsLiked       bool   `protobuf:"varint,20,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
-	LikeCount     uint64 `protobuf:"varint,21,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
-	IsPublished   bool   `protobuf:"varint,22,opt,name=is_published,json=isPublished,proto3" json:"is_published,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AllowComments  bool   `protobuf:"varint,16,opt,name=allow_comments,json=allowComments,proto3" json:"allow_comments,omitempty"`
+	AllowDuet      bool   `protobuf:"varint,17,opt,name=allow_duet,json=allowDuet,proto3" json:"allow_duet,omitempty"`
+	AllowStitch    bool   `protobuf:"varint,18,opt,name=allow_stitch,json=allowStitch,proto3" json:"allow_stitch,omitempty"`
+	User           *User  `protobuf:"bytes,19,opt,name=user,proto3" json:"user,omitempty"`
+	IsLiked        bool   `protobuf:"varint,20,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
+	LikeCount      uint64 `protobuf:"varint,21,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	IsPublished    bool   `protobuf:"varint,22,opt,name=is_published,json=isPublished,proto3" json:"is_published,omitempty"`
+	IsFavorite     bool   `protobuf:"varint,23,opt,name=is_favorite,json=isFavorite,proto3" json:"is_favorite,omitempty"`
+	FavoritesCount uint32 `protobuf:"varint,24,opt,name=favorites_count,json=favoritesCount,proto3" json:"favorites_count,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Video) Reset() {
@@ -297,6 +299,20 @@ func (x *Video) GetIsPublished() bool {
 		return x.IsPublished
 	}
 	return false
+}
+
+func (x *Video) GetIsFavorite() bool {
+	if x != nil {
+		return x.IsFavorite
+	}
+	return false
+}
+
+func (x *Video) GetFavoritesCount() uint32 {
+	if x != nil {
+		return x.FavoritesCount
+	}
+	return 0
 }
 
 // Request/Response messages
@@ -1342,7 +1358,7 @@ const file_video_proto_rawDesc = "" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xa0\x06\n" +
+	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xea\x06\n" +
 	"\x05Video\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x129\n" +
 	"\n" +
@@ -1373,7 +1389,10 @@ const file_video_proto_rawDesc = "" +
 	"\bis_liked\x18\x14 \x01(\bR\aisLiked\x12\x1d\n" +
 	"\n" +
 	"like_count\x18\x15 \x01(\x04R\tlikeCount\x12!\n" +
-	"\fis_published\x18\x16 \x01(\bR\visPublishedB\x0e\n" +
+	"\fis_published\x18\x16 \x01(\bR\visPublished\x12\x1f\n" +
+	"\vis_favorite\x18\x17 \x01(\bR\n" +
+	"isFavorite\x12'\n" +
+	"\x0ffavorites_count\x18\x18 \x01(\rR\x0efavoritesCountB\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_sound_id\"\xfd\x03\n" +
 	"\x12CreateVideoRequest\x12\x17\n" +

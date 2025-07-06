@@ -48,6 +48,8 @@ export interface Video {
   isLiked: boolean;
   likeCount: string;
   isPublished: boolean;
+  isFavorite: boolean;
+  favoritesCount: number;
 }
 
 /** Request/Response messages */
@@ -283,6 +285,8 @@ function createBaseVideo(): Video {
     isLiked: false,
     likeCount: "0",
     isPublished: false,
+    isFavorite: false,
+    favoritesCount: 0,
   };
 }
 
@@ -353,6 +357,12 @@ export const Video: MessageFns<Video> = {
     }
     if (message.isPublished !== false) {
       writer.uint32(176).bool(message.isPublished);
+    }
+    if (message.isFavorite !== false) {
+      writer.uint32(184).bool(message.isFavorite);
+    }
+    if (message.favoritesCount !== 0) {
+      writer.uint32(192).uint32(message.favoritesCount);
     }
     return writer;
   },
@@ -540,6 +550,22 @@ export const Video: MessageFns<Video> = {
           message.isPublished = reader.bool();
           continue;
         }
+        case 23: {
+          if (tag !== 184) {
+            break;
+          }
+
+          message.isFavorite = reader.bool();
+          continue;
+        }
+        case 24: {
+          if (tag !== 192) {
+            break;
+          }
+
+          message.favoritesCount = reader.uint32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -573,6 +599,8 @@ export const Video: MessageFns<Video> = {
       isLiked: isSet(object.isLiked) ? globalThis.Boolean(object.isLiked) : false,
       likeCount: isSet(object.likeCount) ? globalThis.String(object.likeCount) : "0",
       isPublished: isSet(object.isPublished) ? globalThis.Boolean(object.isPublished) : false,
+      isFavorite: isSet(object.isFavorite) ? globalThis.Boolean(object.isFavorite) : false,
+      favoritesCount: isSet(object.favoritesCount) ? globalThis.Number(object.favoritesCount) : 0,
     };
   },
 
@@ -644,6 +672,12 @@ export const Video: MessageFns<Video> = {
     if (message.isPublished !== false) {
       obj.isPublished = message.isPublished;
     }
+    if (message.isFavorite !== false) {
+      obj.isFavorite = message.isFavorite;
+    }
+    if (message.favoritesCount !== 0) {
+      obj.favoritesCount = Math.round(message.favoritesCount);
+    }
     return obj;
   },
 
@@ -674,6 +708,8 @@ export const Video: MessageFns<Video> = {
     message.isLiked = object.isLiked ?? false;
     message.likeCount = object.likeCount ?? "0";
     message.isPublished = object.isPublished ?? false;
+    message.isFavorite = object.isFavorite ?? false;
+    message.favoritesCount = object.favoritesCount ?? 0;
     return message;
   },
 };

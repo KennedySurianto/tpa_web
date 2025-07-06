@@ -119,6 +119,26 @@ services:
       retries: 3
       start_period: 10s
 
+  favorite-db:
+    container_name: favorite-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${FAVORITE_DB_NAME}
+    ports:
+      - "5439:5432"
+    volumes:
+      - favorite-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${FAVORITE_DB_NAME}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   # Application services
   envoy:
     container_name: envoy
@@ -271,6 +291,8 @@ services:
       USER_SERVICE_PORT: ${USER_SERVICE_PORT}
       ACTIVITY_SERVICE_HOST: ${ACTIVITY_SERVICE_HOST}
       ACTIVITY_SERVICE_PORT: ${ACTIVITY_SERVICE_PORT}
+      FAVORITE_SERVICE_HOST: ${FAVORITE_SERVICE_HOST}
+      FAVORITE_SERVICE_PORT: ${FAVORITE_SERVICE_PORT}
       PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     volumes:
@@ -418,6 +440,34 @@ services:
       retries: 3
       start_period: 20s
 
+  favorite-service:
+    container_name: favorite-service
+    build:
+      context: ./backend
+      dockerfile: favorite-service/Dockerfile.dev
+    expose:
+      - "50059"
+    ports:
+      - 50059:50059
+    environment:
+      PORT: ${FAVORITE_SERVICE_PORT}
+      DATABASE_URL: ${DATABASE_URL_FAVORITE}
+      VIDEO_SERVICE_HOST: ${VIDEO_SERVICE_HOST}
+      VIDEO_SERVICE_PORT: ${VIDEO_SERVICE_PORT}
+      PASETO_PRIVATE_KEY: ${PASETO_PRIVATE_KEY}
+    volumes:
+      - ./backend/favorite-service:/app/favorite-service
+      - ./backend/shared:/app/shared
+      - ./backend/middleware:/app/middleware
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50059"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
   frontend:
     container_name: frontend
     build: ./frontend
@@ -442,6 +492,7 @@ volumes:
   chat-db-data:
   playlist-db-data:
   notification-db-data:
+  favorite-db-data:
   minio-data:
 
 networks:

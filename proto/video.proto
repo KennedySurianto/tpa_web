@@ -46,6 +46,9 @@ message Video {
   uint64 like_count = 21;
 
   bool is_published = 22;
+
+  bool is_favorite = 23;
+  uint32 favorites_count = 24;
 }
 
 // Request/Response messages

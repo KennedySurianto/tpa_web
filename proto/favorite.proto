@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package favorite;
+
+import "google/protobuf/timestamp.proto";
+import "video.proto";
+
+option go_package = "github.com/KennedySurianto/tpa_web/backend/shared/gen/favorite;favorite";
+
+message Favorite {
+    uint64 id = 1;
+    uint64 user_id = 2;
+    uint64 video_id = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+service FavoriteService {
+    rpc AddFavorite(AddFavoriteRequest) returns (AddFavoriteResponse);
+    rpc RemoveFavorite(RemoveFavoriteRequest) returns (RemoveFavoriteResponse);
+    rpc GetFavoriteVideosByUserId(GetFavoriteVideosByUserIdRequest) returns (GetFavoriteVideosByUserIdResponse);
+    rpc IsFavorited(IsFavoritedRequest) returns (IsFavoritedResponse);
+}
+
+// Requests and Responses
+
+message AddFavoriteRequest {
+    uint64 user_id = 1;
+    uint64 video_id = 2;
+}
+
+message AddFavoriteResponse {
+    bool success = 1;
+}
+
+message RemoveFavoriteRequest {
+    uint64 user_id = 1;
+    uint64 video_id = 2;
+}
+
+message RemoveFavoriteResponse {
+    bool success = 1;
+}
+
+message GetFavoriteVideosByUserIdRequest {
+    uint64 user_id = 1;
+    uint64 current_user_id = 2; // To check for video access permissions
+}
+
+message GetFavoriteVideosByUserIdResponse {
+    repeated video.Video videos = 1;
+}
+
+message IsFavoritedRequest {
+    uint64 user_id = 1;
+    uint64 video_id = 2;
+}
+
+message IsFavoritedResponse {
+    bool is_favorited = 1;
+}

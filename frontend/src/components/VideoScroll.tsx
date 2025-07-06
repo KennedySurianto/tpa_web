@@ -28,6 +28,9 @@ import { avatarBytesToUrl } from "../utils/avatarConverter";
 import defaultAvatar from "../assets/default.jpg";
 import ShareVideoModal from "../pages/modals/ShareVideoModal";
 import { ProcessRichText } from "../utils/ProcessRichText";
+import type { AddFavoriteRequest, AddFavoriteResponse, RemoveFavoriteRequest, RemoveFavoriteResponse } from "../api/gen/favorite";
+import { favoriteClient } from "../api/grpc/favoriteClient";
+import { useNotification } from "../context/NotificationContext";
 
 interface props {
   videos: Video[];
@@ -74,6 +77,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [caption, setCaption] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState<{ [videoId: number]: boolean }>({});
+  const { showNotification } = useNotification();
 
   const scrollToVideo = (index: number) => {
     setCurrentVideoIndex(index);
@@ -248,9 +252,60 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (videoId: number) => {
-    console.log(`Saved video ${videoId}`);
-    // TODO: add save logic here
+  const handleSave = async (videoId: number) => {
+    if (!user || !user.id) return;
+
+    const req: AddFavoriteRequest = {
+      userId: user.id,
+      videoId: String(videoId),
+    }
+
+    console.log("Adding favorite...");
+
+    try {
+      const res: AddFavoriteResponse = await favoriteClient.AddFavorite(req);
+      if (res && res.success) {
+        setVideos((prevVideos) =>
+          prevVideos.map((video) =>
+            video.id === videoId
+              ? { ...video, isFavorite: true }
+              : video,
+          ),
+        );
+        showNotification("Video added to favourites!", "success");
+      }
+    } catch (err) {
+      console.log("Failed to add to favorites: ", err);
+      showNotification("Failed to add to favorites!", "error");
+    }
+  };
+
+  const handleUnsave = async (videoId: number) => {
+    if (!user || !user.id) return;
+
+    const req: RemoveFavoriteRequest = {
+      userId: user.id,
+      videoId: String(videoId),
+    }
+
+    console.log("Removing favorite...");
+
+    try {
+      const res: RemoveFavoriteResponse = await favoriteClient.RemoveFavorite(req);
+      if (res && res.success) {
+        setVideos((prevVideos) =>
+          prevVideos.map((video) =>
+            video.id === videoId
+              ? { ...video, isFavorite: false }
+              : video,
+          ),
+        );
+        showNotification("Video removed from favourites!", "success");
+      }
+    } catch (err) {
+      console.log("Failed to remove from favorites: ", err);
+      showNotification("Failed to remove from favorites!", "error");
+    }
   };
 
   const handleUserClick = (username: string) => {
@@ -633,19 +688,18 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
                     )}
 
                     <button
+                      onClick={() => !video.isFavorite ? handleSave(video.id) : handleUnsave(video.id)}
+                      className={`action-button save-button ${video.isFavorite ? "favorited" : ""}`}
+                    >
+                      <Bookmark size={20} className={video.isFavorite ? "filled" : ""} />
+                    </button>
+                    
+                    <button
                       onClick={() => handleShare(video.id, video.videoUrl, video.caption)}
                       className="action-button share-button"
                     >
                       <Share2 size={20} />
                       <span>Share</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleSave(video.id)}
-                      className="action-button save-button"
-                    >
-                      <Bookmark size={20} />
-                      <span>Save</span>
                     </button>
                   </div>
 
@@ -1150,6 +1204,14 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
         }
 
         .like-button.liked .filled {
+          fill: currentColor;
+        }
+
+        .save-button.favorited {
+          color: yellow;
+        }
+
+        .save-button.favorited .filled {
           fill: currentColor;
         }
 
