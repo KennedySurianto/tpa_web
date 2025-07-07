@@ -408,7 +408,7 @@ const VideoScroll: React.FC<props> = ({ videos, setVideos, loading }) => {
     if (!user?.id) return;
 
     try {
-      await followClient.Follow({ followerId: Number(user.id), followedId: videoOwnerId });
+      await followClient.Follow({ followerId: Number(user.id), followedId: videoOwnerId }, getAuthMetadata());
       setFollowersMap((prev) => ({
         ...prev,
         [videoOwnerId]: [...(prev[videoOwnerId] || []), Number(user.id)],
