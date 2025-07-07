@@ -63,19 +63,39 @@ func NewVideoService(
 }
 
 func generateCaptions(videoPath string) (*Captions, error) {
-    cmd := exec.Command("python3", "/app/internal/ai/caption_generator.py", videoPath)
-    output, err := cmd.Output()
-	fmt.Println("Caption Generation Output: ", output)
-	if err != nil {
-		return nil, fmt.Errorf("caption gen failed: %w\nOutput:\n%s", err, string(output))
+	scriptPath := "/app/video-service/internal/ai/caption_generator.py"
+
+	// BARU: Langkah 1 - Periksa apakah skrip Python ada
+	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+		fmt.Printf("DEBUG: Python script not found at %s\n", scriptPath)
+		return &Captions{}, nil
 	}
 
-    var captions Captions
-    if err := json.Unmarshal(output, &captions); err != nil {
-        return nil, fmt.Errorf("caption parse failed: %w", err)
-    }
+	// BARU: Langkah 2 - Periksa apakah file video ada
+	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
+		fmt.Printf("DEBUG: Video file not found at %s\n", videoPath)
+		return &Captions{}, nil
+	}
 
-    return &captions, nil
+	// Alur selanjutnya tetap sama
+	cmd := exec.Command("python3", scriptPath, videoPath)
+	output, err := cmd.Output()
+	// output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Printf("caption gen failed (returning empty): %v\nOutput:\n%s\n", err, string(output))
+		return &Captions{}, nil
+	}
+
+	fmt.Println("Caption Generation Output: ", string(output))
+
+	var captions Captions
+	if err := json.Unmarshal(output, &captions); err != nil {
+		fmt.Printf("caption parse failed (returning empty): %v\n", err)
+		return &Captions{}, nil
+	}
+
+	return &captions, nil
 }
 
 func (s *VideoServiceImpl) CreateVideo(req *pb.CreateVideoRequest) (*model.Video, error) {

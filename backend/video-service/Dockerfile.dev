@@ -51,12 +51,14 @@ ENV PATH="/venv/bin:$PATH"
 
 # Install Whisper + googletrans using venv's pip
 RUN /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install "numpy<2.0" && \
     /venv/bin/pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     /venv/bin/pip install git+https://github.com/openai/whisper.git && \
     /venv/bin/pip install googletrans==4.0.0-rc1
 
 # ----------- Copy Code & Tools -----------
 COPY video-service/scripts/entrypoint.sh /entrypoint.sh
+COPY video-service/internal/ai/caption_generator.py ./internal/ai/
 RUN chmod +x /entrypoint.sh
 
 # MinIO client

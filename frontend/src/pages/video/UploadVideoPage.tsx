@@ -18,7 +18,7 @@ import type {
 import { playlistClient } from "../../api/grpc/playlistClient";
 
 const UploadVideoPage: React.FC = () => {
-  const { user, getAuthMetadata } = useAuth();
+  const { user, loading: authLoading, getAuthMetadata } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [description, setDescription] = useState("");
@@ -105,7 +105,7 @@ const UploadVideoPage: React.FC = () => {
   };
 
   const handleUpload = async () => {
-    if (!file || !user?.id) return;
+    if (authLoading || !file || !user?.id) return;
 
     setLoading(true);
     try {

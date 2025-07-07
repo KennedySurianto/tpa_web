@@ -32,6 +32,7 @@ import { likeCommentClient } from "../../api/grpc/likeCommentClient";
 import { avatarBytesToUrl } from "../../utils/avatarConverter";
 import defaultAvatar from "../../assets/default.jpg";
 import { ProcessRichText } from "../../utils/ProcessRichText";
+import { containsValidMention } from "../../utils/containsValidMention";
 
 interface Props {
   videoId: number;
@@ -171,6 +172,9 @@ const CommentBar: React.FC<Props> = ({ videoId, onClose, canComment }) => {
         } else {
           setReplyInputs((prev) => ({ ...prev, [replyToId]: "" }));
         }
+
+        const isSuccessSendingNotification = await containsValidMention(content, user.username, user.avatar);
+        console.log("Notification sent status: ", isSuccessSendingNotification);
       } else {
         setErrorMessage("Failed to post comment. Please try again.");
       }
