@@ -43,7 +43,7 @@ type Message = {
 };
 
 export default function ChatPage() {
-  const { user, getAuthMetadata } = useAuth();
+  const { user, loading: authLoading, getAuthMetadata } = useAuth();
   const { receiverUsername } = useParams<{ receiverUsername: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [receiver, setReceiver] = useState<User | null>(null);
@@ -100,7 +100,7 @@ export default function ChatPage() {
   }, [receiverUsername]);
 
   useEffect(() => {
-    if (!user || !receiver) return;
+    if (authLoading || !user || !receiver) return;
 
     const fetchMessages = async () => {
       try {
@@ -130,7 +130,7 @@ export default function ChatPage() {
     };
 
     fetchMessages();
-  }, [user, receiver]);
+  }, [authLoading, user, receiver]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
@@ -150,6 +150,7 @@ export default function ChatPage() {
       console.log("typing incoming msg: ", msg);
       if (msg.is_typing) {
         setIsTyping(true);
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       } else {
         setIsTyping(false);
       }

@@ -11,7 +11,7 @@ import type { GetFriendsRequest, GetFriendsResponse } from "../../api/gen/follow
 import { followClient } from "../../api/grpc/followClient";
 
 export default function ChatFriendsSidebar() {
-  const { user, getAuthMetadata } = useAuth();
+  const { user, loading: authLoading, getAuthMetadata } = useAuth();
   const [friends, setFriends] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -23,9 +23,9 @@ export default function ChatFriendsSidebar() {
 
   // Initial fetch
   useEffect(() => {
+    if (authLoading || !user || !user.id) return;
+    
     const fetchInitialFriends = async () => {
-      if (!user || !user.id) return;
-
       setLoading(true);
       const req: GetFriendsRequest = {
         userId: user.id,
@@ -49,7 +49,7 @@ export default function ChatFriendsSidebar() {
     };
 
     fetchInitialFriends();
-  }, [user, limit]);
+  }, [authLoading, user, limit]);
 
   // Fetch more friends function
   const fetchMoreFriends = useCallback(
