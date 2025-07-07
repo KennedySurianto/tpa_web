@@ -15,24 +15,25 @@ import (
 	"google.golang.org/api/idtoken"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/model"
+	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcacheclient"
 	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/user"
+	"github.com/bradfitz/gomemcache/memcache"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthServiceImpl struct {
 	userClient   user.UserServiceClient
 	pasetoMaker  *middleware.PasetoMaker
-	tokenStorage map[string]*model.TokenInfo
+	memcacheClient *memcacheclient.Client
 }
 
-func NewAuthService(userClient user.UserServiceClient, pasetoMaker *middleware.PasetoMaker) AuthService {
+func NewAuthService(userClient user.UserServiceClient, pasetoMaker *middleware.PasetoMaker, memcacheClient *memcacheclient.Client) AuthService {
 	return &AuthServiceImpl{
 		userClient:   userClient,
 		pasetoMaker:  pasetoMaker,
-		tokenStorage: make(map[string]*model.TokenInfo),
+		memcacheClient: memcacheClient,
 	}
 }
 
@@ -325,7 +326,10 @@ func (s *AuthServiceImpl) Logout(ctx context.Context, req *auth.LogoutRequest) (
 	}
 
 	// Remove refresh token from storage
-	delete(s.tokenStorage, req.RefreshToken)
+	err := s.memcacheClient.DeleteRefreshToken(req.RefreshToken)
+	if err != nil {
+		log.Printf("Failed to delete refresh token: %v", err)
+	}
 
 	return &auth.LogoutResponse{
 		Success: true,
@@ -353,82 +357,79 @@ func (s *AuthServiceImpl) ValidateToken(ctx context.Context, req *auth.ValidateT
 }
 
 func (s *AuthServiceImpl) RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.AuthResponse, error) {
+	log.Printf("[DEBUG_AUTH_SERVICE] RefreshToken process started with token: %s", req.RefreshToken)
 	if req == nil || req.RefreshToken == "" {
-		return &auth.AuthResponse{
-			Success: false,
-			Message: "refresh token is required",
-		}, errors.New("missing refresh token")
+		log.Printf("[DEBUG_AUTH_SERVICE] RefreshToken failed: request is nil or token is empty.")
+		return &auth.AuthResponse{Success: false, Message: "refresh token is required"}, errors.New("missing refresh token")
 	}
 
-	// Check if refresh token exists
-	tokenInfo, exists := s.tokenStorage[req.RefreshToken]
-	if !exists {
-		return &auth.AuthResponse{
-			Success: false,
-			Message: "Invalid refresh token",
-		}, errors.New("invalid refresh token")
-	}
-
-	// Check if refresh token is expired
-	if time.Now().After(tokenInfo.ExpiresAt) {
-		delete(s.tokenStorage, req.RefreshToken)
-		return &auth.AuthResponse{
-			Success: false,
-			Message: "Refresh token expired",
-		}, errors.New("refresh token expired")
-	}
-
-	// Get user data
-	getUserReq := &user.GetUserByIdRequest{Id: tokenInfo.UserId}
-	userData, err := s.userClient.GetUserById(ctx, getUserReq)
+	// Step 1: Get userID from Memcache for the provided token.
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 1: Getting userID from Memcache for the provided token.")
+	userId, err := s.memcacheClient.GetRefreshToken(req.RefreshToken)
 	if err != nil {
-		log.Printf("Failed to get user by ID during token refresh: %v", err)
-		return &auth.AuthResponse{
-			Success: false,
-			Message: "User not found",
-		}, err
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 1 FAILED. The token was not found in cache or another error occurred. Error: %v", err)
+		if err == memcache.ErrCacheMiss {
+			return &auth.AuthResponse{Success: false, Message: "Invalid or expired refresh token"}, errors.New("invalid refresh token: not found in cache")
+		}
+		return &auth.AuthResponse{Success: false, Message: "Server error during token refresh"}, err
 	}
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 1 SUCCESS. Found userID: %d for the token.", userId)
 
-	// Generate new tokens
-	accessToken, refreshToken, err := s.generateTokens(userData.Id, userData.Email, userData.Username)
+	// Step 2: Get full user data from user service for the retrieved userID.
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 2: Getting full user data from user service for userID: %d.", userId)
+	getUserReq := &user.GetUserByIdRequest{Id: userId}
+	userResponse, err := s.userClient.GetUserById(ctx, getUserReq)
 	if err != nil {
-		log.Printf("Failed to generate new tokens: %v", err)
-		return &auth.AuthResponse{
-			Success: false,
-			Message: "Failed to generate tokens",
-		}, err
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 2 FAILED. Could not get user by ID from user service. Error: %v", err)
+		return &auth.AuthResponse{Success: false, Message: "Could not find user associated with token"}, err
 	}
+	if userResponse == nil {
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 2 FAILED. User service returned a nil user object for userID: %d.", userId)
+		return &auth.AuthResponse{Success: false, Message: "User account not found"}, errors.New("user not found for valid refresh token")
+	}
+	userData := userResponse
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 2 SUCCESS. Found user: %s.", userData.Username)
+	
+	// Step 3: Generate new tokens.
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 3: Generating new tokens.")
+	accessToken, newRefreshToken, err := s.generateTokens(userData.Id, userData.Email, userData.Username)
+	if err != nil {
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 3 FAILED. Could not generate new tokens. Error: %v", err)
+		return &auth.AuthResponse{Success: false, Message: "Failed to generate new tokens"}, err
+	}
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 3 SUCCESS. New Refresh Token: %s", newRefreshToken)
 
-	// Remove old refresh token and store new one
-	delete(s.tokenStorage, req.RefreshToken)
-	s.storeRefreshToken(refreshToken, userData.Id)
+	// Step 4: Store the new refresh token in Memcache.
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 4: Storing the new refresh token in Memcache.")
+	s.storeRefreshToken(newRefreshToken, userData.Id)
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 4 SUCCESS. New token stored.")
+
+	// Step 5: NOW it's safe to delete the old refresh token.
+	log.Printf("[DEBUG_AUTH_SERVICE] Step 5: Deleting the used refresh token from Memcache.")
+	if err := s.memcacheClient.DeleteRefreshToken(req.RefreshToken); err != nil {
+		// This is not a critical failure, but should be logged.
+		// The old token will eventually expire from Memcache's TTL.
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 5 WARNING: Failed to delete used refresh token, but proceeding. Error: %v", err)
+	} else {
+		log.Printf("[DEBUG_AUTH_SERVICE] Step 5 SUCCESS. Used token deleted.")
+	}
 
 	return &auth.AuthResponse{
 		Success:      true,
 		Message:      "Token refreshed successfully",
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		User: &auth.User{
-			Id:          userData.Id,
-			Username:    userData.Username,
-			Email:       userData.Email,
-			DisplayName: userData.DisplayName,
-			Bio: 	   	 userData.Bio,
-			Avatar:      userData.Avatar,
-			IsVerified:  userData.IsVerified,
-			IsPrivate:  userData.IsPrivate,
-			IsActive:   userData.IsActive,
-			LastLoginAt: userData.LastLoginAt, // Unix timestamp
-			Country:     userData.Country,
-			AllowDuet:  userData.AllowDuet,
-			AllowStitch: userData.AllowStitch,
-			AllowDownload: userData.AllowDownload,
-			AllowComments: userData.AllowComments,
-			CreatedAt:  userData.CreatedAt, // Unix timestamp
-			UpdatedAt:  userData.UpdatedAt, // Unix timestamp
-		},
-		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		RefreshToken: newRefreshToken,
+		User:         s.mapUserToAuthUser(userData),
+		ExpiresAt:    time.Now().Add(24 * time.Hour).Unix(),
 	}, nil
+}
+
+func (s *AuthServiceImpl) storeRefreshToken(token string, userId uint64) {
+	log.Printf("[DEBUG_AUTH_SERVICE] Storing refresh token for userID: %d", userId)
+	err := s.memcacheClient.SetRefreshToken(token, userId)
+	if err != nil {
+		log.Printf("[DEBUG_AUTH_SERVICE] FAILED to store refresh token in service layer. Error: %v", err)
+	}
 }
 
 func (s *AuthServiceImpl) generateTokens(userId uint64, email, username string) (string, string, error) {
@@ -445,13 +446,6 @@ func (s *AuthServiceImpl) generateTokens(userId uint64, email, username string) 
 	refreshToken := base64.URLEncoding.EncodeToString(refreshBytes)
 
 	return accessToken, refreshToken, nil
-}
-
-func (s *AuthServiceImpl) storeRefreshToken(token string, userId uint64) {
-	s.tokenStorage[token] = &model.TokenInfo{
-		UserId:    userId,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days
-	}
 }
 
 func (s *AuthServiceImpl) LoginWithGoogle(ctx context.Context, req *auth.LoginWithGoogleRequest) (*auth.AuthResponse, error) {

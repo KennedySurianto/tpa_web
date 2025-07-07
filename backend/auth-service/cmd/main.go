@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/controller"
-	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcache"
+	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcacheclient"
 	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/service"
 	"github.com/KennedySurianto/tpa_web/backend/middleware"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
@@ -47,9 +47,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	authService := service.NewAuthService(userClient, pasetoMaker)
 	memcacheHost := getEnv("MEMCACHED_HOST", ":11211")
-	memcacheClient := memcache.NewMemcacheClient(memcacheHost)
+	memcacheClient := memcacheclient.NewMemcacheClient(memcacheHost)
+	authService := service.NewAuthService(userClient, pasetoMaker, memcacheClient)
 	otpService := service.NewOTPService(memcacheClient)
 	authController := controller.NewAuthController(authService, otpService, userClient)
 

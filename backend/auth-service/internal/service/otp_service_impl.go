@@ -8,17 +8,17 @@ import (
 	"os"
 	"time"
 
-	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcache"
+	"github.com/KennedySurianto/tpa_web/backend/auth-service/internal/memcacheclient"
 	"github.com/KennedySurianto/tpa_web/backend/shared/gen/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type OTPServiceImpl struct {
-	Cache *memcache.Client
+	Cache *memcacheclient.Client
 }
 
-func NewOTPService(Cache *memcache.Client) OTPService {
+func NewOTPService(Cache *memcacheclient.Client) OTPService {
 	return &OTPServiceImpl{
 		Cache: Cache,
 	}
